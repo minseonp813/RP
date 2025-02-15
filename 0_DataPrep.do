@@ -4,7 +4,10 @@ log using 0_DataPrep_020920.log, replace
 * WRITTEN BY MINSEON PARK 02-09-20
 * Basic Prep for Analysis
 * Iv_afriat using Halevy code, RDU specification following Halevy et al. (2018)
-******************************************************************************** 
+********************************************************************************
+
+
+* 테스트입니다.
 
 set more off
 set matsize 8000
