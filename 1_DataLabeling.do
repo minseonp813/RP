@@ -5,7 +5,7 @@ log using 1_DataLabeling_020920.log, replace
 * Labe Main Data Sets
 ******************************************************************************** 
 
-use Risk_ByPair.dta, clear
+use "C:/Users/hahn0/Dropbox/RP/Data/Risk_ByPair.dta", clear
 	
 *** Labeling Variable Names	
 	la var Iv_afriat_ind "Student 1 Iv_afriat"
@@ -42,7 +42,7 @@ use Risk_ByPair.dta, clear
 	la var riskpremium_crra_ind_dis "Difference of Indiv. Param Risk Premiums (CRRA)"
 	*la var riskpremium_ind_ave "Average of Indiv. Param Risk Premiums (CRRA)"
 	la var Iv_afriat_col "Pair Iv_afriat"
-	la var Iv_varian_col "Pair Iv_varian"
+	// la var Iv_varian_col "Pair Iv_varian"
 	la var riskaversionpair "Pair of Indiv. Risk Aversion"
 	la var riskaversion_col "Pair NonParam Risk Aversion"
 	la var riskpremium_col "Pair Param Risk Prevmium (CARA)"
@@ -69,6 +69,6 @@ use Risk_ByPair.dta, clear
 	la val prweighting_col prweighting
 	
 	
-save Risk_ByPair.dta, replace
+save "C:/Users/hahn0/Dropbox/RP/Data/Risk_ByPair.dta", replace
 
 log c	
