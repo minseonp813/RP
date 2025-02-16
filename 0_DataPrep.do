@@ -1,4 +1,4 @@
-log using 0_DataPrep_020920.log, replace
+log using 0_DataPrep_BH.log, replace
 
 ********************************************************************************
 * WRITTEN BY MINSEON PARK 02-09-20
@@ -6,16 +6,13 @@ log using 0_DataPrep_020920.log, replace
 * Iv_afriat using Halevy code, RDU specification following Halevy et al. (2018)
 ********************************************************************************
 
-
-* 테스트입니다.
-
 set more off
 set matsize 8000
 
-cd "~/Dropbox/RP/Data"
-global mmi = "~/Dropbox/RP/Estimation_Money Metric Index/Code Package"
-global source = "~/Dropbox/RP/Data/SourceDataSets"
-global mmi_post = "~/Dropbox/RP/Estimation_Money Metric Index/Post Estimation_MS"
+cd "C:/Users/hahn0/Dropbox/RP/Data"
+global mmi = "C:/Users/hahn0/Dropbox/RP/Estimation_Money Metric Index/Code Package"
+global source = "C:/Users/hahn0/Dropbox/RP/Data/SourceDataSets"
+global mmi_post = "C:/Users/hahn0/Dropbox/RP/Estimation_Money Metric Index/Post Estimation_MS"
 global omega = 0.001 // value from HPZ_No_Corners.m
 
 
@@ -41,6 +38,8 @@ use "$source/Risk_Raw.dta", clear
 ren id_new id
 keep id game_type round_number coord_x coord_y intercept_x intercept_y partner_both mover
 
+tab mover // t and f ? (BH)
+
 * Error
 count if (coord_x>intercept_x) | (coord_y>intercept_y) // 1 observation, only can happen when error occurs
 drop if id==1110601 & round_number==1 
@@ -59,6 +58,14 @@ egen groupid=rowmax(id partner)
 
 save Risk_Raw_Cleaned.dta, replace
 
+* round_number별 개수 확인 (BH)
+bysort groupid round_number: gen count = _N
+egen total_rounds = total(count), by(groupid)
+tab total_rounds
+drop if total_rounds == 144
+tab id
+tab round_number
+keep if (game_type == 1 & round_number == 1)
 
 *****
 *Cleaning survey
@@ -75,6 +82,12 @@ alpha_rr alpha_rr_std rho_rr rho_rr_std riskpremiu~r game_type pe_rr ;
 
 save Survey_Cleaned.dta, replace 
 
+tab treatment
+tab txtreatment
+tab grade // 1학년 2823, 2학년 602
+tab class
+tab male // 1이 남성 2가 여성?
+sum weight, detail // height 200 weight 44 같은 이상한 값들도 있는듯
 
 *****
 * Export data for parameter estimation
@@ -109,6 +122,9 @@ order id game_type Iv_afriat-isexact
 
 save GARPResults.dta, replace
 
+tab isexact
+sum Iv_afriat, detail
+sum Iv_varian?, detail
 
 *****
 * Cleaning Function Estimstion Results

@@ -9,10 +9,10 @@ set more off
 set matsize 8000
 
 
-cd "C:\Users\minseon\Dropbox\RP\Data"
-global results_int = "C:\Users\minseon\Dropbox\RP\Data\Results_Internal"
-global results_main = "C:\Users\minseon\Dropbox\RP\Data\Results_Main"
-global results_app = "C:\Users\minseon\Dropbox\RP\Data\Results_Appendix"
+cd "C:\Users\hahn0\Dropbox\RP\Data"
+global results_int = "C:\Users\hahn0\Dropbox\RP\Data\Results_Internal"
+global results_main = "C:\Users\hahn0\Dropbox\RP\Data\Results_Main"
+global results_app = "C:\Users\hahn0\Dropbox\RP\Data\Results_Appendix"
 
 
 *** Main Specification
