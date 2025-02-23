@@ -23,6 +23,10 @@ global mmi_post = "C:\Users\hahn0\Dropbox\RP\Estimation_Money Metric Index\Post 
 *** no case where uii < uiw
 *** conclusion: the difference is very minor. coming from loosing prevision when Stata saves something
 
+sum uii, detail
+sum uipec, detail
+sum uiw, detail
+
 use Risk_ByChoice.dta, clear
 keep if uii < uipec |  uii < uic // N=6
 
