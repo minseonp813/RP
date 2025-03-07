@@ -14,14 +14,18 @@ log using 1_ParetoOptimalChoices_020920.log, replace
 set more off
 set matsize 8000
 
-cd "C:\Users\minseon\Dropbox\RP\Data"
-global mmi = "C:\Users\minseon\Dropbox\RP\Estimation_Money Metric Index\Code Package"
-global source = "C:\Users\minseon\Dropbox\RP\Data\SourceDataSets"
-global mmi_post = "C:\Users\minseon\Dropbox\RP\Estimation_Money Metric Index\Post Estimation_MS"
+cd "C:\Users\hahn0\Dropbox\RP\Data"
+global mmi = "C:\Users\hahn0\Dropbox\RP\Estimation_Money Metric Index\Code Package"
+global source = "C:\Users\hahn0\Dropbox\RP\Data\SourceDataSets"
+global mmi_post = "C:\Users\hahn0\Dropbox\RP\Estimation_Money Metric Index\Post Estimation_MS"
 
 *** 1. uii < uipec |  uii < uic 
 *** no case where uii < uiw
 *** conclusion: the difference is very minor. coming from loosing prevision when Stata saves something
+
+sum uii, detail
+sum uipec, detail
+sum uiw, detail
 
 use Risk_ByChoice.dta, clear
 keep if uii < uipec |  uii < uic // N=6

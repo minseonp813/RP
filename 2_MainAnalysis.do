@@ -9,10 +9,10 @@ set more off
 set matsize 8000
 
 
-cd "C:\Users\minseon\Dropbox\RP\Data"
-global results_int = "C:\Users\minseon\Dropbox\RP\Data\Results_Internal"
-global results_main = "C:\Users\minseon\Dropbox\RP\Data\Results_Main"
-global results_app = "C:\Users\minseon\Dropbox\RP\Data\Results_Appendix"
+cd "C:\Users\hahn0\Dropbox\RP\Data"
+global results_int = "C:\Users\hahn0\Dropbox\RP\Data\Results_Internal"
+global results_main = "C:\Users\hahn0\Dropbox\RP\Data\Results_Main"
+global results_app = "C:\Users\hahn0\Dropbox\RP\Data\Results_Appendix"
 
 
 *** Main Specification
@@ -27,12 +27,76 @@ global Iscutpair = "Is_ind<=$Iscut & Is_ind2<=$Iscut"
 global cov1="mathscore_max mathscore_dist"
 global cov2="mathscore_max mathscore_dist i.malepair i.friendship"
 
+*****
+* [BH] Het Friendship
+*****
+
+use Risk_ByPair.dta, clear
+tab friendship
+
+/*
+keep if (id == 1410813 | id == 2310810) // 무조건 반반씩 투자하는 친구
+// Iv_Afriat = 0
+// riskaversion = 0.49
+// riskpremium = 0.95
+// Im = 0
+// uloss = 0 ??
+*/
+
+by friendship, sort: sum Iv_afriat_col riskaversion_col riskpremium_col Im_col uloss_col
+
+* oneway Iv_afriat_col friendship, bonferroni
+
+cdfplot Iv_afriat_col, by(friendship) /// 
+opt1( lc(black blue red) lwidth(0.5 0.5 0.5) ) /// 
+graphregion(color(white))
+
+cdfplot riskaversion_col, by(friendship) /// 
+opt1( lc(black blue red) lwidth(0.5 0.5 0.5) ) /// 
+graphregion(color(white))
+
+cdfplot riskpremium_col, by(friendship) /// 
+opt1( lc(black blue red) lwidth(0.5 0.5 0.5) ) /// 
+graphregion(color(white))
+
+cdfplot Im_col, by(friendship) /// 
+opt1( lc(black blue red) lwidth(0.5 0.5 0.5) ) /// 
+graphregion(color(white))
+
+cdfplot uloss_col, by(friendship) /// 
+opt1( lc(black blue red) lwidth(0.5 0.5 0.5) ) /// 
+graphregion(color(white))
+
+
+reg Iv_afriat_col ib0.friendship, vce(robust)
+qui sum Iv_afriat_col if friendship == 0
+outreg2 using "$results_main\BH_friendship_250306.xls", addstat(Mean of Dep. Var. (friendship=0), r(mean)) dec(3) replace
+
+reg riskaversion_col ib0.friendship, vce(robust)
+qui sum riskaversion_col if friendship == 0
+outreg2 using "$results_main\BH_friendship_250306.xls", addstat(Mean of Dep. Var. (friendship=0), r(mean)) dec(3) append
+
+reg riskpremium_col ib0.friendship, vce(robust)
+qui sum riskpremium_col if friendship == 0
+outreg2 using "$results_main\BH_friendship_250306.xls", addstat(Mean of Dep. Var. (friendship=0), r(mean)) dec(3) append
+
+reg Im_col ib0.friendship, vce(robust)
+qui sum Im_col if friendship == 0
+outreg2 using "$results_main\BH_friendship_250306.xls", addstat(Mean of Dep. Var. (friendship=0), r(mean)) dec(3) append
+
+reg uloss_col ib0.friendship, vce(robust)
+qui sum uloss_col if friendship == 0
+outreg2 using "$results_main\BH_friendship_250306.xls", addstat(Mean of Dep. Var. (friendship=0), r(mean)) dec(3) append
 
 *****
 * TABLE. SUMMARY STATISTICS OF CCEI SCORES / RISK AVERSION / RISKPREMIUM
 *****
 
 use Risk_ByIndiv, clear
+
+sum Iv_afriat_ind, detail
+sum Iv_afriat_col, detail
+
 keep id groupid Iv_afriat_ind Iv_afriat_col riskaversion_ind riskaversion_col Im_ind Im_col riskpremium_ind riskpremium_col Is_ind Is_col rdu_ind rdu_col mover 
 ren (Iv_afriat_ind Iv_afriat_col riskaversion_ind riskaversion_col Im_ind Im_col riskpremium_ind riskpremium_col Is_ind Is_col rdu_ind rdu_col) (Iv_afriat1 Iv_afriat2 riskaversion1 riskaversion2 Im1 Im2 riskpremium1 riskpremium2 Is1 Is2 rdu1 rdu2)
 reshape long Iv_afriat riskaversion Im riskpremium Is rdu, i(id) j(type) // reshape to get the different # of obs for indiv and pair decision
@@ -194,29 +258,62 @@ putexcel D`row' = (r(sd_2))
 *****
 
 use Risk_ByPair.dta, clear
+
 g Iv_afriat_both_hi=(Iv_afriat_ind <= $Ivcut | Iv_afriat_ind2 <= $Ivcut)
 replace Iv_afriat_both_hi=2 if $Ivcutpair
+tab Iv_afriat_both_hi
+sum Iv_afriat_col, detail
 
 cdfplot Iv_afriat_col, by(Iv_afriat_both_hi) opt1( lc(black blue red) lp(solid shortdash longdash) ) ///
-legend(pos(5) ring(0) order(1 "(High, High)" 2 "(Low, High)" 3 "(Low, Low)") col(1)) ///
+legend(pos(5) ring(0) order(1 "(High, High)" 2 "(Low, High)" 10 "(Low, Low)") col(1)) /// 
 xlabel(0(0.1)1) xtitle(Collective Inconsistency) ///
 graphregion(color(white) lcolor(black)  ) ///
 plotregion(margin(zero) fcolor(gs0) ifcolor(white) ilwidth(thick) ) 
-gr export "$results_main\CDF_RationalityExtension.png", replace
 
+* legend 혹시 반대로 된 것은 아닌지..?
+* legend(pos(5) ring(0) order(1 "(Low, Low)" 2 "(Low, High)" 10 "(High, High)") col(1))
+
+
+gr export "$results_main\CDF_RationalityExtension.png", replace
 
 *****
 * TABLE. RATIONALITY EXTENTION-REGRESSION
+* (NOTE) Table2. Econometric analysis on reationality extension
 *****
+
+**# Bookmark #1
+*Note that cov1="mathscore_max mathscore_dist"
+*Note that cov2="mathscore_max mathscore_dist i.malepair i.friendship"
 
 use Risk_ByPair.dta, clear
 
-qui reg Iv_afriat_col Iv_afriat_ind_min Iv_afriat_ind_dist i.class, vce(robust)
-outreg2 using "$results_main\Reg_RationalityExtension.tex", bdec(3) cdec(3) drop(i.class) label addtext(Class FE, YES) replace
-qui reg Iv_afriat_col Iv_afriat_ind_min Iv_afriat_ind_dist $cov1 i.class, vce(robust)
-outreg2 using "$results_main\Reg_RationalityExtension.tex", bdec(3) cdec(3) drop(i.class) label addtext(Class FE, YES) append
-qui reg Iv_afriat_col Iv_afriat_ind_min Iv_afriat_ind_dist $cov2 i.class, vce(robust)
-outreg2 using "$results_main\Reg_RationalityExtension.tex", bdec(3) cdec(3) drop(i.class) label addtext(Class FE, YES) append
+/*qui*/ reg Iv_afriat_col Iv_afriat_ind_min Iv_afriat_ind_dist i.class, vce(robust)
+outreg2 using "$results_main\Reg_RationalityExtension.xls", bdec(3) cdec(3) drop(i.class) label addtext(Class FE, YES) replace
+/*qui*/ reg Iv_afriat_col Iv_afriat_ind_min Iv_afriat_ind_dist $cov1 i.class, vce(robust)
+outreg2 using "$results_main\Reg_RationalityExtension.xls", bdec(3) cdec(3) drop(i.class) label addtext(Class FE, YES) append
+/*qui*/ reg Iv_afriat_col Iv_afriat_ind_min Iv_afriat_ind_dist $cov2 i.class, vce(robust)
+outreg2 using "$results_main\Reg_RationalityExtension.xls", bdec(3) cdec(3) drop(i.class) label addtext(Class FE, YES) append
+
+* 다시 해보기. school characteristic 변수가 필요.
+reg Iv_afriat_col Iv_afriat_ind_min Iv_afriat_ind_dist $cov2 i.class i.malepair, vce(robust)
+qui sum Iv_afriat_col
+outreg2 using "$results_main\Reg_RationalityExtension.xls", addstat(Mean of dependent variable, r(mean)) bdec(3) cdec(3) drop(i.class) label addtext(Class FE, YES, Individual Characteristics, YES, School Characteristics, No, Friendship, Yes) append
+
+* Eshin Data에 있는 코드를 일부 가져와서...
+
+* Model 1
+ reg Iv_afriat_col Iv_afriat_ind_min Iv_afriat_ind_dist i.class, r cl(class)
+
+* Model 2
+reg Iv_afriat_col Iv_afriat_ind_min Iv_afriat_ind_dist mathscore_max mathscore_dist riskaversion_ind_max riskaversion_ind_dist i.class i.malepair i.friendship, r cl(class)
+qui sum Iv_afriat_col
+outreg2 using "$results_main\Reg_RationalityExtension.xls", addstat(Mean of dependent variable, r(mean)) bdec(3) cdec(3) drop(i.class) label addtext(Class FE, YES, Male Pair, YES, Height, No, School Characteristics, No, Friendship, Yes) replace
+
+* height_gr_max height_gr_dist 를 추가로 통제해야.
+
+/* Eshin code 원본 (model 2)
+reg ccei_col ccei_ind_max ccei_ind_dist riskaversion_ind_max riskaversion_ind_dist ib(1).malepair_co mathscore_max mathscore_dist height_gr_max height_gr_dist i.friendship i.class, r cl(class)
+*/
 
 
 *****
@@ -257,7 +354,6 @@ qui reg rdu_col i.rdupair $cov1 i.class if $Iscutpair & Is_col<=$Iscut , vce(rob
 outreg2 using "$results_main\Reg_RiskTypeAggregation.tex", bdec(3) cdec(3) drop(i.class) label ctitle(I_V<=0.1) addtext(Class FE, YES) append
 qui reg rdu_col i.rdupair $cov2 i.class if $Iscutpair & Is_col<=$Iscut , vce(robust)
 outreg2 using "$results_main\Reg_RiskTypeAggregation.tex", bdec(3) cdec(3) drop(i.class) label ctitle(I_V<=0.1) addtext(Class FE, YES) append
-
 
 
 *****
@@ -350,15 +446,25 @@ outreg2 using "$results_main\Reg_RiskpremiumAggregation.tex", bdec(3) cdec(3) ct
 reg riskpremium_col riskpremium_ind_max riskpremium_ind_dist $cov2 i.class if $Iscutpair & Iv_afriat_col<=$Iscut , vce(robust)
 outreg2 using "$results_main\Reg_RiskpremiumAggregation.tex", bdec(3) cdec(3) ctitle(I_M-I_V<=0.1) drop(i.class) label addtext(Class FE, YES) append
 
-
 *****
 * FIGURE. HISTOGRAM OF UTILITY LOSS
 *****
 
 use Risk_ByPair.dta, clear
-twoway (histogram uloss, percent), xtitle(Welfare Loss) graphregion(color(white) lcolor(black)  ) ///
+
+* Figure 7. a? 완벽하게 같지는 않지만 코드를 좀 수정해보면,
+twoway (histogram uloss_col, percent), xtitle(Welfare Loss) graphregion(color(white) lcolor(black)  ) ///
 plotregion(margin(zero) fcolor(gs0) ifcolor(white) ilwidth(thick) )
 gr export "$results_main/Hist_WelfareLoss.png", replace
+
+* 신은철 교수님 코드
+twoway ( histogram uloss_col, percent bcolor(gs10) barw(0.03) lcolor(gs1) lwidth(1) ) , ///
+xtitle("Welfare Loss", size(5) height(6)) ///
+xscale(range(0.0 1.0)) xlabel(0.0 (0.2) 1.0, labgap(0.5) labsize(4)) ///
+ytitle("Frequency (%)", size(5) height(6)) ///
+yscale(range(0 25)) ylabel(0 (5) 25, labgap(0.5) labsize(4)) ///
+graphregion(color(white))
+
 
 twoway (histogram uloss if $Imcutpair, percent), xtitle(Welfare Loss) graphregion(color(white) lcolor(black)  ) ///
 plotregion(margin(zero) fcolor(gs0) ifcolor(white) ilwidth(thick) )
@@ -387,6 +493,16 @@ xlabel(0(0.1)1) xtitle(Welfare Loss) ///
 graphregion(color(white) lcolor(black)  ) ///
 plotregion(margin(zero) fcolor(gs0) ifcolor(white) ilwidth(thick) ) 
 gr export "$results_main\CDF_WelfareLoss.png", replace
+
+* 신은철 교수님 코드대로 그리려면,
+gen ccei_col90 = cond( Iv_afriat_col <= 0.1 ,1,0) // added 2025.03.06
+
+cdfplot uloss_col, by(ccei_col90) ///
+opt1( lc(black red ) lp(solid solid) lwidth(0.8 0.8 0.8) ) ///
+legend( order(1 "Low CCEI Group" 2 "High CCEI Group" ) col(1) position(5) ring(0) size(5))
+xtitle("Welfare Loss", size(5) height(6)) ///
+xscale(range(0.0 1.0)) xlabel(0.0 (0.2) 1.0, labgap(0.5) labsize(4)) ytitle("Cumulative Frequency", size(5) height(6)) yscale(range(0.0 1.0)) ylabel(0.0 (0.2) 1.0, labgap(0.5) labsize(4)) graphregion(color(white))
+
 
 cdfplot uloss_col if $Imcutpair, by(Im_col_lo) opt1( lc(black blue red) lp(solid shortdash longdash) ) ///
 legend(pos(5) ring(0) order(1 "High" 2 "Low") col(1)) ///
@@ -419,6 +535,7 @@ graphregion(color(white) lcolor(black)  ) ///
 plotregion(margin(zero) fcolor(gs0) ifcolor(white) ilwidth(thick) ) 
 gr export "$results_main\CDF_WelfareLoss_IvCut.png", replace */
 
+**# Bookmark #3
 
 *****
 * TABLE. UTILITY LOSS - REGRESSION
