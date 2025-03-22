@@ -28,11 +28,216 @@ global cov1="mathscore_max mathscore_dist"
 global cov2="mathscore_max mathscore_dist i.malepair i.friendship"
 
 *****
-* [BH] Het Friendship
+* [BH]
 *****
 
 use Risk_ByPair.dta, clear
-tab friendship
+
+sort id
+
+**# Bookmark #1
+* EshinData 의 칼럼들을 새로 만들기 위한 Presets
+gen ccei_ind = 1 - Iv_afriat_ind
+gen ccei_col = 1 - Iv_afriat_col
+gen ccei_ind2 = 1 - Iv_afriat_ind2
+
+
+g ccei_ind99=cond(ccei_ind>=0.99,1,0)
+g ccei_ind95=cond(ccei_ind>=0.95,1,0)
+g ccei_ind90=cond(ccei_ind>=0.90,1,0)
+g ccei_col99=cond(ccei_col>=0.99,1,0)
+g ccei_col95=cond(ccei_col>=0.95,1,0)
+g ccei_col90=cond(ccei_col>=0.90,1,0)
+
+g ccei_ind992=cond(ccei_ind2>=0.99,1,0)
+g ccei_ind952=cond(ccei_ind2>=0.95,1,0)
+g ccei_ind902=cond(ccei_ind2>=0.90,1,0)
+g ccei_col992=cond(ccei_col>=0.99,1,0)
+g ccei_col952=cond(ccei_col>=0.95,1,0)
+g ccei_col902=cond(ccei_col>=0.90,1,0)
+
+/*
+rename ccei_ind ccei_ind1
+rename ccei_ind2 ccei_ind2
+keep id ccei_ind1 ccei_ind2
+reshape long ccei_ind, i(id) j(player)
+sum ccei_ind, detail
+*/
+
+g ccei_ind_median = cond(ccei_ind >=0.9534135,1,0) 
+g ccei_ind_median2 = cond(ccei_ind2 >=0.9534135,1,0) 
+
+foreach t in 99 95 90 _median {
+g ccei_both`t'=cond(ccei_ind`t'==1|ccei_ind`t'2==1,1,0)
+replace ccei_both`t' =2 if ccei_ind`t'==1&ccei_ind`t'2==1
+la define ccei_both`t' 0 "Both Irrational" 1 "Only One is Rational" 2 "Both Rational"
+la val ccei_both`t' ccei_both`t'
+}
+
+egen ccei_ind_max = rowmax(ccei_ind ccei_ind2)
+gen ccei_ind_dist = abs(ccei_ind - ccei_ind2)
+egen height_gr_max = rowmax(height_gr height_gr2)
+gen height_gr_dist = abs(height_gr - height_gr2)
+
+
+g malepair_shin = cond(male == 1 & male2 == 1, 2, 0)
+replace malepair_shin = 1 if (male == 1 & male2 == 2) | (male == 2 & male2 == 1)
+replace malepair_shin = 3 if male == 2 & male2 == 2
+replace malepair_shin = . if malepair_shin == 0
+la de malepair_shin 1 "Hetero" 2 "Boys" 3 "Girls"
+la val malepair_shin malepair_shin
+tab malepair_shin
+
+g malepair_co = cond(coed == 0, 0, .)
+replace malepair_co = 1 if coed == 0 & malepair_shin == 3
+replace malepair_co = 2 if coed == 1 & malepair_shin == 1
+replace malepair_co = 3 if coed == 1 & malepair_shin == 2
+replace malepair_co = 4 if coed == 1 & malepair_shin == 3
+tab malepair_co
+la de malepair_co 0 "Non Coed_Boys" 1 "Non Coed_Girls" 2 "Coed_Hetero" 3 "Coed_Boys" 4 "Coed_Girls"
+la val malepair_co malepair_co
+**********************************************
+
+* Figure 3. (완료)
+cdfplot ccei_col, by(ccei_both_median) ///
+opt1( ///
+lc(black blue red) ///
+lp(solid shortdash solid) ///
+lwidth(0.8 0.8 0.8) ///
+) ///
+legend( ///
+order(1 "(Low, Low)" 2 "(Low, High)" 3 "(High, High)") col(1) ///
+position(10) ring(0) ///
+size(5) ///
+) ///
+xtitle("Collective Rationality", size(5) height(6)) ///
+xscale(range(0.1 1.0)) xlabel(0.2 (0.2) 1.0, labgap(0.5) labsize(4)) ///
+ytitle("Cumulative Frequency", size(5) height(6)) ///
+yscale(range(0.0 1.0)) ylabel(0.0 (0.2) 1.0, labgap(0.5) labsize(4)) ///
+graphregion(color(white))
+//graph export "Figure1_CCEI_90.png", as(png) replace
+
+* Figure 3. (중간값을 대신 사용한 버젼)
+cdfplot ccei_col, by(ccei_both90) ///
+opt1( ///
+lc(black blue red) ///
+lp(solid shortdash solid) ///
+lwidth(0.8 0.8 0.8) ///
+) ///
+legend( ///
+order(1 "(Low, Low)" 2 "(Low, High)" 3 "(High, High)") col(1) ///
+position(10) ring(0) ///
+size(5) ///
+) ///
+xtitle("Collective Rationality", size(5) height(6)) ///
+xscale(range(0.1 1.0)) xlabel(0.2 (0.2) 1.0, labgap(0.5) labsize(4)) ///
+ytitle("Cumulative Frequency", size(5) height(6)) ///
+yscale(range(0.0 1.0)) ylabel(0.0 (0.2) 1.0, labgap(0.5) labsize(4)) ///
+graphregion(color(white))
+//graph export "Figure1_CCEI_90.png", as(png) replace
+
+*** Table 2 (specification 수정)
+reg ccei_col ccei_ind_max ccei_ind_dist i.class, r cl(class)
+outreg2 using "Table2_Colriskaversion.xls", ///
+bdec(3) cdec(3) drop(i.class) label addtext(Class FE, YES, Individual Characteristics, No, School Characteristics, No, Friendship, No) replace
+
+sum mathscore_max mathscore_dist height_gr_max height_gr_dist
+
+foreach var in mathscore_max mathscore_dist height_gr_max height_gr_dist {
+    gen `var'_missing = missing(`var')
+    replace `var' = 0 if missing(`var')
+}
+
+reg ccei_col ccei_ind_max ccei_ind_dist mathscore_max mathscore_dist height_gr_max height_gr_dist height_gr_dist_missing height_gr_max_missing mathscore_dist_missing mathscore_max_missing ib(1).malepair_co i.friendship i.class, r cl(class)
+outreg2 using "Table2_Colriskaversion.xls", ///
+bdec(3) cdec(3) drop(i.class) label addtext(Class FE, YES, Individual Characteristics, Yes, School Characteristics, Yes, Friendship, Yes) append
+
+reg ccei_col mathscore_max mathscore_dist height_gr_max height_gr_dist height_gr_dist_missing height_gr_max_missing mathscore_dist_missing mathscore_max_missing ib(1).malepair_co i.friendship i.class, r cl(class)
+outreg2 using "Table2_Colriskaversion.xls", ///
+bdec(3) cdec(3) drop(i.class) label addtext(Class FE, YES, Individual Characteristics, Yes, School Characteristics, Yes, Friendship, Yes) append
+
+*** Table 2 (missing drop)
+drop if height_gr_dist == .
+drop if mathscore_dist == .
+
+reg ccei_col ccei_ind_max ccei_ind_dist i.class, r cl(class)
+outreg2 using "Table2_drop.xls", ///
+bdec(3) cdec(3) drop(i.class) label addtext(Class FE, YES, Individual Characteristics, No, School Characteristics, No, Friendship, No) replace
+
+reg ccei_col ccei_ind_max ccei_ind_dist mathscore_max mathscore_dist height_gr_max height_gr_dist ib(1).malepair_co i.friendship i.class, r cl(class)
+outreg2 using "Table2_drop.xls", ///
+bdec(3) cdec(3) drop(i.class) label addtext(Class FE, YES, Individual Characteristics, Yes, School Characteristics, Yes, Friendship, Yes) append
+
+reg ccei_col mathscore_max mathscore_dist height_gr_max height_gr_dist ib(1).malepair_co i.friendship i.class, r cl(class)
+outreg2 using "Table2_drop.xls", ///
+bdec(3) cdec(3) drop(i.class) label addtext(Class FE, YES, Individual Characteristics, Yes, School Characteristics, Yes, Friendship, Yes) append
+
+* Figure 5
+cdfplot riskaversion_col, by(riskaversionpair) opt1(lc(black blue red) lp(solid shortdash solid) lwidth(0.8 0.8 0.8)) legend(order(1 "(Low, Low)" 2 "(Low, High)" 3 "(High, High)") col(1) position(10) ring(0) size(5)) xtitle("Collective Risk Aversion", size(5) height(6)) xscale(range(0.0 1.0)) xlabel(0.0 (0.2) 1.0, labgap(0.5) labsize(4)) ytitle("Cumulative Frequency", size(5) height(6)) yscale(range(0.0 1.0)) ylabel(0.0 (0.2) 1.0, labgap(0.5) labsize(4)) graphregion(color(white)) plotregion(margin(zero) fcolor(gs0) ifcolor(white) ilwidth(thick))
+//gr export "$results_main\CDF_RiskAversionAggregation.png", replace
+
+
+* Table 6. (missing dummy)
+
+sum riskaversion_ind_max riskaversion_ind_dist mathscore_max mathscore_dist 
+
+foreach var in mathscore_max mathscore_dist {
+    gen `var'_missing = missing(`var')
+    replace `var' = 0 if missing(`var')
+}
+
+
+reg riskaversion_col riskaversion_ind_max riskaversion_ind_dist i.class, vce(robust)
+outreg2 using "Table6.xls", bdec(3) cdec(3) drop(i.class) label addtext(Class FE, YES, Individual Characteristics, No, School Characteristics, No, Friendship, No) replace
+
+reg riskaversion_col riskaversion_ind_max riskaversion_ind_dist mathscore_max mathscore_dist mathscore_max_missing mathscore_dist_missing i.class i.malepair i.friendship, vce(robust)
+outreg2 using "Table6.xls", bdec(3) cdec(3) drop(i.class i.malepair i.friendship) label addtext(Class FE, YES, Individual Characteristics, YES, School Characteristics, YES, Friendship, YES) append
+
+reg riskaversion_col mathscore_max mathscore_dist mathscore_max_missing mathscore_dist_missing i.class i.malepair i.friendship, vce(robust)
+outreg2 using "Table6.xls", bdec(3) cdec(3) drop(i.class i.malepair i.friendship) label addtext(Class FE, YES, Individual Characteristics, YES, School Characteristics, YES, Friendship, YES) append
+
+* Table 6. (drop)
+
+drop if mathscore_dist == .
+
+reg riskaversion_col riskaversion_ind_max riskaversion_ind_dist i.class, vce(robust)
+outreg2 using "Table6_drop.xls", bdec(3) cdec(3) drop(i.class) label addtext(Class FE, YES, Individual Characteristics, No, School Characteristics, No, Friendship, No) replace
+
+reg riskaversion_col riskaversion_ind_max riskaversion_ind_dist mathscore_max mathscore_dist i.class i.malepair i.friendship, vce(robust)
+outreg2 using "Table6_drop.xls", bdec(3) cdec(3) drop(i.class i.malepair i.friendship) label addtext(Class FE, YES, Individual Characteristics, YES, School Characteristics, YES, Friendship, YES) append
+
+reg riskaversion_col mathscore_max mathscore_dist i.class i.malepair i.friendship, vce(robust)
+outreg2 using "Table6_drop.xls", bdec(3) cdec(3) drop(i.class i.malepair i.friendship) label addtext(Class FE, YES, Individual Characteristics, YES, School Characteristics, YES, Friendship, YES) append
+
+
+* Table 3 & 5 (코드 못찾았으나 그냥 코드를 짜보면)
+
+
+gen panel = 0 // Complete sample
+replace panel = 1 if Im_col <= 0.1
+replace panel = 2 if Ic_col <= 0.1
+replace panel = 3 if (Im_col - Ic_col) <= 0.1
+
+sum probweight_ind if panel == 0
+sum probweight_col if panel == 0
+
+foreach p in 0 1 2 3 {
+    di "===== PANEL `p' ====="
+    
+    // Individual decision summary
+    count if panel == `p'
+    sum probweight_ind if panel == `p'
+    
+    // Joint decision summary
+    count if panel == `p'
+    sum probweight_col if panel == `p'
+    
+    // 평균 차이에 대한 t-test
+    ttest probweight_ind == probweight_col if panel == `p'
+}
+
+**# 끝
+
 
 /*
 keep if (id == 1410813 | id == 2310810) // 무조건 반반씩 투자하는 친구

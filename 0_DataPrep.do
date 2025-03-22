@@ -1,7 +1,7 @@
 log using 0_DataPrep_BH.log, replace
 
 ********************************************************************************
-* WRITTEN BY MINSEON PARK 02-09-20
+* WRITTEN BY MINSEON PARK 02-09-20 (Adjusted by Byunghun Hahn)
 * Basic Prep for Analysis
 * Iv_afriat using Halevy code, RDU specification following Halevy et al. (2018)
 ********************************************************************************
@@ -657,6 +657,7 @@ save Risk_ByIndiv.dta, replace
 *****
 * Group-level
 *****
+**# Bookmark #1
 
 use Risk_ByIndiv.dta, clear
 

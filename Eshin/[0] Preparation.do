@@ -4,6 +4,8 @@
 
 ***Clearing the raw and exporting for estimation
 
+cd "C:\Users\hahn0\Dropbox\RP\EShin_Data"
+
 use Risk_Raw.dta, clear
 ren id id
 keep id game_type round_number coord_x coord_y intercept_x intercept_y partner_both mover
