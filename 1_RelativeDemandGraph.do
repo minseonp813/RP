@@ -4,6 +4,9 @@
 *** Written by Minseon Park, 012818
 *** Added Euncheol Shin's format, 122319
 
+cd "C:\Users\hahn0\Dropbox\RP\Data"
+global grph = "C:\Users\hahn0\Dropbox\RP\Data\graphs"
+
 use Risk_merged.dta, clear 
 egen temp=tag(groupid)
 sort temp groupid
@@ -13,6 +16,9 @@ bysort groupid : replace temp1=temp1[1]
 
 quietly: su temp1
 local M= r(max)
+
+display "`M'"
+
 * local M=1
 
 

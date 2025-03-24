@@ -8,11 +8,11 @@ log using 1_SimResults_020920.log, replace
 set more off
 set matsize 8000
 
-cd "C:\Users\minseon\Dropbox\RP\Data"
-global mmi = "C:\Users\minseon\Dropbox\RP\Estimation_Money Metric Index\Code Package"
-global source = "C:\Users\minseon\Dropbox\RP\Data\SourceDataSets"
-global mmi_post = "C:\Users\minseon\Dropbox\RP\Estimation_Money Metric Index\Post Estimation_MS"
-global results_int = "C:\Users\minseon\Dropbox\RP\Data\Results_Internal"
+cd "C:\Users\hahn0\Dropbox\RP\Data"
+global mmi = "C:\Users\hahn0\Dropbox\RP\Estimation_Money Metric Index\Code Package"
+global source = "C:\Users\hahn0\Dropbox\RP\Data\SourceDataSets"
+global mmi_post = "C:\Users\hahn0\Dropbox\RP\Estimation_Money Metric Index\Post Estimation_MS"
+global results_int = "C:\Users\hahn0\Dropbox\RP\Data\Results_Internal"
 
 
 **********

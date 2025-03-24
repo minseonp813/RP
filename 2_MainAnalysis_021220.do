@@ -10,10 +10,10 @@ set more off
 set matsize 8000
 
 
-cd "C:\Users\minseon\Dropbox\RP\Data"
-global results_int = "C:\Users\minseon\Dropbox\RP\Data\Results_Internal"
-global results_main = "C:\Users\minseon\Dropbox\RP\Data\Results_Main\1stYrs"
-global results_app = "C:\Users\minseon\Dropbox\RP\Data\Results_Appendix"
+cd "C:\Users\hahn0\Dropbox\RP\Data"
+global results_int = "C:\Users\hahn0\Dropbox\RP\Data\Results_Internal"
+global results_main = "C:\Users\hahn0\Dropbox\RP\Data\Results_Main\1stYrs"
+global results_app = "C:\Users\hahn0\Dropbox\RP\Data\Results_Appendix"
 
 
 *** Only with First Years
@@ -232,7 +232,6 @@ qui reg Iv_afriat_col Iv_afriat_ind_min Iv_afriat_ind_dist $cov1 i.class, vce(ro
 outreg2 using "$results_main\Reg_RationalityExtension.xls", bdec(3) cdec(3) drop(i.class) label addtext(Class FE, YES) append
 qui reg Iv_afriat_col Iv_afriat_ind_min Iv_afriat_ind_dist $cov2 i.class, vce(robust)
 outreg2 using "$results_main\Reg_RationalityExtension.xls", bdec(3) cdec(3) drop(i.class) label addtext(Class FE, YES) append
-
 
 *****
 * TABLE. PROBABILITY WEIGHTING TYPE AGGREGATION

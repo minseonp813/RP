@@ -89,6 +89,14 @@ tab class
 tab male // 1이 남성 2가 여성?
 sum weight, detail // height 200 weight 44 같은 이상한 값들도 있는듯
 
+winsor weight, p(0.01) generate(winsor_weight)
+summarize weight winsor_weight, detail
+
+winsor height, p(0.01) generate(winsor_height)
+summarize height winsor_height, detail
+
+
+
 *****
 * Export data for parameter estimation
 *****
