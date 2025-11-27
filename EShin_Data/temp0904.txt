@@ -1,0 +1,15 @@
+CARA
+1)uii>uipec: 0
+2)uii>uic: 0
+3)uii>uiw: 0
+4)uipec>uic: 2894 cases -> 912 -> 10
+5)uipec>uiw: 0 
+6)uic>uiw:0 
+
+CRRA
+1)uii>uipec 1968
+2)uii>uic 2073
+3)uii>uiw 694
+4)uipec>uic 2120
+5)uipec>uiw 486
+6)uic>uiw 2106

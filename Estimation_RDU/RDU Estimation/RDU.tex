@@ -1,0 +1,240 @@
+%2multibyte Version: 5.50.0.2953 CodePage: 1252
+
+\documentclass[12pt]{article}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{mitpress}
+
+\setcounter{MaxMatrixCols}{10}
+%TCIDATA{OutputFilter=LATEX.DLL}
+%TCIDATA{Version=5.50.0.2953}
+%TCIDATA{Codepage=1252}
+%TCIDATA{<META NAME="SaveForMode" CONTENT="1">}
+%TCIDATA{BibliographyScheme=Manual}
+%TCIDATA{Created=Saturday, August 29, 2009 00:10:35}
+%TCIDATA{LastRevised=Monday, September 12, 2016 23:41:18}
+%TCIDATA{<META NAME="GraphicsSave" CONTENT="32">}
+%TCIDATA{<META NAME="DocumentShell" CONTENT="Articles\SW\A Simple MIT Press Article">}
+%TCIDATA{CSTFile=LaTeX Article (bright).cst}
+
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{conclusion}[theorem]{Conclusion}
+\newtheorem{condition}[theorem]{Condition}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{criterion}[theorem]{Criterion}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{exercise}[theorem]{Exercise}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{notation}[theorem]{Notation}
+\newtheorem{problem}[theorem]{Problem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{solution}[theorem]{Solution}
+\newtheorem{summary}[theorem]{Summary}
+\newenvironment{proof}[1][Proof]{\noindent\textbf{#1.} }{\ \rule{0.5em}{0.5em}}
+\def\baselinestretch{1.5}
+\setlength{\textwidth}{6.5in}
+\setlength{\oddsidemargin}{0.125in}
+\setlength{\topmargin}{-0.5in}
+\setlength{\textheight}{9in}
+\input{tcilatex}
+\renewcommand{\thanks}{\endnote}
+\renewcommand{\theendnote}{\fnsymbol{endnote}}
+\renewcommand{\notesname}{}
+\renewcommand{\thesection}{\Roman{section}.}
+\renewcommand{\thesubsection}{\Alph{subsection}.}
+
+\begin{document}
+
+
+\section{Model}
+
+In an earlier paper, Choi et al. (2007), we adopted a model of
+disappointment aversion, proposed by Gul (1991), to measure the degree of
+disappointment aversion as well as standard risk aversion. We extend their
+approach to uncover not only disappointment aversion but also elation loving.
+
+Let $x_{i}$ denote the amount of assets associated at state $i=1,2$. Two
+states are equally probable. An individual is assumed to chooses a portfolio 
+$\left( x_{1},x_{2}\right) $ to maximize the following utility function, for 
+$\alpha \in \left( 0,1\right) $,%
+\begin{equation*}
+\alpha u\left( x_{\min }\right) +\left( 1-\alpha \right) u\left( x_{\max
+}\right)
+\end{equation*}%
+subject to the budget constraint, $p_{1}x_{1}+p_{2}x_{2}=1$, where $x_{\min
+} $ denotes $\min \left\{ x_{1},x_{2}\right\} $ and $x_{\max }$ denotes $%
+\max \left\{ x_{1},x_{2}\right\} $. If $\alpha =1/2$, the model becomes the
+standard expected utility model. If $\alpha >\left( <\right) 1/2$, the
+individual shows \emph{disappointment aversion} (\emph{elation loving}).
+Note that the Gul(1991)'s model in the two-asset case is a version of the
+Rank-Depenent utility (RDU) model in which $\alpha $ is a probability
+weighting of $1/2$. In terms used in the RDU model, the individual shows 
+\emph{pessimism} if $\alpha >1/2$, whereas the individual shows \emph{%
+optimism} if $\alpha <1/2.$
+
+Our estimation proceeds with two specifications of utility function. First,
+we use the exponential utility function over monetary outcomes, 
+\begin{equation*}
+u\left( x\right) =-\frac{\exp \left( -\rho x\right) }{\rho },
+\end{equation*}%
+where $\rho $ represents the constant absolute risk aversion (CARA). Second,
+we use the power utility function over monetary outcomes, 
+\begin{equation*}
+u\left( x\right) =\frac{x^{1-\gamma }}{1-\gamma }\text{.}
+\end{equation*}%
+In the latter case, the model is not able to generate the corner solutions
+that are often present in the data. In order to generate the corner
+solutions, the model requires an extra parameter to adjust a demand level.
+We will discuss this later.
+
+Before we proceed, it is important to understand the implications of the RDU
+specification for individual behavior. Figure 1 below illustrates the
+indifference curves between the two securities, and Figure 2 illustrates the
+relationship between the log-price ratio $\ln \left( p_{1}/p_{2}\right) $
+and the optimal relative demand $x_{1}^{\ast }/(x_{1}^{\ast }+x_{2}^{\ast })$%
+. The indifference curves have a \emph{kink} at the $45$-degree line,
+corresponding to portfolios with a certain outcome $x_{1}=x_{2}$. The shape
+of the indifference curve on either side of the $45$-degree line is
+determined by the individual's attitude toward risk and the nature of the
+kink is determined by the individual's pessimism/optimism measured by the
+parameter $\alpha $. A pessimistic individual (black) $\alpha >\tfrac{1}{2}$
+will choose safe portfolios satisfying $x_{1}=x_{2}$ when the security
+prices, $p_{1}$ and $p_{2}$, are sufficiently similar. The effect of
+increasing the level of pessimism $\alpha $ is to make this intermediate
+range of prices larger. An optimistic individual (gray) $\alpha <\tfrac{1}{2}
+$ will not choose such portfolios, not even when the security prices are
+equal. In contrast, for an individual consistent with EUT $\alpha =\tfrac{1}{%
+2}$ the indifference curves are smooth everywhere. Note that price vectors
+are randomly generated and give rise to portfolios satisfying $x_{1}=x_{2}$
+with probability zero if preferences are smooth.
+
+\begin{center}
+\emph{[Figure 1 here]}
+
+\emph{[Figure 2 here]}
+\end{center}
+
+\section{CARA specification}
+
+\subsection{Optimal demand}
+
+We can use the Lagrangian method to compute the optimal demand from the
+constrained maximization problem:%
+\begin{equation*}
+\max_{\left( x_{1},x_{2}\right) }\alpha u\left( x_{\min }\right) +\left(
+1-\alpha \right) u\left( x_{\max }\right)
+\end{equation*}%
+\begin{equation*}
+\text{s.t. \ }p_{1}x_{1}+p_{2}x_{2}=1;0\leq x_{\min }\leq x_{\max }.
+\end{equation*}%
+Let $p_{\min }$ denote the minimum of two prices, $p_{1}$ and $p_{2}$.
+Similarly, $p_{\max }$ denotes the maximum of the two prices. The optimal
+portfolio allocation is characterized as below.
+
+\subparagraph{Case 1: $\ln \left( \frac{p_{\max }}{p_{\min }}\right) <\ln
+\left( \frac{\protect\alpha }{1-\protect\alpha }\right) $}
+
+\begin{equation*}
+x_{1}^{\ast }=x_{2}^{\ast }=\frac{1}{p_{1}+p_{2}}.
+\end{equation*}
+
+\subparagraph{Case 2: $\ln \left( \frac{\protect\alpha }{1-\protect\alpha }%
+\right) <\ln \left( \frac{p_{\max }}{p_{\min }}\right) <\frac{\protect\rho }{%
+p_{\min }}+\ln \left( \frac{\protect\alpha }{1-\protect\alpha }\right) $}
+
+\begin{eqnarray*}
+x_{\min }^{\ast } &=&\frac{1}{p_{1}+p_{2}}-\frac{p_{\min }}{\rho \left(
+p_{1}+p_{2}\right) }\left[ \ln \left( \frac{p_{\max }}{p_{\min }}\right)
+-\ln \left( \frac{\alpha }{1-\alpha }\right) \right] \\
+x_{\max }^{\ast } &=&\frac{1}{p_{1}+p_{2}}+\frac{p_{\max }}{\rho \left(
+p_{1}+p_{2}\right) }\left[ \ln \left( \frac{p_{\max }}{p_{\min }}\right)
+-\ln \left( \frac{\alpha }{1-\alpha }\right) \right]
+\end{eqnarray*}
+
+\subparagraph{Case 3: $\ln \left( \frac{p_{\max }}{p_{\min }}\right) >\frac{%
+\protect\rho }{p_{\min }}+\ln \left( \frac{\protect\alpha }{1-\protect\alpha 
+}\right) $}
+
+\begin{equation*}
+x_{\min }^{\ast }=0\text{ and }x_{\max }^{\ast }=1/p_{\min }\text{.}
+\end{equation*}
+
+Several remarks are in order.
+
+\begin{itemize}
+\item Case 1 occurs only when $\alpha >1/2$. That is, if the individual
+chooses the equal amount of two assets in prices other than $p_{1}=p_{2}$,
+the individual shows some degree of disappoint aversion unless he is
+extremely risk averse.
+
+\item When $\alpha <1/2$ and $p_{1}=p_{2}$, the optimal portfolio is not
+unique due to the nonconvexity of preferences. Depending on whether the
+conditions of Case 2 or 3 are met, $\left( x_{1}^{\ast },x_{2}^{\ast
+}\right) =\left( x_{\min }^{\ast },x_{\max }^{\ast }\right) $ or $\left(
+x_{\max }^{\ast },x_{\min }^{\ast }\right) $.
+\end{itemize}
+
+\section{CRRA specification}
+
+\subsection{Optimal demand}
+
+We assume a parameter $\omega >0$ inside the CRRA utility function which is
+positive and can be interpreted as a demand shifter with some reason such as
+a baseline level of consumption. This leads us to the following problem of
+utility maximization. 
+\begin{equation*}
+\max_{\left( x_{1},x_{2}\right) }\alpha u\left( x_{\min }+\omega \right)
++\left( 1-\alpha \right) u\left( x_{\max }+\omega \right)
+\end{equation*}%
+\begin{equation*}
+\text{s.t. \ }p_{1}x_{1}+p_{2}x_{2}=1;0\leq x_{\min }\leq x_{\max },
+\end{equation*}%
+where $u\left( x\right) =x^{1-\gamma }/\left( 1-\gamma \right) $. We assume
+that $\omega $ is so small that most curvature is attributed to the relative
+risk aversion coefficient. The optimal portfolio allocation is characterized
+as below.
+
+\subparagraph{Case 1: $\ln \left( \frac{p_{\max }}{p_{\min }}\right) <\ln
+\left( \frac{\protect\alpha }{1-\protect\alpha }\right) $}
+
+\begin{equation*}
+x_{1}^{\ast }=x_{2}^{\ast }=\frac{1}{p_{1}+p_{2}}.
+\end{equation*}
+
+\subparagraph{Case 2: $\ln \left( \frac{\protect\alpha }{1-\protect\alpha }%
+\right) <\ln \left( \frac{p_{\max }}{p_{\min }}\right) <\protect\gamma \ln
+\left( \frac{1+\protect\omega p_{\min }}{\protect\omega p_{\min }}\right)
++\ln \left( \frac{\protect\alpha }{1-\protect\alpha }\right) $}
+
+\begin{eqnarray*}
+x_{\min }^{\ast } &=&\frac{K\left[ 1+\left( 1-K\right) \omega p_{\max }%
+\right] }{Kp_{\max }+p_{\min }}-\left( 1-K\right) \omega \\
+x_{\max }^{\ast } &=&\frac{1+\left( 1-K\right) \omega p_{\max }}{Kp_{\max
+}+p_{\min }},
+\end{eqnarray*}%
+where 
+\begin{equation*}
+K\equiv \left[ \left( \frac{p_{\min }}{p_{\max }}\right) \left( \frac{\alpha 
+}{1-\alpha }\right) \right] ^{1/\gamma }.
+\end{equation*}
+
+\subparagraph{Case 3: $\ln \left( \frac{p_{\max }}{p_{\min }}\right) >%
+\protect\gamma \ln \left( \frac{1+\protect\omega p_{\min }}{\protect\omega %
+p_{\min }}\right) +\ln \left( \frac{\protect\alpha }{1-\protect\alpha }%
+\right) $}
+
+\begin{equation*}
+x_{\min }^{\ast }=0\text{ and }x_{\max }^{\ast }=1/p_{\min }\text{.}
+\end{equation*}
+
+\section{Estimation}
+
+Let's use the CARA specification. We can then estimate $\hat{\alpha}_{n}$
+and $\hat{\rho}_{n}$ for each individual $n$ by minimizing the Euclidean
+distance between observed data and optimal choices. 
+
+\end{document}

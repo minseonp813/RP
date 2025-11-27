@@ -1,0 +1,93 @@
+\documentclass[english,11pt]{article} 
+\input{preamble}
+
+
+%================================================================
+
+\title{\thanks{} }
+\author{ Minseon Park\thanks{University of Michigan, minseonp@umich.edu;} }
+
+\newdateformat{mydate}{\monthname[\THEMONTH] \THEYEAR}
+\date{\mydate\today}
+
+\begin{document}
+%\maketitle
+%We are grateful for support from XX.
+\vspace{-1cm}
+
+% \vspace{-1cm}
+% \begin{center}
+% [\emph{Preliminary and incomplete. Please do not cite or circulate without authors' permission.}]
+% \end{center}
+% \begin{center}
+% [PRELIMINARY \& INCOMPLETE]
+% \end{center}
+\medskip
+\begin{abstract}
+\onehalfspacing
+\noindent 
+
+\end{abstract}
+
+\smallskip
+
+\doublespacing
+{\normalsize \noindent \textit{JEL Classification}: H75, M14 \\
+\textit{Keywords}: }
+\normalsize
+
+%================================================================
+
+\thispagestyle{empty}
+
+\setcounter{page}{1}
+\section{Heterogeneity Analysis}
+\textcolor{red}{Preliminary and Half-baked}
+\paragraph{Why are we getting near-zero std errors?}
+Let's consider an extreme case where we cluster standard error at the pair level. I'll show that in this case, std errors can't be estimated at all. Clustering at classroom level makes it better, that's why we get non-zero but near-zero std errors. 
+
+When we cluster at the pair level, 
+
+\begin{align}
+	\hat{var}(\hat{\beta}) &= (X'X)^{-1} \hat{\Omega} (X'X)^{-1} \\
+	\hat{\Omega} &= \Sigma^G_{g=1} s_g s'_g \\
+	s_g & = X'_g e_g,
+\end{align}
+
+where $X'_g$ is 4 by $|X|$ matrix of regressors for that pair, $e_g$ is 4 by 1 vector of error terms for that pair.
+
+Consider a case where individual 1 is mover and high CCEI in both pre and post. Then $X^{(m_iH_{it})}_g = (1,0,1,0) = X^{(m_i)}_g$. When individual 1 is mover and high CCEI in only pre case, then $X^{(m_iH_{it}post_{it})}_g=(0,0,0,0) $, which is 1- constant vector. Other cases can be walked through in a similar way. \emph{To sum up, in whichever case, we always have a result that one column of $X$ is a perfect linear combination of the other.} This is because mover dummy is summed to 1, and Higher CCEI dummy is summed to 1 within each pair. In addition, note that $e_1 + e_2 =0$ since $y_1 + y_2=1$.
+
+\paragraph{Getting rid of post dummy helps} Post dummy does not make sense at all because $y_1 + y_2 =1$ both in pre and post. If individual 1's post value of $y$ goes up, it means that it's exactly compensated by the other in the pair. 
+
+Getting rid of post dummy or alternatively constant helps, but the interpretation of coefficients gets odd. Simulation shows that then coefficient captures combinations of DGP parameters, and interpretation gets really hard.
+
+My suggestion would be, actually, keep only one of the randomly chosen individual from each pair and run regressions only with those. 
+
+%\bibliography{references}
+
+\begin{singlespace}
+
+
+\newpage
+\appendix
+
+    \setcounter{footnote}{0}
+		\renewcommand{\thefootnote}{A-\arabic{footnote}}
+		
+		\setcounter{equation}{0}
+		\renewcommand{\theequation}{\Alph{section}.\arabic{equation}}
+		\setcounter{table}{0}
+		\renewcommand{\thetable}{\Alph{section}\arabic{table}}
+		\setcounter{figure}{0}
+		\renewcommand{\thefigure}{\Alph{section}\arabic{figure}}
+
+        
+\setcounter{table}{0}
+\setcounter{figure}{0}
+
+
+\end{singlespace}
+
+
+\end{document}

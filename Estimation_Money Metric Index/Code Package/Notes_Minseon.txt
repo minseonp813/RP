@@ -1,0 +1,56 @@
+12-20-2019, written by Minseon Park
+
+HPZ_MME_Estimation_original: code written by Halevy et al. (2016)
+HPZ_MME_Estimation: modified by Minseon Park 12-20-2019
+-Erased 'waiting bar' part to make it faster
+-Erased part associated with 'Allocated time' option
+
+12-20-2019 Options
+Estimation Version 1. 
+Functional Form Settings: CARA, Analytical Approach, Allow DA coefficient to be negative
+Optimization Settings: 5, AVG(SSQ(Watests))
+Output File Format: MME based on AVG(SSQ(Watests)), best parameters: yes, simulated standard erros: yes
+Residuals Calculation Settings: No
+Bootstrap: 10000 (interface.m, line #233)
+
+12-23-2019 Options
+Estimation Version 2. 
+Functional Form Settings: CRRA, Analytical Approach, Allow DA coefficient to be negative, Adjust boundary choices [Choi et al. (2007)]
+Optimization Settings: 5, AVG(SSQ(Watests))
+Output File Format: MME based on AVG(SSQ(Watests)), best parameters: yes, simulated standard erros: yes
+Residuals Calculation Settings: No
+Bootstrap: 10000 (interface.m, line #233)
+
+1-1-2020 Options
+Estimation Version 3. 
+Functional Form Settings: CRRA, Analytical Approach, DA coefficient =0, Adjust boundary choices [Choi et al. (2007)]
+Optimization Settings: 5, AVG(SSQ(Watests))
+Output File Format: MME based on AVG(SSQ(Watests)), best parameters: yes, simulated standard erros: yes
+Residuals Calculation Settings: No
+Bootstrap: 10000 (interface.m, line #233)
+
+1-3-2012 Options
+Estimation Version 4. 
+Functional Form Settings: CARA, Analytical Approach, DA coefficient =0
+Optimization Settings: 5, AVG(SSQ(Watests))
+Output File Format: MME based on AVG(SSQ(Watests)), best parameters: yes, simulated standard erros: yes
+Residuals Calculation Settings: No
+Bootstrap: 10000 (interface.m, line #233)
+
+1-29-2020 Options
+Estimation Version 5. 
+Simulated Data
+Functional Form Settings: CARA, Analytical Approach, Allow DA coefficient to be negative
+Optimization Settings: 3, AVG(SSQ(Watests))
+Output File Format: MME based on AVG(SSQ(Watests)), best parameters: yes, simulated standard erros: yes
+Residuals Calculation Settings: No
+Bootstrap: 10000 (interface.m, line #233)
+
+1-29-2019 Options
+Estimation Version 6. 
+Functional Form Settings: CRRA, Analytical Approach, Allow DA coefficient to be negative, Adjust boundary choices [Choi et al. (2007)]
+Optimization Settings: 3, AVG(SSQ(Watests))
+Output File Format: MME based on AVG(SSQ(Watests)), best parameters: yes, simulated standard erros: yes
+Residuals Calculation Settings: No
+Bootstrap: 10000 (interface.m, line #233)
+

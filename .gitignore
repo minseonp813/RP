@@ -1,0 +1,44 @@
+# Stata files
+*.smcl
+*.gph
+*.log
+*.dta~
+
+# LaTeX auxiliary files
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+*.blg
+*.bbl
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*~
+~$*
+
+# R files (if any)
+.Rhistory
+.RData
+.Rproj.user
+
+# Python files (if any)
+__pycache__/
+*.py[cod]
+*$py.class
+.ipynb_checkpoints/
+
+# Large data files (uncomment if you want to exclude large datasets)
+# *.dta

@@ -1,0 +1,55 @@
+\documentclass[12pt]{article}
+\usepackage[a4paper, total={6in, 10in}]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{kotex}
+
+
+
+\title{}
+\author{Syngjoo Choi\footnote{syngjooc@snu.ac.kr} 
+\and
+Minseon Park\footnote{mpark88@wisc.edu}
+\and
+Euncheol Shin\footnote{eshin.econ@kaist.ac.kr}
+}
+
+
+\begin{document}
+
+\maketitle
+
+If we run the current version of the code, \texttt{RelativeDemandGraph.do}), we get the following figures:
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.8\linewidth]{relconsumption1}
+\caption{$x$-axis represents log price ratio, and $y$-axis shows the relative demand for $x_2$. Black $\times$ marks correspond to the observed joint decision given the price ratio, and red circles are for individual decisions.}\label{fig:relconsumption1}
+\end{figure}
+
+Our final goal is to plot the optimal demand as a function of price ratio by using \textit{the estimated individual utility parameters}
+
+\begin{enumerate}
+\item Learn the analytic solution of the optimal demand (\texttt{DA-2-analytic-Choi.pdf}) given utility parameters. 
+
+\item In the dataset, the first 18 observations are for individual choice. The latter 18 observations correspond to the collective choices with a matched partner. 
+
+\item The key estimates are $a$ and $\alpha$, and $r$ and $\rho$. In the data, $a crra$ and $r crra$ correspond to the CRRA specification. As our main specification is CARA, results for CARA must have the top priority.
+
+\item \texttt{Risk\_Merged\_Short.dta} contains variables called \textit{a} and \textit{r}, which correspond to $\alpha$ and $\gamma$ in \texttt{DA2-analytic-Choi.pdf}.
+
+\item For each individual within a group, draw his/her own optimal demands and those of partners as well, as a function of log price ratio
+
+\item[Notes]
+\begin{itemize}
+\item Please keep other components in the graph.
+\end{itemize}
+
+\end{enumerate}
+
+		
+\end{document}

@@ -1,0 +1,110 @@
+@article{abdellaoui2013individual,
+  title={Individual vs. couple behavior: an experimental investigation of risk preferences},
+  author={Abdellaoui, Mohammed and l’Haridon, Olivier and Paraschiv, Corina},
+  journal={Theory and decision},
+  volume={75},
+  number={2},
+  pages={175--191},
+  year={2013},
+  publisher={Springer}
+}
+
+@article{ambrus2015individual,
+  title={How individual preferences are aggregated in groups: An experimental study},
+  author={Ambrus, Attila and Greiner, Ben and Pathak, Parag A},
+  journal={Journal of Public Economics},
+  volume={129},
+  pages={1--13},
+  year={2015},
+  publisher={Elsevier}
+}
+
+
+@article{baillon2016group,
+  title={Group decision rules and group rationality under risk},
+  author={Baillon, Aur{\'e}lien and Bleichrodt, Han and Liu, Ning and Wakker, Peter P},
+  journal={Journal of Risk and Uncertainty},
+  volume={52},
+  number={2},
+  pages={99--116},
+  year={2016},
+  publisher={Springer}
+}
+
+
+@article{bateman2005experiment,
+  title={An experiment on risky choice amongst households},
+  author={Bateman, Ian and Munro, Alistair},
+  journal={The Economic Journal},
+  volume={115},
+  number={502},
+  pages={C176--C189},
+  year={2005},
+  publisher={Wiley Online Library}
+}
+
+@article{bone1999groups,
+  title={Are groups more (or less) consistent than individuals?},
+  author={Bone, John and Hey, John and Suckling, John},
+  journal={Journal of Risk and Uncertainty},
+  volume={18},
+  number={1},
+  pages={63--81},
+  year={1999},
+  publisher={Springer}
+}
+
+@article{cason1997laboratory,
+  title={A laboratory study of group polarisation in the team dictator game},
+  author={Cason, Timothy N and Mui, Vai-Lam},
+  journal={The Economic Journal},
+  volume={107},
+  number={444},
+  pages={1465--1483},
+  year={1997},
+  publisher={Wiley Online Library}
+}
+
+@article{charness2007individual,
+  title={Individual and group decision making under risk: An experimental study of Bayesian updating and violations of first-order stochastic dominance},
+  author={Charness, Gary and Karni, Edi and Levin, Dan},
+  journal={Journal of Risk and uncertainty},
+  volume={35},
+  number={2},
+  pages={129--148},
+  year={2007},
+  publisher={Springer}
+}
+
+@article{cason1997laboratory,
+  title={A laboratory study of group polarisation in the team dictator game},
+  author={Cason, Timothy N and Mui, Vai-Lam},
+  journal={The Economic Journal},
+  volume={107},
+  number={444},
+  pages={1465--1483},
+  year={1997},
+  publisher={Wiley Online Library}
+}
+
+@article{de2011individual,
+  title={Individual and couple decision behavior under risk: evidence on the dynamics of power balance},
+  author={De Palma, Andre and Picard, Nathalie and Ziegelmeyer, Anthony},
+  journal={Theory and decision},
+  volume={70},
+  number={1},
+  pages={45--64},
+  year={2011},
+  publisher={Springer}
+}
+
+@article{deck2012risk,
+  title={Risk-Taking Behavior: An Experimental Analysis of Individuals and Dyads},
+  author={Deck, Cary and Lee, Jungmin and Reyes, Javier and Rosen, Chris},
+  journal={Southern Economic Journal},
+  volume={79},
+  number={2},
+  pages={277--299},
+  year={2012},
+  publisher={Wiley Online Library}
+}

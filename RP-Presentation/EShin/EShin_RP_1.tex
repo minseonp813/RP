@@ -1,0 +1,926 @@
+\documentclass[10pt, xcolor={dvipsnames,table}]{beamer}
+%\documentclass[11pt,handout]{beamer} % for handout or editing
+
+\include{eshinbeamer}
+
+\usepackage{kotex}
+\usepackage{textcomp} % this is to use Korean currency, Won.
+
+\usepackage{scrextend}
+
+\usepackage{fancybox}     
+\usepackage{booktabs}              
+\usepackage{multirow}
+
+\newcolumntype{?}{!{\vrule width 1pt}}
+
+%%%% testing environments
+
+%\usepackage{thmtools}
+%\usepackage{boiboites} % this requires boiboites.sty in the folder
+\usepackage{eshinbox}
+
+\newcounter{thm}
+\numberwithin{thm}{section}
+
+\newboxedtheorem[boxcolor=black, background=gray!5, titlebackground=gray!20,
+titleboxcolor = black]{thm}{Theorem}{thm}
+
+\newboxedtheorem[boxcolor=black, background=gray!5, titlebackground=gray!20,
+titleboxcolor = black]{prp}{Proposition}{thm}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% START %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title[Short title of the talk]{Rationality and Preference Aggregation of Group Decision under Risk}
+\author{Syngjoo Choi (SNU), Booyuel Kim (KDIS), Minseon Park (Wisconsin), Yoonsoo Park (KDI), Euncheol Shin (KHU)}
+\institute[]
+{Presenter: Euncheol Shin (Kyung Hee University) \\
+\medskip
+{\tt{eshin.econ@khu.ac.kr}}
+}
+\date{%June, 2017
+\today %will show current date.
+%324 Alternatively, you can specify a date.
+}
+
+%
+\begin{document}
+%
+\begin{frame}
+\titlepage
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Introduction}
+
+\begin{itemize}
+
+\item In various contexts, many important decisions are made by groups.
+\mk
+
+\item Individuals in the collective are \textcolor{tred}{\textbf{heterogeneous}}.
+\sk
+	\begin{itemize}
+	\item Rationality
+	\sk
+	
+	\item Time preference: household savings and consumption decisions
+	\sk
+	
+	\item Risk preference: risk assessment in environmental policy-making in committees
+	
+	\end{itemize}
+	\mk
+	
+\item The expansion of democratic institutions and rapid progress in communication technology (e.g., Skype and SNS) highlight the importance of exploring the process of group decisions.
+
+\end{itemize}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Introduction: Why Experiments?}
+
+\begin{itemize}
+
+\item The laboratory experiment can be stripped of many confounding factors, and decisions can be observed in a highly \textcolor{tred}{\textbf{controlled environment}}.
+\mk
+
+\item We can directly measure rationality and risk preference without noise.
+\mk
+\pause
+
+\item Beyond measuring risk preference, we can investigate how risk preferences are \textcolor{tred}{\textbf{aggregated}}.
+\mk
+
+\item We measure \textcolor{tred}{\textbf{rationality}} of both individuals and group decisions by applying the \textcolor{tred}{\textbf{revealed preference theory}}.
+\mk
+
+\item We finally analyze efficiency of group decisions.
+
+\end{itemize}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Introduction: Research Questions}
+
+\begin{itemize}
+
+\item[1.] Rationality extension:
+	\sk
+	\begin{itemize}
+	
+	\item If each individual's choices are consistent with a utility maximization model, do a group's choices also tend to be?	
+	
+	\end{itemize}
+	\mk
+
+\item[2] Risk preference aggregation:
+	\sk
+	\begin{itemize}
+	
+	\item Are individual's risk preferences reflected into that of a group?
+	
+	\end{itemize}
+	\mk
+	
+\item[3.] Efficiency:
+	\sk
+	\begin{itemize}
+	
+	\item Are a group's choices Pareto efficient? Is it maximizing social welfare?
+	
+	\end{itemize}
+	
+\end{itemize}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Related Literature}
+
+\begin{itemize}
+
+\item[1.] Preference aggregation
+	\sk
+	\begin{itemize}
+	
+	\item If each individual's choices are consistent with a utility maximization model, do a group's choices also tend to be?	
+	
+	\end{itemize}
+	\mk
+
+\item[2] Testable implication
+	\sk
+	\begin{itemize}
+	
+	\item Are individual's risk preferences reflected into that of a group?
+	
+	\end{itemize}
+	\mk
+	
+\item[3.] Intra-household bargaining
+	\sk
+	\begin{itemize}
+	
+	\item Are a group's choices Pareto efficient? Is it maximizing social welfare?
+	
+	\end{itemize}
+	
+\end{itemize}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[noframenumbering]{}
+
+\center
+\textbf{Experimental Design and Subjects}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Experimental Design}
+\nk
+
+\begin{figure}
+\center
+\large 
+\begin{tikzpicture}
+
+% axes
+\draw[->, thick] (0,0) -- (7,0) node[anchor = west] {$x_r$};
+\draw[->, thick] (0,0) -- (0,7) node[anchor = east] {$x_b$};
+		
+% budget lines
+\draw[thick] (6,0) -- (0,3);
+
+% 45 degree line
+\draw[dotted, thick] (0,0) -- (4,4) node[anchor = south west] {$x_r = x_b$};
+\draw (0.8, 0) node[anchor = south] {$45^\circ$};
+
+\visible<2>{
+% indifference curve
+\draw[dotted, thick, tred] (6,0) -- (0,6) node[anchor = south west] {};
+\draw (5, 2) node[anchor = south] {\small{\textcolor{tred}{\textbf{indifference curve}}}};
+}
+
+% prices
+\draw[->, thick] (6,0) -- (6+1/2, 1) node[anchor = west] {$p = (p_r, p_b)$};
+
+% bundles
+\draw (2, 2) node {\textbullet};
+\draw (2, 2.1) node[anchor = south] {$x$};
+
+\draw (3, 6-3/2*3) node {\textbullet};
+\draw (3, 6-3/2*3) node[anchor = north east] {$x'$};
+
+\draw (6, 0) node {\textbullet};
+\draw (6, - 0.6) node[anchor = south] {$x''$};
+
+% texts
+\visible<1>{
+\small{
+\draw (3, 7) node[anchor = west] {Two equally likely states: $\textcolor{tred}{R}$ and $\textcolor{tblue}{B}$.};
+
+\draw (3, 6.5) node[anchor = west] {There are two associated Arrow securities.};
+
+\draw (3, 6) node[anchor = west] {$x_r$ is the demand for the security that pays off in state $\textcolor{tred}{R}$.};
+
+\draw (3, 5.5) node[anchor = west] {$x_b$ is the demand for the security that pays off in state $\textcolor{tblue}{B}$.};
+
+\draw (3, 5) node[anchor = west] {Budget constraint: $p_r x_r + p_b x_b = 1$.};
+}
+}
+
+\visible<2>{
+\small{
+\draw (3, 7) node[anchor = west] {In this example, $p_b > p_r$.};
+
+\draw (3, 6.5) node[anchor = west] {Risk neutral agent will choose $x''$.};
+
+\draw (3, 6) node[anchor = west] {Extremely risk averse agent will choose $x$.};
+
+\draw (3, 5.5) node[anchor = west] {Intermediately risk averse agent will choose $x'$.};
+
+%\draw (3, 5) node[anchor = west] {$r = \frac{x_r}{x_r + x_b}$};
+}
+}
+
+\end{tikzpicture}
+\end{figure}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Procedure and Subjects}
+
+\begin{itemize}
+
+\item We conducted the experiment in 12 middle schools in Daegu.
+\mk
+
+\item The number of students: 
+\mk 
+
+\item The instructions were read aloud by an experiment in each classroom.
+\mk
+	
+\item Each subject participate in two sessions: individual and group.
+\mk
+	
+\item Each session consisted of 18 independent decision rounds.
+\mk
+
+\item Each round started by having the computer select a budget line randomly from the set of lines that intersect at least one axis at or above $300$ KRW or below $1500$ KRW.
+
+\end{itemize}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Procedure and Subjects}
+
+\begin{itemize}
+
+\item At the end of each round, the computer randomly selected one of the two states ($\textcolor{tred}{R}$ and $\textcolor{tblue}{B}$).
+\mk
+
+\item Subjects were not informed of the state that was actually selected at the end of each round.
+\mk
+
+\item Each subject was paid for he/she earned in a randomly selected round.
+\mk
+
+\item After finishing the first session, students start the second session.
+\mk
+
+\item Two students in the same classroom were randomly matched.
+\mk
+
+\item A student moved to the other partner's desk and shared the computer.
+
+\end{itemize}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Experimental Design}
+
+\begin{figure}
+\center
+\includegraphics[width = 4.0 in]{figures/pblrealshot}
+\end{figure}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Experimental Design: Screenshot}
+
+\begin{figure}
+\center
+\includegraphics[width = 3.8 in]{figures/expshot}
+\end{figure}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[noframenumbering]{Experimental Design: Example}
+
+\begin{figure}
+\center
+\includegraphics[width = 4.2 in]{figures/Figure_Choice_Examples}
+\end{figure}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[noframenumbering]{}
+
+\center
+\textbf{Result 1: Rationality Extension}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Measurement: Afriat's Efficiency Index (a.k.a. CCEI)}
+
+\begin{figure}
+\center
+\large 
+\begin{tikzpicture}
+
+% axes
+\draw[->, thick] (0,0) -- (7,0) node[anchor = west] {};
+\draw[->, thick] (0,0) -- (0,7) node[anchor = east] {};
+		
+% budget lines
+\draw[thick] (6,0) -- (0,4);
+\draw[thick] (0,6) -- (4,0);
+
+% bundles
+\draw (3.3, 6-3/2*3.3) node {\textbullet};
+\draw (3.3, 6-3/2*3.3) node[anchor = north east] {$x'$};
+
+\draw (6-3/2*3, 3) node {\textbullet};
+\draw (6-3/2*3, 3) node[anchor = north east] {$x$};
+
+% rationalization
+\draw[red, ultra thick] (0,6-3/2*0.5) -- (4-0.5,0);
+
+% texts
+\small{
+\draw (3, 7) node[anchor = west] {If there are two goods, a choice dataset satisfies the GARP};
+
+\draw (3, 6.5) node[anchor = west] {if and only if it satisfies the WARP.};
+
+\draw (3, 5.5) node[anchor = west] {$x'$ and $x$ violate GARP.};
+
+\draw (3, 4.5) node[anchor = west] {If the budget line for $x'$ is deflated, then GARP is satisfied.};
+
+\draw (3, 4) node[anchor = west] {Choose $e_v$ for each violation $v$.};
+
+\draw (3, 3) node[anchor = west] {CCEI is defined as the supremum over all the numbers $e_v$'s.};
+
+}
+
+\end{tikzpicture}
+\end{figure}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}
+\frametitle{Measurement: Afriat's Efficiency Index (a.k.a. CCEI)}
+
+\begin{itemize}
+
+\item By definition, CCEI $\in [0,1]$.
+\mk
+
+\item The bigger CCEI is, the less severe violation of GARP.
+\mk
+	
+\item \textbf{Research Question:} 
+\mk
+
+\item[] Individual Rationality $\uparrow$ $\Rightarrow$ Group Rationality $\uparrow$?
+
+\end{itemize}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Result 1: Rationality Extension}
+
+\begin{figure}
+\center
+\includegraphics[width = 4.5 in]{figures/Figure1_CCEI_90}
+%\caption{Computerized experiment in a classroom}
+\end{figure}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}
+\frametitle{Result 1: Rationality Extension}
+
+\begin{itemize}
+
+\item Kolmogorov-Smirnov Test
+\mk
+
+\item Results:
+\sk
+	\begin{itemize}
+	
+	\item Dictator game: We find substantial increase of giving amount.
+	\sk
+	
+	\item Public goods game: We do not find any significant increase of cooperation.
+	
+	\end{itemize}
+
+\end{itemize}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{}
+
+\vspace{0.05 in}
+%\hspace{-0.15 in}
+\centering \changefontsizes{8pt}
+\begin{tabular}{l  lc lc lc lc}
+\toprule
+\multirow{2}{*}{\textbf{Collective CCEI}}	& & \multicolumn{7}{c}{\textbf{Coefficient}}  \\
+		        \cline{3-9}
+																& & Model 1 & & Model 2 & & Model 3 & & Model 4 \\
+\hline
+\hline
+\multirow{2}{*}{CCEI\underline{{ }{ }}Max}  & &  $0.024^{***}$  & & $0.013$       & & $0.026^{**}$    & & $0.002$   \\
+                                                 & & $(0.011)$         & & $(0.010)$    & & $(0.015)$          & &  $(0.014)$   \\
+\multirow{2}{*}{CCEI\underline{{ }{ }}Max\underline{{ }{ }}Non-Mover} & & $0.049^{***}$ & & $0.044^{***}$  & &  $0.042^{***}$  & & $0.047^{***}$  \\
+                                                & & $(0.012)$       & & $(0.011)$       & & $(0.014)$         & & $(0.015)$   \\
+\multirow{2}{*}{CCEI\underline{{ }{ }}Distance}  & & $0.050^{***}$ & & $0.041^{***}$  & &  $0.036^{***}$  & & $0.041^{***}$  \\
+                                     & & $(0.008)$       & & $(0.007)$        & & $(0.010)$          & & $(0.009)$   \\
+\hline
+\multirow{2}{*}{Risk\underline{{ }{ }}Aversion\underline{{ }{ }}Max}  & & $0.010$     & & $0.015^{**}$  & &  $0.014$   & & $0.015$     \\
+                                              & & $(0.008)$   & & $(0.007)$      & & $(0.009)$  & & $(0.013)$   \\
+\multirow{2}{*}{Risk\underline{{ }{ }}Aversion\underline{{ }{ }}Distance}  & & $-0.013$     & & $0.022$     & &  $0.015$   & & $0.028$  \\
+                                   & & $(0.015)$   & & $(0.021)$   & & $(0.021)$  & & $(0.022)$   \\
+\hline
+\multirow{2}{*}{Non\underline{{ }{ }}Coed}  & & $0.004$      & & $0.003$     & &  $-0.005$  & & $0.012$  \\
+                                             & & $(0.011)$   & & $(0.010)$   & &  $(0.010)$ & & $(0.010)$   \\
+\multirow{2}{*}{Math\underline{{ }{ }}Score}  & &          & & $-0.007^{*}$  & &  $0.009^{*}$  & & $-0.005$  \\
+                                             & &          & & $(0.004)$       & &  $(0.004)$     & & $(0.004)$ \\
+\multirow{2}{*}{Math\underline{{ }{ }}Distance}  & &    & &  $-0.000$       & &  $-0.005$      & & $-0.005$  \\
+                                                   & &          & & $(0.008)$       & &  $(0.008)$     & & $(0.009)$ \\
+\multirow{2}{*}{Constant}      & & $0.308^{***}$   & & $0.184^{***}$    & & $0.237^{***}$ & & $0.127^{***}$  \\
+                                             & &  $(0.047)$        & &  $(0.085)$         & &  $(0.051)$      & & $(0.092)$   \\
+\hline
+\hline
+Class Fixed Effect                  & & Yes         & & Yes         & & Yes           & & Yes           \\
+Individual Characteristics      & & Yes         & & Yes         & & Yes           & & Yes           \\
+Friendship                              & & Yes         & & Yes         & & Yes           & & Yes           \\
+Observations                  & & $9,377$ & & $9,377$ & & $4,584$   & & $4,793$  \\
+$R$-squared                  & & $0.036$  & & $0.185$  & & $0.187$  & & $0.188$  \\
+\bottomrule 
+\end{tabular}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[noframenumbering]{}
+
+\center
+\textbf{Result 2: Preference Aggregation}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Measurement: A Non-Parametric Measurement}
+
+\begin{figure}
+\center
+\large 
+\begin{tikzpicture}
+
+% axes
+\draw[->, thick] (0,0) -- (7,0) node[anchor = west] {};
+\draw[->, thick] (0,0) -- (0,7) node[anchor = east] {};
+		
+% budget lines
+\draw[thick] (6,0) -- (0,4);
+\draw[thick] (0,6) -- (4,0);
+
+% bundles
+\draw (3.3, 6-3/2*3.3) node {\textbullet};
+\draw (3.3, 6-3/2*3.3) node[anchor = north east] {$x'$};
+
+\draw (6-3/2*3, 3) node {\textbullet};
+\draw (6-3/2*3, 3) node[anchor = north east] {$x$};
+
+% rationalization
+\draw[red, ultra thick] (0,6-3/2*0.5) -- (4-0.5,0);
+
+% texts
+\small{
+\draw (3, 7) node[anchor = west] {If there are two goods, a choice dataset satisfies the GARP};
+
+\draw (3, 6.5) node[anchor = west] {if and only if it satisfies the WARP.};
+
+\draw (3, 5.5) node[anchor = west] {$x'$ and $x$ violate GARP.};
+
+\draw (3, 4.5) node[anchor = west] {If the budget line for $x'$ is deflated, then GARP is satisfied.};
+
+\draw (3, 4) node[anchor = west] {Choose $e_v$ for each violation $v$.};
+
+\draw (3, 3) node[anchor = west] {CCEI is defined as the supremum over all the numbers $e_v$'s.};
+
+}
+
+\end{tikzpicture}
+\end{figure}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}
+\frametitle{Measurement}
+
+\begin{itemize}
+
+\item Expected utility form
+
+\item Rank dependent utility form (RDU)
+
+\item Aggregation of utility types
+
+\item Assuming CARA, we can also estimate risk premium for each observation.
+
+\end{itemize}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Result 2: Risk Preference Aggregation}
+
+\begin{figure}
+\center
+\includegraphics[width = 4.5 in]{figures/Figure2A_riskaversion}
+%\caption{Computerized experiment in a classroom}
+\end{figure}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Result 2: Risk Preference Aggregation}
+
+\begin{figure}
+\center
+\includegraphics[width = 4.5 in]{figures/Figure2B_riskpremium}
+%\caption{Computerized experiment in a classroom}
+\end{figure}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{}
+
+\vspace{0.05 in}
+%\hspace{-0.15 in}
+\centering \changefontsizes{8pt}
+\begin{tabular}{l  lc lc lc lc}
+\toprule
+\multirow{2}{*}{\textbf{Collective CCEI}}	& & \multicolumn{7}{c}{\textbf{Coefficient}}  \\
+		        \cline{3-9}
+																& & Model 1 & & Model 2 & & Model 3 & & Model 4 \\
+\hline
+\hline
+\multirow{2}{*}{CCEI\underline{{ }{ }}Max}  & &  $0.024^{***}$  & & $0.013$       & & $0.026^{**}$    & & $0.002$   \\
+                                                 & & $(0.011)$         & & $(0.010)$    & & $(0.015)$          & &  $(0.014)$   \\
+\multirow{2}{*}{CCEI\underline{{ }{ }}Max\underline{{ }{ }}Non-Mover} & & $0.049^{***}$ & & $0.044^{***}$  & &  $0.042^{***}$  & & $0.047^{***}$  \\
+                                                & & $(0.012)$       & & $(0.011)$       & & $(0.014)$         & & $(0.015)$   \\
+\multirow{2}{*}{CCEI\underline{{ }{ }}Distance}  & & $0.050^{***}$ & & $0.041^{***}$  & &  $0.036^{***}$  & & $0.041^{***}$  \\
+                                     & & $(0.008)$       & & $(0.007)$        & & $(0.010)$          & & $(0.009)$   \\
+\hline
+\multirow{2}{*}{Risk\underline{{ }{ }}Aversion\underline{{ }{ }}Max}  & & $0.010$     & & $0.015^{**}$  & &  $0.014$   & & $0.015$     \\
+                                              & & $(0.008)$   & & $(0.007)$      & & $(0.009)$  & & $(0.013)$   \\
+\multirow{2}{*}{Risk\underline{{ }{ }}Aversion\underline{{ }{ }}Distance}  & & $-0.013$     & & $0.022$     & &  $0.015$   & & $0.028$  \\
+                                   & & $(0.015)$   & & $(0.021)$   & & $(0.021)$  & & $(0.022)$   \\
+\hline
+\multirow{2}{*}{Non\underline{{ }{ }}Coed}  & & $0.004$      & & $0.003$     & &  $-0.005$  & & $0.012$  \\
+                                             & & $(0.011)$   & & $(0.010)$   & &  $(0.010)$ & & $(0.010)$   \\
+\multirow{2}{*}{Math\underline{{ }{ }}Score}  & &          & & $-0.007^{*}$  & &  $0.009^{*}$  & & $-0.005$  \\
+                                             & &          & & $(0.004)$       & &  $(0.004)$     & & $(0.004)$ \\
+\multirow{2}{*}{Math\underline{{ }{ }}Distance}  & &    & &  $-0.000$       & &  $-0.005$      & & $-0.005$  \\
+                                                   & &          & & $(0.008)$       & &  $(0.008)$     & & $(0.009)$ \\
+\multirow{2}{*}{Constant}      & & $0.308^{***}$   & & $0.184^{***}$    & & $0.237^{***}$ & & $0.127^{***}$  \\
+                                             & &  $(0.047)$        & &  $(0.085)$         & &  $(0.051)$      & & $(0.092)$   \\
+\hline
+\hline
+Class Fixed Effect                  & & Yes         & & Yes         & & Yes           & & Yes           \\
+Individual Characteristics      & & Yes         & & Yes         & & Yes           & & Yes           \\
+Friendship                              & & Yes         & & Yes         & & Yes           & & Yes           \\
+Observations                  & & $9,377$ & & $9,377$ & & $4,584$   & & $4,793$  \\
+$R$-squared                  & & $0.036$  & & $0.185$  & & $0.187$  & & $0.188$  \\
+\bottomrule 
+\end{tabular}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[noframenumbering]{}
+
+\center
+\textbf{Result 3: Efficiency}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Measurement}
+
+\begin{itemize}
+
+\item For given budget set, let $x_1^*$ and $x_2^*$ be the optimal portfolio choice of agent 1 and agent 2, respectively.
+\mk
+
+\item \textbf{Claim:} A group choice $x_c$ is \textbf{Pareto efficient} if and only if $x_c \in [x_1^*, x_2^*]$.
+\mk
+
+\item Given this, we measure the group inefficiency as the average utility loss:
+	\sk
+	\begin{align*}
+	\text{Inefficiency}_{g} = \frac{1}{18} \sum_{k = 1}^{18} \frac{1}{2} \sum_{i = 1}^2 \frac{u_i(x) - u_i(x_c)}{u_i(x) - u_i(x_w)}.
+	\end{align*}
+	\sk
+	where
+	\sk
+	\begin{itemize}
+	
+	\item $x_c$: group choice
+	\sk
+	
+	\item $x_w$: the worst outcome in budget $k$
+	
+	\end{itemize}
+	\mk
+	
+\item By definition, $\text{Loss}_{g} \in [0,1]$.
+
+\end{itemize}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Measurement: Distribution of Group Inefficiency}
+
+\begin{figure}
+\center
+\includegraphics[width = 4.5 in]{figures/Figure3A_ULoss}
+%\caption{Computerized experiment in a classroom}
+\end{figure}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Analysis}
+
+\begin{itemize}
+
+\item \textbf{Research Question:} How is the group inefficiency related to the group rationality and risk preference?
+
+\end{itemize}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Pareto Efficiency}
+
+\begin{figure}
+\center
+\includegraphics[width = 4.5 in]{figures/Figure4A_ULoss_ccei}
+%\caption{Computerized experiment in a classroom}
+\end{figure}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{}
+
+\vspace{0.05 in}
+%\hspace{-0.15 in}
+\centering \changefontsizes{8pt}
+\begin{tabular}{l  lc lc lc lc}
+\toprule
+\multirow{2}{*}{\textbf{Collective CCEI}}	& & \multicolumn{7}{c}{\textbf{Coefficient}}  \\
+		        \cline{3-9}
+																& & Model 1 & & Model 2 & & Model 3 & & Model 4 \\
+\hline
+\hline
+\multirow{2}{*}{CCEI\underline{{ }{ }}Max}  & &  $0.024^{***}$  & & $0.013$       & & $0.026^{**}$    & & $0.002$   \\
+                                                 & & $(0.011)$         & & $(0.010)$    & & $(0.015)$          & &  $(0.014)$   \\
+\multirow{2}{*}{CCEI\underline{{ }{ }}Max\underline{{ }{ }}Non-Mover} & & $0.049^{***}$ & & $0.044^{***}$  & &  $0.042^{***}$  & & $0.047^{***}$  \\
+                                                & & $(0.012)$       & & $(0.011)$       & & $(0.014)$         & & $(0.015)$   \\
+\multirow{2}{*}{CCEI\underline{{ }{ }}Distance}  & & $0.050^{***}$ & & $0.041^{***}$  & &  $0.036^{***}$  & & $0.041^{***}$  \\
+                                     & & $(0.008)$       & & $(0.007)$        & & $(0.010)$          & & $(0.009)$   \\
+\hline
+\multirow{2}{*}{Risk\underline{{ }{ }}Aversion\underline{{ }{ }}Max}  & & $0.010$     & & $0.015^{**}$  & &  $0.014$   & & $0.015$     \\
+                                              & & $(0.008)$   & & $(0.007)$      & & $(0.009)$  & & $(0.013)$   \\
+\multirow{2}{*}{Risk\underline{{ }{ }}Aversion\underline{{ }{ }}Distance}  & & $-0.013$     & & $0.022$     & &  $0.015$   & & $0.028$  \\
+                                   & & $(0.015)$   & & $(0.021)$   & & $(0.021)$  & & $(0.022)$   \\
+\hline
+\multirow{2}{*}{Non\underline{{ }{ }}Coed}  & & $0.004$      & & $0.003$     & &  $-0.005$  & & $0.012$  \\
+                                             & & $(0.011)$   & & $(0.010)$   & &  $(0.010)$ & & $(0.010)$   \\
+\multirow{2}{*}{Math\underline{{ }{ }}Score}  & &          & & $-0.007^{*}$  & &  $0.009^{*}$  & & $-0.005$  \\
+                                             & &          & & $(0.004)$       & &  $(0.004)$     & & $(0.004)$ \\
+\multirow{2}{*}{Math\underline{{ }{ }}Distance}  & &    & &  $-0.000$       & &  $-0.005$      & & $-0.005$  \\
+                                                   & &          & & $(0.008)$       & &  $(0.008)$     & & $(0.009)$ \\
+\multirow{2}{*}{Constant}      & & $0.308^{***}$   & & $0.184^{***}$    & & $0.237^{***}$ & & $0.127^{***}$  \\
+                                             & &  $(0.047)$        & &  $(0.085)$         & &  $(0.051)$      & & $(0.092)$   \\
+\hline
+\hline
+Class Fixed Effect                  & & Yes         & & Yes         & & Yes           & & Yes           \\
+Individual Characteristics      & & Yes         & & Yes         & & Yes           & & Yes           \\
+Friendship                              & & Yes         & & Yes         & & Yes           & & Yes           \\
+Observations                  & & $9,377$ & & $9,377$ & & $4,584$   & & $4,793$  \\
+$R$-squared                  & & $0.036$  & & $0.185$  & & $0.187$  & & $0.188$  \\
+\bottomrule 
+\end{tabular}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Conclusion}
+
+\begin{itemize}
+
+\item 
+
+\end{itemize}
+
+\end{frame}
+
+\appendix
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{}
+
+\center
+\textbf{Robustness}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Varian's Efficiency Index}
+
+\begin{itemize}
+
+\item 
+
+\end{itemize}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Introduction: Risk Perception}
+
+\begin{itemize}
+
+\item[1.] Genetics: White males wre more likely to perceive risks as being smaller (Bickerstaff, 2004; Flynn et al., 1994).
+\mk
+
+\item[2.] Psychology: 
+\sk
+	\begin{itemize}
+	
+	\item availability bias 
+	\sk
+	
+	\item experience
+	\end{itemize}
+	\mk
+	
+\item[3.] Knowledge and Information: public v.s. experts
+\mk
+	
+\item[4.] Other factors
+\sk
+	\begin{itemize}
+	
+	\item culture: Chinese individuals are significantly less risk-averse than individuals from Western countries when making financial decisions (Weber and Hsee, 1998).
+	\sk
+	
+	\item power: high-power groups adopt a more positive attitude toward potential risks (Anderson and Galinsky, 2006; Magee et al., 2007; Geng et al, 2018).
+	\sk
+	
+	\item social inequality: Sweden people with foreign backgrounds did perceive risks as higher than native people, but no difference between men and women.
+	
+	\end{itemize}
+
+\end{itemize}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Introduction: Implication}
+
+\begin{itemize}
+
+\item Health
+	\sk
+	\begin{itemize}
+	
+	\item ``미세먼지의 위험성에 대해서 잘 인식하지 못하는 사람들도 적지 않았다. 경기도 고양시에서 폐지 줍는 일을 하는 조모(82) 씨는 미세먼지가 무섭지 않다고 했다. 그는 노인들이 미세먼지에 더 취약하다는 지적에 “\textcolor{tred}{70평생 먼지 들이켜고도 잘 살았다}”고 말했다'' \\ \ \\
+	-- 헤럴드 경제, \textit{[미세먼지의 습격⑦] 거리가 일터인 택배원ㆍ배달원 “마스크쓰고 일 못해요”, 2018. 1. 17.} --
+	
+	\end{itemize}
+
+\end{itemize}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Introduction: Implication}
+
+\begin{itemize}
+
+\item Health
+	\sk
+	\begin{itemize}
+	
+	\item 비용-편익 분석의 핵심은 특정 정책의 비용과 편익에 대한 정확한 추정을 기반으로 한다. 결과적으로 효과적이고 합리적인 정책은 그 정책 대상에 대한 정확한 가치의 추정 을 바탕으로 그에 상응하는 정책을 수립하는 데에서 출발할 수 있을 것이다. 환경정책도 여기서 예외가 될 수는 없다. 즉, 효과적이고 합리적인 환경정책은 해당 환경자원에 대한 정확한 가치의 추정이 선행되어야 한다는 것이고 이렇게 추정된 가치에 대한 자료를 근거로 정책의 우선순위나 당위성을 확보할 수 있다는 것이다. 그런데, 환경정책에서 가장 어려운 부분이 바로 여기에 존재한다. 환경자원은 그 특성상 시장이 존재하지 않는 경우가 많으며 기타 시장재화와는 다르게 특정 환경자원의 화폐적 가치를 직접적으로 추정하기가 어렵다. 환경자원의 가치 추정에서의 어려움을 극복하기 위해 제안된 가치평 가기법들은 여러 가지가 존재한다. 이 중에서도 가장 광범위하게 사용되고 있는 기법은 가상 시장에 기반을 두어 그 환경자원의 가치를 직접적으로 유도하는 방식인 진술선호법 중 하나인 조건부가치평가법(contingent valuation method)을 꼽을 수 있다.
+	
+	\end{itemize}
+	\mk
+	
+\item Policy: 시민참여단의 성, 연령, 거주 권역, 교육수준 등의 특성에 따라 건설 재개 및 중단에 대한 응답에 차이가 있는지를 알아보기 위해 차이검정을 실시했다.
+먼저 성별에 따른 차이를 보면 남자 66.3%, 여자 52.7%가 건설 재개를 선택했다. 남성과 여성 모두 과반이 건설 재개를 지지했으나, 남성이 여성에 비해 건설 재개를 지지하는 비율이 13.6%p 높았으며 성별에 따른 차이는 통계적으로 유의미했다.
+연령별로 보면 20대는 56.8%, 30대는 52.3%, 40대는 45.3%, 50대는 60.5%, 60대 이상은 77.5% 가 건설 재개에 응답했다. 40대를 제외한 연령층 모두에서 건설 재개를 지지하는 비율이 높았고, 특히 60대 이상 노년층에서 건설 재개에 동의하는 비율이 가장 높았다.
+권역별로 살펴보면 수도권 시민참여단은 건설 재개와 중단에 대해 전국 평균과 유사한 경향을 보여 주었다. 호남권 시민참여단은 건설 중단을, 중부권과 영남권 시민참여단은 건설 재개를 더 많이 지지한 것으로 나타났다. 하지만 권역에 따른 건설 재개/중단에 대한 입장 차이가 통계적으로 유의미하지는 않았다.
+교육수준별로 살펴보면 학력에 관계없이 건설 재개를 지지하는 입장이 과반인 가운데, 고졸이하 학력 집단이 대학재학 이상 집단보다 건설 재개를 지지하는 비율이 17.7%p 더 높았다.
+                    
+\mk
+
+\item Agricultural activities: Farmers tend to be risk averse and that risk aversion determines their diversification strategies (Lin et al., 1974; Fafchamps, 1992).
+
+\end{itemize}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%% new frame %%%%%%%%%%%%%%%%%%%%%%%%
+
+%\begin{frame}{Introduction to Experimental Economics}
+
+%\center
+%\includegraphics[height = 3 in]<1>{pfigs/dan}
+%\includegraphics[height = 3 in]<2>{pfigs/roth}
+%\includegraphics[height = 3 in]<3>{pfigs/thaler1}
+%\includegraphics[height = 3 in]<4>{pfigs/thaler2}
+
+%\end{frame}
+
+\end{document}
+
+
+%%%%%% Inventory
+
+%\center
+%\includegraphics[width = 1.8 in]{textbook}

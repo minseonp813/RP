@@ -1,0 +1,308 @@
+\textit{}%!TEX program = xelatex
+\documentclass[9pt, compress]{beamer}
+\usetheme[titleprogressbar]{m}
+
+\usepackage[scale=2]{ccicons}
+\usepackage{minted}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{amsmath}
+\usepackage{arydshln}
+\usepackage{amssymb}
+
+\usepackage{tikz}
+\usepackage{tikz-cd}
+
+\usepgfplotslibrary{dateplot}
+\usepackage{booktabs,caption,fixltx2e}
+\usepackage[flushleft]{threeparttable}
+
+\usepackage{color}
+
+\author{Syngjoo Choi (SNU), Booyuel Kim (KDIS), Minseon Park (KDI), Yoonsoo Park (KDI), Euncheol Shin (KHU)}
+
+\title{Rationality, Preference Aggregation and Pareto Efficiency of Group Decision Under Risk}
+%\subtitle{}
+%\logo{}
+%\institute{\textbf{KDI}}
+\date{June 13th, 2017}
+%\subject{}
+%\setbeamercovered{transparent}
+%\setbeamertemplate{navigation symbols}{}
+\begin{document}
+	\maketitle
+
+	\begin{frame}
+    	\frametitle{Introduction}
+        \begin{itemize}
+        	\item Although most real-life economic decisions are made in groups, there have been few investigations on group decisions in economics.
+              \begin{itemize}
+           		\item Social choice theories e.g.Arrow's impossibility theorem 
+                \item Household economic decision (F. Bourguignon(1993)) 
+                \item A few experimental studies on group choice 
+            \end{itemize}
+            \item Our research studies fundamental questions on group decision under risk using individual and pair choice data
+		\end{itemize}
+	\end{frame}
+    
+	\begin{frame}
+		\frametitle{Fundamental Questions on Group Decision Making}
+		\begin{itemize}
+		    \item Three fundamental questions on group decision making
+            \end{itemize}
+             \begin{enumerate}
+             \item \textbf{\textit{Extension.}} Does individual's rationality extends to that of group? (->\textbf{\textit{Consistency}}) \\
+             \item \textbf{\textit{Preference Aggregation.}} How are individuals' risk preferences aggregated into group's risk preference? (->\textbf{\textit{Structure}})
+             \item \textbf{\textit{Pareto Efficiency.}} Does groups maximize social welfare? 
+             \end{enumerate}
+             \begin{itemize}
+             \item And the relationship of these concepts are also of interest.
+		 \end{itemize}
+	\end{frame}
+
+
+	\begin{frame} 
+		\frametitle{Contribution}
+        Our research...
+        \begin{enumerate}
+        \item Developed a unique experimental design to gather rich data on individual and group decision (Adopted revealed preference approach)
+        \item Recruited subjects which are most appropriate for this study (within classroom random pairs of 12 junior high schools)
+        \item Recruited large sample which enables us to study the heterogeneity in group decision (N=1572)     
+        \end{enumerate}
+        \begin{itemize}
+        \item Using this large and rich data set, our study investigate fundamental questions on group decision making under risk, which have not yet been answered. 
+        \end{itemize}
+	\end{frame}
+	
+    \begin{frame}
+    	\frametitle{Decision Environment}
+        \begin{itemize}
+        \item Basically, our experimental design is based on Choi et al. (2007) 
+        \item A subject confronts a decision problem to choose the combination \((x_1,x_2)\) on the given budget line \(p_{x_1}x_1+p_{x_2}x_2=M\) 
+        \item The subject receives the points allocated to one of the securities \(x_1\) or \(x_2\), determined at random and equally likely (\(x_1\) and \(x_2\) are payoffs of two arrow securities)
+        \end{itemize}
+          \begin{figure}
+        \includegraphics[width=150pt,height=100pt]{img/20161005174633.png}
+        \caption{Screen Shot of Experiment }
+		\end{figure}
+    \end{frame}
+    
+    \begin{frame}
+    	\frametitle{Decision Environment}
+        \textbf{Stage 1.} 
+        \begin{itemize}
+        \item Each subject makes decision 18 times individually
+        \item Payoff is given for only one randomly chosen decision 
+        \end{itemize}
+        \textbf{Stage 2.}
+        \begin{itemize}
+        \item After then, subjects are paired randomly within class
+        \item One of the member moved to beside one's partner
+        \item Have discussion time (1min 30sec)
+        \item Each pair makes the same decision 18 times collectively 
+        \item Payoff from randomly chosen 1 decision out of 18 is doubled and equally given to each individual
+        \end{itemize}
+        No feedback is given during the experiment
+    \end{frame}
+
+    
+	\section{Rationality: Consistency and Extension}
+    \begin{frame}
+    	\frametitle{GARP and CCEI}
+       \underline{ \textbf{Definition} } \\
+		\(x^t\) is strictly directly revealed preferred to a bundle \(x^s\), denoted \(x^tP^Dx^s\), if \(p^tx^t > p^tx^s\) \\
+       \underline{ \textbf{Generalized Axiom of Revealed Preference(GARP)} } \\
+		  If \(x^tRx^s\), then it is not the case that \(x^sP^Dx^t\). 
+        \(x^tRx^s\) implies  \(p^sx^s<=p^sx^t\). 
+         \begin{itemize}
+        \item Afriat's theorem: choice data satisfy the GARP iff there exist a well-behaving preference relation that “rationalizes” the data.
+   	   \item Goodness-of-fit indices including CCEI(Afriat, 1972) 
+           \item CCEI is the largest number \(e\in [0, 1]\) such that $e(p^1x^1) \geq p^1x^2 , e(p^2x^2) \geq p^2x^3,  ... , e(p^{n-1}x^{n-1}) \geq p^{n-1}x^n ,\rightarrow e(p^nx^n) < p^nx^1$
+       \end{itemize}   
+        \end{frame}           
+    
+    
+	\begin{frame} 
+		\frametitle{Consistency}
+        \begin{figure}
+        \includegraphics[width=240pt,height=160pt]{img/ccei_hist.png}
+        \caption{Distribution of individual and collective CCEI}
+		\end{figure}
+        In spite of significant heterogeneity, a great deal of pairs(CCEI of 38\% of pairs was 1; 47\% was 0.99 and 60\% was 0.95) behaved consistently.
+	\end{frame}
+    
+    \begin{frame} 
+		\frametitle{Extension}
+        \textit{CASE 3} Rational + Irrational \(\Rightarrow\) Rational
+		 \begin{figure}
+        \includegraphics[width=270pt,height=185pt]{img/relconsumption275.png}
+		\end{figure}
+	\end{frame}
+    
+    \begin{frame} 
+    	\frametitle{Extension}
+        \begin{figure}        \includegraphics[width=240pt,height=160pt]{img/extention_cdf.png}
+        \caption{Distribution of collective CCEI- in each case}
+		\end{figure}        
+        Pairs with more rational individuals is more likely to behave consistently with utility maximization.
+	\end{frame}	
+
+\section{Risk Preference: Structure and Preference Aggregation}   
+	\begin{frame}
+    	\frametitle{Non-parametric Risk Preference Measure}
+        \begin{itemize}
+        \item Non-parametric risk aversion(RP)  \(:= \sum_{j=1}^{18} \frac{x_{cheaper}}{x_1+x_2}  \)
+        \begin{itemize}
+        \item If risk neutral, one will put all the money to the cheaper good(same probability)
+        \item If risk averse, one will equalize the payoff in each state 
+        \item Therefore, \(RP \in [0.5,1]\)
+        \end{itemize}  
+        \end{itemize}
+    \end{frame}
+    
+    \begin{frame}
+    	\frametitle{Non-parametric Risk Preference: Group vs Individual}
+		  \begin{figure}
+        \includegraphics[width=240pt,height=160pt]{img/riskpref_hist.png}
+        \caption{Distribution of Non-parametric Risk Aversion Measure}
+		\end{figure}
+        There exists heterogeneity in group's risk preference. \\ 
+        Distance(corrected p-value) from Kologrov-Smirnov test=0.081(0.000) 
+    \end{frame}
+    
+\begin{frame} 
+		\frametitle{Parametric Risk Preference Measure}
+ 		\begin{equation}
+        U(x_{min},x_{max})=\alpha{u(x_{min})}+(1-\alpha)u(x_{max})
+        \end{equation}
+        \begin{itemize}   
+     	\item If $\alpha>\frac{1}{2}$, then one said to show disappointment aversion(has pessimistic probability weighting); $\alpha<\frac{1}{2}$, elation loving(has optimistic probability weighting). Altogether, both case's utility is the \textbf{Rank Dependent Utility Form(RDU)} 
+        \item IF one's utility function is the \textbf{Expected Utility Form(EUT)}, $\alpha=\frac{1}{2}$.
+        \item Additionally, assume $u(x)=\frac{-exp(-\rho{x})}{\rho}$(CARA).
+        \item Approximated risk premium
+         \begin{equation}
+         u(w(1-r))=\alpha{u(w(1-h))}+(1-\alpha)u(w(1+h))
+        \end{equation}
+        \end{itemize}
+	\end{frame}
+ 
+    \begin{frame}
+    	\frametitle{EUT and RDU}
+        \begin{figure}        \includegraphics[width=270pt,height=180pt]{img/20161005230110.png}
+        \caption{Indifference Curve Depending on Probability Weighting}
+		\end{figure}
+   	\end{frame}
+    
+    \begin{frame}
+    	\frametitle{EUT and RDU}
+         \begin{figure}
+        \includegraphics[width=280pt,height=190pt]{img/20161005231233.png}
+        \caption{Simulated Optimal Demand}
+		\end{figure}
+    \end{frame}
+    
+    \begin{frame}
+    	\frametitle{Probability Weighting: Group vs Individual}
+        	  \begin{figure}        \includegraphics[width=240pt,height=160pt]{img/hist_alpha.png}
+        \caption{Distribution of Probability Weight}
+       		\end{figure}
+            There are many pairs of which decision follows RDU rather than EUT.
+    \end{frame}
+    
+    \begin{frame}
+    	\frametitle{Preference Aggregation At the Pair Level}
+         	  \begin{figure}        \includegraphics[width=240pt,height=160pt]{img/riskpref_range_rational.png}
+        \caption{Difference in Partner's RP and Collective RP Aggregation}
+		\end{figure}
+    \end{frame}
+        
+  \begin{frame}
+  \frametitle{Collective Rationality and Risk Preference Conflict}    
+        \[
+        \begin{tikzcd}[ampersand replacement=\&]
+            Individual Rationality \ar[rr, "\textcolor{blue}{Extension}"] \& \&  Collective Rationality \\
+            Individual Preference(Conflict)  \ar[urr, Rightarrow, "\displaystyle{?}", "\textcolor{red}{0.75(0.45)}"'] \ar[rr, "\textcolor{blue}{Pref.Aggregation}"'] \& \&  Collective Preference 
+        \end{tikzcd}
+        \]
+        \begin{itemize}
+        \item Preference conflict has been pointed as a main source of inconsistency in collective decision(Condorcet's paradox, Arrow's impossibility theorem).
+        \item But our data illustrates it might not be true. Simple regression result(t-value(p-value)) is under the arrow in the diagram.
+        \item Based on the result, we can say irrationality of collective decision is mainly attributed to individual consistency not to preference conflict.
+        \end{itemize}
+\end{frame}
+   
+
+    
+    \section{Pareto Efficiency}
+    
+    \begin{frame}
+    	\frametitle{Pareto Efficiency}
+       	 \underline{ \textbf{Definition} } \\
+         A pair's decision is \textbf{Pareto efficient} if $(x^c_1,x^c_2)=t(x^{1*}_1,x^{1*}_2)+(1-t)(x^{2*}_1,x^{2*}_2), t\in[0,1]$ where $(x^c_1,x^c_2)=$ pair's choice data, $(x^{1*}_1,x^{1*}_2)= argmax_{(x_1,x_2)}\hat{U}_1(x_1,x_2)$ and $(x^{2*}_1,x^{2*}_2)= argmax_{(x_1,x_2)}\hat{U}_2(x_1,x_2)$.
+              \begin{figure}       
+     \includegraphics[width=160pt,height=120pt]{img/diagram4.png}
+		\end{figure}
+        \begin{center}        
+        $PE:=\frac{1}{18}\sum^{18}_{i=1}{1((x^c_1,x^c_2)=t(x^{1*}_1,x^{1*}_2)+(1-t)(x^{2*}_1,x^{2*}_2), t\in[0,1])}$
+        \end{center}
+    \end{frame}
+    
+     \begin{frame}
+    \frametitle{Rationality as a Source of Pareto Efficiency}
+         \begin{figure}       
+     \includegraphics[width=160pt,height=120pt]{img/colrat_pe_cor.png}      
+     \includegraphics[width=160pt,height=120pt]{img/indrat_pe_cor2.png}
+		\end{figure}
+        \begin{itemize}
+        \item The graph shows rationality(individual and collective) is a source of PE.
+        \item It also present a considerable heterogeneity of Pareto efficiency, even within rational pairs. 
+        \end{itemize}
+    \end{frame}
+    
+     \begin{frame}
+         \frametitle{Preference Conflict as a Source of Pareto Inefficiency} 
+       \begin{figure}       
+     \includegraphics[width=240pt,height=160pt]{img/prefcnf_pecor2.png}
+		\end{figure}
+    \end{frame}
+    
+    \begin{frame}
+    \frametitle{Rationality, Preference Conflict and Pareto Efficiency}
+    \begin{small}
+    \begin{table}[]
+\centering
+\caption{Rationality, Preference Conflict and Pareto Efficiency}
+\label{my-label}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+VARIABLES & (1) & (2) & (3) & (4) \\ \midrule
+ & \multicolumn{1}{l}{} & \multicolumn{1}{l}{} & \multicolumn{1}{l}{} & \multicolumn{1}{l}{} \\
+Collective CCEI & 0.27*** &  & 0.25*** &  \\
+ & (0.053) &  & (0.055) &  \\
+Either ind. CCEI\textgreater95 &  & 0.06*** & 0.04** &  \\
+ &  & (0.019) & (0.018) &  \\
+Both ind. CCEI\textgreater95 &  & 0.08*** & 0.03 &  \\
+ &  & (0.022) & (0.022) &  \\
+Conflicting Risk Pref. &  &  &  & -0.07** \\
+ &  &  &  & (0.029) \\
+Constant & 0.20*** & 0.39*** & 0.19*** & 0.51*** \\
+ & (0.050) & (0.016) & (0.050) & (0.022) \\
+ &  &  &  &  \\
+Observations & 786 & 786 & 786 & 211 \\
+R-squared & 0.031 & 0.018 & 0.036 & 0.027 \\ \bottomrule
+\end{tabular}
+\end{table}
+\end{small}
+    \end{frame}
+
+    \begin{frame}
+    \frametitle{Conclusion}
+    \begin{itemize}
+    \item There exists considerable heterogeneity in collective rationality, risk preference, and Pareto efficiency.
+    \item\textbf{Extension}: Pairs with more rational individuals make more consistent choices
+    \item\textbf{Preference Aggregation}: Groups' choices are more risk neutral than that of individuals. In addition, a considerable number of groups follows Rank Dependent Utility.
+    \item\textbf{Pareto Efficiency}: Rationality and preference conflict are important source of Pareto efficiency
+    \end{itemize}
+    \end{frame}
+       
+\end{document}

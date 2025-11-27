@@ -1,0 +1,128 @@
+%2multibyte Version: 5.50.0.2953 CodePage: 1252
+
+\documentclass[12pt]{article}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{amsfonts}
+\usepackage{mitpress}
+
+%TCIDATA{OutputFilter=LATEX.DLL}
+%TCIDATA{Version=5.50.0.2953}
+%TCIDATA{Codepage=1252}
+%TCIDATA{<META NAME="SaveForMode" CONTENT="1">}
+%TCIDATA{BibliographyScheme=Manual}
+%TCIDATA{Created=Tuesday, April 04, 2017 10:30:55}
+%TCIDATA{LastRevised=Tuesday, April 04, 2017 10:32:25}
+%TCIDATA{<META NAME="GraphicsSave" CONTENT="32">}
+%TCIDATA{<META NAME="DocumentShell" CONTENT="Articles\SW\A Simple MIT Press Article">}
+%TCIDATA{CSTFile=LaTeX Article (bright).cst}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{acknowledgement}[theorem]{Acknowledgement}
+\newtheorem{algorithm}[theorem]{Algorithm}
+\newtheorem{axiom}[theorem]{Axiom}
+\newtheorem{case}[theorem]{Case}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{conclusion}[theorem]{Conclusion}
+\newtheorem{condition}[theorem]{Condition}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{criterion}[theorem]{Criterion}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{exercise}[theorem]{Exercise}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{notation}[theorem]{Notation}
+\newtheorem{problem}[theorem]{Problem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{solution}[theorem]{Solution}
+\newtheorem{summary}[theorem]{Summary}
+\newenvironment{proof}[1][Proof]{\noindent\textbf{#1.} }{\ \rule{0.5em}{0.5em}}
+\newdimen\dummy
+\dummy=\oddsidemargin
+\addtolength{\dummy}{72pt}
+\marginparwidth=.5\dummy
+\marginparsep=.1\dummy
+
+\input{tcilatex}
+
+\begin{document}
+
+
+For the parametric analysis of our data we assume that an individual subject
+in our experiment chooses a consumption profile over two periods, $\left(
+c_{t},c_{t+k}\right) $, to maximize intertemporal utility subject to a
+budget constraint:%
+\[
+u\left( c_{t}|\omega \right) +D_{t,k}u\left( c_{t+k}|\omega \right) \quad 
+\text{s.t.}\ c_{t}+\frac{1}{1+r_{t,k}}c_{t+k}=m,
+\]%
+where $u\left( \cdot |\omega \right) $ is the per-period utility function
+based on the baseline consumption level, $\omega $. The time index $t$ is
+either 0 (early time frame) or 1 (late time frame). The discount factor $%
+D_{t,k}$ is specified as follows:%
+\[
+D_{t,s}=\left\{ 
+\begin{array}{cc}
+\beta \delta ^{k} & \text{if }t=0 \\ 
+\delta ^{k} & \text{if }t=1.%
+\end{array}%
+\right. 
+\]%
+The parameter $r_{t,k}$ represents the experimental interest rate of
+payments between two periods. We assume a power utility function%
+\begin{equation}
+u\left( c|\omega \right) =\frac{\left( c+\omega \right) ^{1-\rho }}{1-\rho }%
+\text{,}  \label{utility}
+\end{equation}%
+where $\rho $ represents a relative risk aversion coefficient.\footnote{%
+In Web Appendix \ref{CARA}, we repeat this estimation exercise with a CARA
+utility function and show that the results presented here also hold for this
+specification.} Note that the optimal demand depends on the baseline
+consumption level. Furthermore, for $\omega \leq 0$, the optimality of
+demands can not generate corner solutions, widely observed in the
+experimental data. Thus, we assume that $\omega >0$. Solving the constrained
+maximization problem, we derive the following optimal demands:
+
+\begin{description}
+\item[Case 1:] $\omega ^{\rho }/\left( D_{t,s}\left( m+\omega \right) ^{\rho
+}\right) \leq \left( 1+r_{t,k}\right) \leq \left( \left( m\left(
+1+r_{t,k}\right) +\omega \right) ^{\rho }\right) /D_{t,s}\omega ^{\rho }$%
+\begin{eqnarray*}
+c_{t}^{\ast } &=&\frac{m\left( 1+r_{t,k}\right) }{\left( 1+r_{t,k}\right) +K}%
++\omega \frac{1-K}{\left( 1+r_{t,k}\right) +K}, \\
+c_{t+k}^{\ast } &=&\frac{K\left( 1+r_{t,k}\right) }{\left( 1+r_{t,k}\right)
++K}\times \left( m+\left( 1-1/K\right) \omega \right) \text{,}
+\end{eqnarray*}
+\end{description}
+
+where%
+\[
+K=\left[ D_{t,k}\left( 1+r_{t,k}\right) \right] ^{1/\rho }\text{.} 
+\]
+
+\begin{description}
+\item[Cases 2 \& 3:] 
+\begin{eqnarray*}
+c_{t}^{\ast } &=&m\text{ \ and \ }c_{t+k}^{\ast }=0, \\
+&&\text{or} \\
+c_{t}^{\ast } &=&0\text{ \ and \ }c_{t+k}^{\ast }=\left( 1+r_{t,k}\right) m%
+\text{.}
+\end{eqnarray*}
+\end{description}
+
+We estimate the individual specific vector $\theta =$ $\left( \beta ,\delta
+,\rho \right) $ using the individual-level experimental data. Each time
+frame consists of 50 decision problems for each individual, denoted by $%
+\left\{ \left( c_{t}^{p},c_{t+k}^{p},m^{p},r_{t,k}^{p}\right) \right\}
+_{p=1}^{50}$. We define the demand share for the sooner payment, $%
+rc_{t}\equiv c_{t}/\left( c_{t}+c_{t+k}\right) $, and use it in our
+estimation exercise. That is, our econometric method is to minimize the
+distance between the observed demand share and the optimal demand share for
+the sooner payment:%
+\[
+D\left( \theta \right) =\sum_{p=1}^{50}\left( rc_{t}^{p}-rc_{t}^{p\ast
+}\left( \theta \right) \right) ^{2}
+\]
+
+\end{document}

@@ -1,0 +1,88 @@
+\documentclass[a4paper]{article}
+
+%% Language and font encodings
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsfonts}
+\usepackage{bbm}
+
+%% Sets page size and margins
+\usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+%% Useful packages
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+
+\title{List of Main Figures and Tables \\
+  \large And Variations in the Appendix}
+    
+\begin{document}
+\maketitle
+\date{}
+
+\section{Rationality Extension}
+
+\begin{enumerate}
+\item[\textbf{Figure 1}] CDFs of Collective Varian by Groups
+\item[Appendix:] Both Varian/CCEI with different thresholds 0.9, 0.95, 0.99
+\item[\textbf{Table 1}] Collective Varian 
+\begin{align}
+ColV &= \alpha+\beta_1 MaxIndV + \beta_2 DistIndV +\gamma ClassroomFE +\epsilon \\
+	&= (1) + \delta_1 MaxIndRA + \delta_2 DistIndRA \\
+    &= (1) + \rho_1 Gender +\rho_2 Mathscore + \rho_3 Height + \rho_4 Friendship \\
+    &= (2)+(3) \\
+    &= (4) + \beta_3MaxIndV\mathbbm{1}\lbrace MaxIndV=nonMoverIndV\rbrace
+\end{align}
+\item[Appendix:] Table 1 with CCEI
+\end{enumerate}
+
+\section{Risk Preference Aggregation}
+
+\begin{enumerate}
+\item[\textbf{Figure 2A}] CDFs of Collective Non-parametric Risk Aversion by Groups
+\item[Appendix:] Figure 2A only with pairs of which both individual Varians are over 0.9, 0.95, 0.99.
+\item[\textbf{Figure 2B}] CDFs of Collective Parametric Risk Premium by Groups
+\item[Appendix:] Figure 2B only with pairs of which both individual CCEIs/ Varians are over 0.9, 0.95, 0.99 assuming two different functional forms(CARA, CRRA)
+\item[\textbf{Table 2}] Collective Risk Aversion
+\begin{align}
+ColRA &= \alpha+\beta_1 MAXIndRA + \beta_2 DistIndRA +\gamma ClassroomFE +\epsilon \\
+	&= (6) + \delta_1 MaxIndV + \delta_2 DistIndV \\
+    &= (6) + \rho_1 Gender +\rho_2 Mathscore + \rho_3 Height + \rho_4 Friendship \\
+    &= (7) + (8) \\
+    &= (9) + \beta_3MaxIndRP\mathbbm{1}\lbrace MaxIndRP=nonMoverIndRP\rbrace
+\end{align}
+\item[Appendix:] Table 2 with risk premium imposing CARA, CRRA, and using different threshold for individual Varians 0.9, 0.95, 0.99 to include pairs. 
+\item[\textbf{Table 3}] EUT/ RDU Type by Groups
+\item[Appendix:] Table 3 imposing CARA, CRRA, 
+\item[\textbf{Table 4}] Collective Risk Preference Type and using the threshold Varians>=0.9
+\begin{align}
+ColT &= \alpha+\beta_1 OnlyOneRDU + \beta_2 BothRDU +\gamma ClassroomFE +\epsilon \\
+    &= (11) + \rho_1 Gender +\rho_2 Mathscore + \rho_3 Height + \rho_4 Friendship \\
+    &= (12) + \beta_3OnlyOneRDU \mathbbm{1}\lbrace thatone=nonMover\rbrace
+\end{align}
+\item[Appendix] Table 4 with Varians>=0.7 and CCEIs>=0.9
+\end{enumerate}
+
+\section{Pareto Efficiency}
+\begin{enumerate}
+\item[\textbf{Figure 3A}] Histogram of Utility Loss : All Subjects
+\item[\textbf{Figure 3B}] Histogram of Utility Loss : Both individual Varians $>=$ 0.9
+\item[Appendix] Figure 3B with Varian>=0.7 and CCEI>=0.9
+\item[\textbf{Figure 4A}] CDFs of Utility Loss by Collective Varian : All Subjects
+\item[\textbf{Figure 4B}] CDFs of Utility Loss by Collective Varian : Both individual Varians $>=$ 0.9
+\item[Appendix] Figure 4B with Varian>=0.7 and CCEI>=0.9
+\item[\textbf{Table 5}] Utility Loss 
+\begin{align}
+Uloss &= \alpha+\beta_1 MaxIndV + \beta_2 DistIndV +\gamma ClassroomFE +\epsilon \\
+    &= (14) + \rho_1 Gender +\rho_2 Mathscore + \rho_3 Height + \rho_4 Friendship \\
+    &= \alpha+\beta_1 MaxIndRA + \beta_2 DistIndRA +\gamma ClassroomFE +\epsilon \\
+    &= (16) + \rho_1 Gender +\rho_2 Mathscore + \rho_3 Height + \rho_4 Friendship \\
+    &= (14) + (16) \\
+    &= (18) + \rho_1 Gender +\rho_2 Mathscore + \rho_3 Height + \rho_4 Friendship
+\end{align}
+\item[Appendix:] Table 5 with Varians>=0.7 and CCEIs>=0.9
+\end{enumerate}
+\end{document}

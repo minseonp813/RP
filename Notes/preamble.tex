@@ -1,0 +1,81 @@
+% Math-related packages
+\usepackage{amsmath, amssymb, amsfonts, amsthm, amsxtra}
+\usepackage{bbm}
+\usepackage[mathcal]{eucal}
+
+% Layout and formatting
+\usepackage[margin=0.95in]{geometry}
+\usepackage[doublespacing]{setspace}
+\usepackage{fancyhdr}
+\usepackage{appendix}
+\usepackage{ragged2e}
+\usepackage{indentfirst}
+\usepackage{titlesec}
+\usepackage{afterpage}
+\usepackage{placeins}
+\usepackage{lipsum}
+
+% Tables
+\usepackage{booktabs, longtable, tabularx, multirow, makecell}
+\usepackage[para,online,flushleft]{threeparttable}
+\usepackage{threeparttablex}
+\setTableNoteFont{\fontsize{8}{9.6}}
+\usepackage{arydshln}
+
+% Figures
+\usepackage{float}
+\usepackage{caption, subcaption}
+\usepackage{adjustbox}
+\usepackage{rotating}
+\usepackage{pdflscape}
+
+% Graphics
+\usepackage{graphicx}
+\usepackage{epstopdf}
+\usepackage{tikz}
+\usetikzlibrary{calc,plotmarks}
+
+% Colors
+\usepackage[dvipsnames,svgnames]{xcolor}
+\usepackage{colortbl}
+\definecolor{blue}{rgb}{0,0.08,0.5}
+\definecolor{red}{rgb}{.6,0,0}
+\definecolor{green}{rgb}{0,0.376,0}
+
+% Bibliography and citations
+\usepackage{natbib}
+\bibliographystyle{plainnat}
+\setcitestyle{authoryear}
+\usepackage{csquotes}
+\usepackage{url}
+
+% Language and fonts
+\usepackage[english]{babel}
+\usepackage{palatino}
+\usepackage{latexsym}
+\usepackage{enumerate}
+\usepackage{paralist}
+
+% Hyperlinks
+\usepackage[
+    bookmarks,
+    pdftitle={},
+    pdfauthor={Barbara Biasi},
+    colorlinks=true,
+    linkcolor=red,
+    citecolor=blue,
+    urlcolor=blue
+]{hyperref}
+
+% Custom commands and environments
+\newcommand{\sym}[1]{{#1}}
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcommand{\specialcell}[2][c]{\begin{tabular}[#1]{@{}c@{}}#2\end{tabular}}
+\newcommand{\specialcellleft}[2][c]{\begin{tabular}[#1]{@{}l@{}}#2\end{tabular}}
+\newcommand{\samelineand}{\qquad}
+\newcommand{\ms}[1]{\textcolor{blue}{(MS: #1)}}
+\newenvironment{tabnotes}[2][1]{\begin{minipage}[t]{#1\textwidth}\vspace{0.1cm}\scriptsize{Note: #2}}{\end{minipage}}
+
+% Misc
+\usepackage{verbatim}
+\usepackage{datetime}
