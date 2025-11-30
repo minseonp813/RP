@@ -1,14 +1,17 @@
 ********************************************************************************
-* Generate all main figures 
+* Generate Descriptive Statistics 
 * Written by Minseon Park 09012025
-********************************************************************************
-
-********************************************************************************
-* Table: Collective CCEI
 ********************************************************************************
 
 set more off
 set matsize 8000
+
+* Add path to ado files
+adopath + "`c(pwd)'"
+
+/********************************************************************************
+* Table: Collective CCEI
+********************************************************************************
 
 use "data/finalized_panel_pbl_250831.dta", clear
 
@@ -126,7 +129,6 @@ estadd scalar p_val = r(p)
 esttab, star(+ 0.1 * 0.05 ** 0.01) b(3) se(3) stats(N r2 p_val p_val0 p_val1 p_val_math, labels("N" "R-squared" "p-value") fmt(0 3 3))
 esttab using "results/table_bargainingRA.csv", replace b(3) se(3) stats(N r2 p_val p_val0 p_val1 p_val_math, labels("N" "R-squared" "p-value") fmt(0 3 3)) nogap compress star(+ 0.1 * 0.05 ** 0.01) 
 
-**# Bookmark #1
 
 ********************************************************************************
 * Table: Bargaining using CCEI - Mechanism
