@@ -166,6 +166,153 @@ ggsave("results/ccei_bargaining_had_individual_low.png", p2_low,
        width = 7, height = 5, dpi = 300)
 
 
+###############################################
+
+library(ggplot2)
+library(ggpattern)
+
+df <- data.frame(
+  Block = c("Time", "CCEI", "Group and individual Char., Friendship", "Class FE"),
+  Shapley = c(0.02165, 0.07197, 0.02554, 0.07627),
+  Contribution = c(11.08, 36.83, 13.07, 39.03)
+)
+
+df$Label <- sprintf("%.4f (%.1f%%)", df$Shapley, df$Contribution)
+
+df$Block <- factor(df$Block,
+                   levels = c("CCEI", "Group and individual Char., Friendship", "Time", "Class FE"))
+
+ggplot(df, aes(x = "", y = Shapley,
+               fill = Block, pattern = Block)) +
+  geom_bar_pattern(stat = "identity", width = 0.5,
+                   colour = "black",
+                   pattern_angle = c(-45, -45, 45, 0),
+                   pattern_spacing = 0.12,
+                   pattern_density = 0.4,
+                   pattern_fill = "white",
+                   pattern_colour = "white") +
+  geom_text(aes(label = Label),
+            position = position_stack(vjust = 0.5), size = 4) +
+  scale_fill_manual(
+    name = "Block",
+    values = c("Time" = "lightblue",
+               "CCEI" = "white",
+               "Group and individual Char., Friendship" = "pink",
+               "Class FE" = "grey90")
+  ) +
+  scale_pattern_manual(
+    name = "Block",
+    values = c("Time" = "stripe",
+               "CCEI" = "stripe",
+               "Group and individual Char., Friendship" = "stripe",
+               "Class FE" = "none")
+  ) +
+  labs(y = expression(R^2 ~ " Contribution"),
+       x = "") +
+  theme_minimal(base_size = 14)
+
+ggsave("results/shapley_1.png", width = 6, height = 5, dpi = 300)
+
+
+##############################################################
+
+library(ggplot2)
+library(ggpattern)
+library(scales)
+
+df <- data.frame(
+  Block = c("CCEI", "Risk Aversion",
+            "Demo/Cog/Non-Cog", "Mover", "Others"),
+  Shapley = c(0.23580, 0.01931, 0.08912, 0.07442, 0.00450),
+  Contribution = c(55.72, 4.56, 21.06, 17.59, 1.06)
+)
+
+df$Label <- sprintf("%.4f (%.1f%%)", df$Shapley, df$Contribution)
+
+# Block 순서 지정: (넣고 싶은 순서대로)
+df$Block <- factor(df$Block,
+                   levels = c("CCEI",
+                              "Demo/Cog/Non-Cog",
+                              "Risk Aversion",
+                              "Mover",
+                              "Others"))
+
+# 패턴 그래프
+p <- ggplot(df, aes(x = "", y = Shapley,
+                    fill = Block, pattern = Block)) +
+  geom_bar_pattern(stat = "identity", width = 0.5,
+                   colour = "black",
+                   pattern_angle = c(-45, -45, 45, 45, 0),
+                   pattern_spacing = 0.12,
+                   pattern_density = 0.4,
+                   pattern_fill = "white",
+                   pattern_colour = "white") +
+  geom_text(aes(label = Label),
+            position = position_stack(vjust = 0.5), size = 4) +
+  scale_fill_manual(
+    name = "Block",
+    values = c("CCEI" = "white",
+               "Demo/Cog/Non-Cog" = "lightblue",
+               "Risk Aversion" = "pink",
+               "Mover" = "grey80",
+               "Others" = "grey90")
+  ) +
+  scale_pattern_manual(
+    name = "Block",
+    values = c("CCEI" = "stripe",
+               "Demo/Cog/Non-Cog" = "stripe",
+               "Risk Aversion" = "stripe",
+               "Mover" = "stripe",
+               "Others" = "none")
+  ) +
+  scale_y_continuous(labels = number_format(accuracy = 0.01)) +
+  labs(y = expression(R^2 ~ " Contribution"), x = "") +
+  theme_minimal(base_size = 14)
+
+ggsave("results/shapley_2.png", plot = p,
+       width = 6, height = 5, dpi = 300)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1550,6 +1697,8 @@ p <- ggplot(df, aes(x = "", y = Shapley,
   labs(y = expression(R^2 ~ " Contribution"),
        x = "") +
   theme_minimal(base_size = 14)
+
+
 
 ggsave("shapley_2.png", plot = p, width = 6, height = 5, dpi = 300)
 

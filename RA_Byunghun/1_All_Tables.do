@@ -262,11 +262,13 @@ esttab using "results/table_groupCCEI_other.tex", replace ///
 * (New) Table A4 : shapley decomposition table
 
 clear
-use "data/finalized_panel_pbl_250827.dta", clear
+use "data/finalized_panel_pbl_251206.dta", clear
 
 tab malepair_co, gen(FE_malepair_)
 
-global group_char = "mathscore_max mathscore_dist mathscore_max_missing mathscore_dist_missing height_max height_dist FE_malepair_1 FE_malepair_2 FE_malepair_3 FE_malepair_4 FE_malepair_5	outgoing_max outgoing_dist opened_max opened_dist agreeable_max agreeable_dist conscientious_dist conscientious_max stable_max stable_dist big5_max_missing big5_dist_missing"
+global group_char = "mathscore_max mathscore_dist mathscore_max_missing mathscore_dist_missing height_max height_dist FE_malepair_1 FE_malepair_2 FE_malepair_3 FE_malepair_4 FE_malepair_5	outgoing_max outgoing_dist opened_max opened_dist agreeable_max agreeable_dist conscientious_dist conscientious_max stable_max stable_dist big5_max_missing big5_dist_missing RAT_strict_max RAT_strict_dist" 
+/*  RAT_generous_max RAT_generous_dist */
+
 global friend_char = "oneside_friendship mutual_friendship inclass_n_friends_max inclass_n_friends_dist inclass_popularity_max inclass_popularity_dist"
 
 macro drop class
@@ -301,6 +303,59 @@ estimates store FULL
 estimates restore FULL
 shapley2, stat(r2) group("`GROUPS'")
 
+
+* Numbers needed for Figure 7
+
+use "data/finalized_panel_individual_251206.dta", clear
+
+macro drop class
+global class ""
+
+capture drop class_id
+egen class_id = group(class)
+capture noisily levelsof class_id, local(cls)
+local base : word 1 of `cls'
+
+foreach c of local cls {
+    if "`c'" != "`base'" {
+        gen byte FE_class_`c' = (class_id==`c')
+        label var FE_class_`c' "class FE: group `c'"
+        global class "$class FE_class_`c'"
+    }
+}
+
+display as result "$class"
+
+local G_TIME   "post"
+local G_CCEI   "HighCCEI HighCCEI_post ccei_i"
+local G_RISK   "RA_i"
+local G_FRIEND    "inclass_n_diff inclass_n_HighCCEI inclass_n_post inclass_n_HighCCEI_post inclass_pop_diff inclass_pop_HighCCEI inclass_pop_post inclass_pop_HighCCEI_post"
+local G_DEMO_COG_NCOG "mf fm ff mf_High fm_High ff_High mf_Post fm_Post ff_Post mf_High_Post fm_High_Post ff_High_Post" "math_diff math_High math_Post math_High_Post" "height_diff height_High height_Post height_High_Post" "outgoing_diff outgoing_HighCCEI outgoing_post outgoing_H_post opened_diff opened_HighCCEI opened_post opened_H_post agreeable_diff agreeable_HighCCEI agreeable_post agreeable_H_post conscientious_diff conscientious_HighCCEI conscientious_post conscientious_H_post stable_diff stable_HighCCEI stable_post stable_H_post" "RAT_strict_diff RAT_strict_HighCCEI RAT_strict_post RAT_strict_H_post"
+local G_MOVER  "mover mover_HighCCEI mover_post mover_HighCCEI_post"
+local G_ATT   "mathscore_dist_missing"
+local G_CLASS "$class"
+
+local GROUPS "`G_TIME', `G_CCEI', `G_RISK', `G_FRIEND', `G_DEMO_COG_NCOG', `G_MOVER', `G_ATT', `G_CLASS'"
+
+reg new2_I_ig post HighCCEI HighCCEI_post ccei_i RA_i ///
+    inclass_n_diff inclass_n_HighCCEI inclass_n_post inclass_n_HighCCEI_post ///
+    inclass_pop_diff inclass_pop_HighCCEI inclass_pop_post inclass_pop_HighCCEI_post ///
+    mf fm ff mf_High fm_High ff_High mf_Post fm_Post ff_Post mf_High_Post fm_High_Post ff_High_Post ///
+    math_diff math_High math_Post math_High_Post ///
+    height_diff height_High height_Post height_High_Post ///
+    mover mover_HighCCEI mover_post mover_HighCCEI_post ///
+    outgoing_diff outgoing_HighCCEI outgoing_post outgoing_H_post ///
+    opened_diff opened_HighCCEI opened_post opened_H_post ///
+    agreeable_diff agreeable_HighCCEI agreeable_post agreeable_H_post ///
+    conscientious_diff conscientious_HighCCEI conscientious_post conscientious_H_post RAT_strict_diff RAT_strict_HighCCEI RAT_strict_post RAT_strict_H_post ///
+    stable_diff stable_HighCCEI stable_post stable_H_post ///
+    mathscore_dist_missing ///
+    $class
+
+estimates store FULL
+
+estimates restore FULL
+shapley2, stat(r2) group("`GROUPS'")
 
 **************************************************************
 
@@ -690,202 +745,6 @@ eststo: reg new2_I_ig HighCCEI post HighCCEI_post ///
 esttab, drop(*.class*)
 
 **************************************************************
-
-* Table A7
-
-use "data/finalized_panel_individual_250825.dta", clear
-
-macro drop class
-global class ""
-
-capture drop class_id
-egen class_id = group(class)
-capture noisily levelsof class_id, local(cls)
-local base : word 1 of `cls'
-
-foreach c of local cls {
-    if "`c'" != "`base'" {
-        gen byte FE_class_`c' = (class_id==`c')
-        label var FE_class_`c' "class FE: group `c'"
-        global class "$class FE_class_`c'"
-    }
-}
-
-display as result "$class"
-
-local G_TIME   "post"
-local G_CCEI   "HighCCEI HighCCEI_post ccei_i"
-local G_RISK   "RA_i"
-local G_FRIEND    "inclass_n_diff inclass_n_HighCCEI inclass_n_post inclass_n_HighCCEI_post inclass_pop_diff inclass_pop_HighCCEI inclass_pop_post inclass_pop_HighCCEI_post"
-local G_DEMO_COG_NCOG "mf fm ff mf_High fm_High ff_High mf_Post fm_Post ff_Post mf_High_Post fm_High_Post ff_High_Post" "math_diff math_High math_Post math_High_Post" "height_diff height_High height_Post height_High_Post" "outgoing_diff outgoing_HighCCEI outgoing_post outgoing_H_post opened_diff opened_HighCCEI opened_post opened_H_post agreeable_diff agreeable_HighCCEI agreeable_post agreeable_H_post conscientious_diff conscientious_HighCCEI conscientious_post conscientious_H_post stable_diff stable_HighCCEI stable_post stable_H_post"
-local G_MOVER  "mover mover_HighCCEI mover_post mover_HighCCEI_post"
-local G_ATT   "mathscore_dist_missing"
-local G_CLASS "$class"
-
-local GROUPS "`G_TIME', `G_CCEI', `G_RISK', `G_FRIEND', `G_DEMO_COG_NCOG', `G_MOVER', `G_ATT', `G_CLASS'"
-
-reg new2_I_ig post HighCCEI HighCCEI_post ccei_i RA_i ///
-    inclass_n_diff inclass_n_HighCCEI inclass_n_post inclass_n_HighCCEI_post ///
-    inclass_pop_diff inclass_pop_HighCCEI inclass_pop_post inclass_pop_HighCCEI_post ///
-    mf fm ff mf_High fm_High ff_High mf_Post fm_Post ff_Post mf_High_Post fm_High_Post ff_High_Post ///
-    math_diff math_High math_Post math_High_Post ///
-    height_diff height_High height_Post height_High_Post ///
-    mover mover_HighCCEI mover_post mover_HighCCEI_post ///
-    outgoing_diff outgoing_HighCCEI outgoing_post outgoing_H_post ///
-    opened_diff opened_HighCCEI opened_post opened_H_post ///
-    agreeable_diff agreeable_HighCCEI agreeable_post agreeable_H_post ///
-    conscientious_diff conscientious_HighCCEI conscientious_post conscientious_H_post ///
-    stable_diff stable_HighCCEI stable_post stable_H_post ///
-    mathscore_dist_missing ///
-    $class
-
-estimates store FULL
-
-estimates restore FULL
-shapley2, stat(r2) group("`GROUPS'")
-
-preserve
-clear
-set obs 8
-
-gen str20 block = ""
-replace block = "Time"             in 1
-replace block = "CCEI"             in 2
-replace block = "Risk"             in 3
-replace block = "Friendship"       in 4
-replace block = "Demographic/cognitive/non-cognitive" in 5
-replace block = "Mover"            in 6
-replace block = "SurveyAttrition"  in 7
-replace block = "Class"  in 8
-
-tempname Sh Sr
-matrix `Sh' = e(shapley)
-matrix `Sr' = e(shapley_rel)
-
-svmat double `Sh', names(col)
-capture confirm variable c1
-if !_rc rename c1 shapley_val
-capture confirm variable Sh1
-if !_rc rename Sh1 shapley_val
-
-svmat double `Sr', names(col)
-capture confirm variable c1
-if !_rc rename c1 shapley_share
-capture confirm variable Sr1
-if !_rc rename Sr1 shapley_share
-
-gen shapley_pct = 100*shapley_share
-
-export excel block shapley_val shapley_pct using "results/tableA7_Index.xlsx", ///
-    firstrow(variables) replace
-
-putexcel set "results/tableA7_Index.xlsx", modify
-
-local n = _N
-putexcel B2:B`=1+`n'', nformat(number_d3)
-putexcel C2:C`=1+`n'', nformat(number_d3)
-
-restore
-
-
-
-use "data/finalized_panel_individual_250825.dta", clear
-
-macro drop class
-global class ""
-
-capture drop class_id
-egen class_id = group(class)
-capture noisily levelsof class_id, local(cls)
-local base : word 1 of `cls'
-
-foreach c of local cls {
-    if "`c'" != "`base'" {
-        gen byte FE_class_`c' = (class_id==`c')
-        label var FE_class_`c' "class FE: group `c'"
-        global class "$class FE_class_`c'"
-    }
-}
-
-display as result "$class"
-
-local G_TIME   "post"
-local G_CCEI   "HighCCEI HighCCEI_post ccei_i"
-local G_RISK   "RA_i"
-local G_FRIEND    "inclass_n_diff inclass_n_HighCCEI inclass_n_post inclass_n_HighCCEI_post inclass_pop_diff inclass_pop_HighCCEI inclass_pop_post inclass_pop_HighCCEI_post"
-local G_DEMO_COG_NCOG "mf fm ff mf_High fm_High ff_High mf_Post fm_Post ff_Post mf_High_Post fm_High_Post ff_High_Post" "math_diff math_High math_Post math_High_Post" "height_diff height_High height_Post height_High_Post" "outgoing_diff outgoing_HighCCEI outgoing_post outgoing_H_post opened_diff opened_HighCCEI opened_post opened_H_post agreeable_diff agreeable_HighCCEI agreeable_post agreeable_H_post conscientious_diff conscientious_HighCCEI conscientious_post conscientious_H_post stable_diff stable_HighCCEI stable_post stable_H_post"
-local G_MOVER  "mover mover_HighCCEI mover_post mover_HighCCEI_post"
-local G_ATT   "mathscore_dist_missing"
-local G_CLASS "$class"
-
-local GROUPS "`G_TIME', `G_CCEI', `G_RISK', `G_FRIEND', `G_DEMO_COG_NCOG', `G_MOVER', `G_ATT', `G_CLASS'"
-
-
-reg RA_ig post HighCCEI HighCCEI_post ccei_i RA_i ///
-    inclass_n_diff inclass_n_HighCCEI inclass_n_post inclass_n_HighCCEI_post ///
-    inclass_pop_diff inclass_pop_HighCCEI inclass_pop_post inclass_pop_HighCCEI_post ///
-    mf fm ff mf_High fm_High ff_High mf_Post fm_Post ff_Post mf_High_Post fm_High_Post ff_High_Post ///
-    math_diff math_High math_Post math_High_Post ///
-    height_diff height_High height_Post height_High_Post ///
-    mover mover_HighCCEI mover_post mover_HighCCEI_post ///
-    outgoing_diff outgoing_HighCCEI outgoing_post outgoing_H_post ///
-    opened_diff opened_HighCCEI opened_post opened_H_post ///
-    agreeable_diff agreeable_HighCCEI agreeable_post agreeable_H_post ///
-    conscientious_diff conscientious_HighCCEI conscientious_post conscientious_H_post ///
-    stable_diff stable_HighCCEI stable_post stable_H_post ///
-    mathscore_dist_missing ///
-    $class
-
-estimates store FULL
-
-* Shapley
-estimates restore FULL
-shapley2, stat(r2) group("`GROUPS'")
-
-preserve
-clear
-set obs 8
-
-gen str20 block = ""
-replace block = "Time"             in 1
-replace block = "CCEI"             in 2
-replace block = "Risk"             in 3
-replace block = "Friendship"       in 4
-replace block = "Demographic/cognitive/non-cognitive" in 5
-replace block = "Mover"            in 6
-replace block = "SurveyAttrition"  in 7
-replace block = "Class"  in 8
-
-tempname Sh Sr
-matrix `Sh' = e(shapley)
-matrix `Sr' = e(shapley_rel)
-
-svmat double `Sh', names(col)
-capture confirm variable c1
-if !_rc rename c1 shapley_val
-capture confirm variable Sh1
-if !_rc rename Sh1 shapley_val
-
-svmat double `Sr', names(col)
-capture confirm variable c1
-if !_rc rename c1 shapley_share
-capture confirm variable Sr1
-if !_rc rename Sr1 shapley_share
-
-gen shapley_pct = 100*shapley_share
-
-* Save Excel
-
-export excel block shapley_val shapley_pct using "results/tableA7_Risk.xlsx", ///
-    firstrow(variables) replace
-
-putexcel set "results/tableA7_Risk.xlsx", modify
-
-local n = _N
-putexcel B2:B`=1+`n'', nformat(number_d3)
-putexcel C2:C`=1+`n'', nformat(number_d3)
-
-restore
 
 **************************************************************
 

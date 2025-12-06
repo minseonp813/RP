@@ -259,7 +259,7 @@ file close myfile
 * Table: Correlation 
 ********************************************************************************
 
-use "data/finalized_panel_individual_250831.dta", clear
+use "data/finalized_panel_individual_251206.dta", clear
 
 * Keep baseline observations only
 keep if post==0
@@ -273,6 +273,7 @@ label variable height_i "Height"
 label variable inclass_n_friends_i "Out-Degree"
 label variable inclass_popularity_i "In-Degree"
 label variable mathscore_i "Math Score"
+label variable RAT_strict_i "RAT Score"
 label variable outgoing_i "Outgoing"
 label variable opened_i "Opened"
 label variable agreeable_i "Agreeable"
@@ -307,7 +308,7 @@ foreach var of local row_vars {
 
 * Open file for correlation table
 cap file close corrfile
-file open corrfile using "../Tables/table_correlation.tex", write replace
+file open corrfile using "Tables/table_correlation.tex", write replace
 
 * Write table header
 file write corrfile "\begin{tabular}{l*{`ncols'}{c}}" _n
@@ -334,8 +335,8 @@ local group2_label "Friendship Network"
 local group3_vars "male_i height_i"
 local group3_label "Demographics"
 
-local group4_vars "mathscore_i"
-local group4_label "Math Score"
+local group4_vars "mathscore_i RAT_strict_i"
+local group4_label "Cognitive Score"
 
 local group5_vars "outgoing_i opened_i agreeable_i conscientious_i stable_i"
 local group5_label "Big 5 Personality"

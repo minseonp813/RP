@@ -63,7 +63,14 @@ gen corner_ratio_dist = abs(corner_ratio_1 - corner_ratio_2)
 gen corner_end_max = corner_ratio_max * time 
 gen corner_end_dist = corner_ratio_dist * time
 
-save "data/finalized_panel_pbl_250831.dta", replace
+gen RAT_generous_max = max(RAT_generous_1, RAT_generous_2)
+gen RAT_generous_dist = abs(RAT_generous_1 - RAT_generous_2)
+gen RAT_strict_max = max(RAT_strict_1, RAT_strict_2)
+gen RAT_strict_dist = abs(RAT_strict_1 - RAT_strict_2)
+
+
+
+save "data/finalized_panel_pbl_251206.dta", replace
 
 *****************************************************************
 
@@ -147,4 +154,21 @@ foreach var in outgoing opened agreeable conscientious stable {
     gen `var'_H_post = `var'_diff * HighCCEI * post
 }
 
-save "data/finalized_panel_individual_250831.dta", replace
+
+gen RAT_generous_max = max(RAT_generous_i, RAT_generous_j)
+replace RAT_generous_max = 0 if missing(RAT_generous_max)
+gen RAT_generous_diff = RAT_generous_i - RAT_generous_j
+replace RAT_generous_diff = 0 if missing(RAT_generous_diff)
+
+gen RAT_strict_max = max(RAT_strict_i, RAT_strict_j)
+replace RAT_strict_max = 0 if missing(RAT_strict_max)
+gen RAT_strict_diff = RAT_strict_i - RAT_strict_j
+replace RAT_strict_diff = 0 if missing(RAT_strict_diff)
+
+foreach var in RAT_generous RAT_strict {
+    gen `var'_HighCCEI = `var'_diff * HighCCEI
+    gen `var'_post = `var'_diff * post
+    gen `var'_H_post = `var'_diff * HighCCEI * post
+}
+
+save "data/finalized_panel_individual_251206.dta", replace
