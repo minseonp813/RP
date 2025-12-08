@@ -9,20 +9,22 @@ set matsize 8000
 * Add path to ado files
 adopath + "`c(pwd)'"
 
+cd "~/Dropbox/RP/RA_Byunghun"
+
 ********************************************************************************
 * Table: Descriptive Stats
 ********************************************************************************
 
-use "data/finalized_panel_individual_250831.dta", clear
+use "data/finalized_panel_individual_251206.dta", clear
 
 * Calculate correlations first
 preserve
-keep id ccei_i RA_i new2_I_ig inclass_n_friends_i inclass_popularity_i mathscore_i post
-reshape wide ccei_i RA_i new2_I_ig inclass_n_friends_i inclass_popularity_i mathscore_i, i(id) j(post)
+keep id ccei_i RA_i new2_I_ig inclass_n_friends_i inclass_popularity_i mathscore_i  RAT_strict_i post
+reshape wide ccei_i RA_i new2_I_ig inclass_n_friends_i inclass_popularity_i mathscore_i RAT_strict_i, i(id) j(post)
 
 * Store correlations and significance using loop
-local corr_vars "ccei_i RA_i new2_I_ig inclass_n_friends_i inclass_popularity_i mathscore_i"
-local corr_names "ccei ra ig outdeg indeg math"
+local corr_vars "ccei_i RA_i new2_I_ig inclass_n_friends_i inclass_popularity_i mathscore_i RAT_strict_i"
+local corr_names "ccei ra ig outdeg indeg math RAT"
 
 local j = 1
 foreach var of local corr_vars {
@@ -49,24 +51,9 @@ restore
 * Keep baseline observations only
 keep if post==0
 
-* Label variables nicely
-label variable ccei_i "CCEI"
-label variable RA_i "Risk Attitude"
-label variable new2_I_ig "Bargaining Power Index"
-label variable male_i "Male"
-label variable height_i "Height"
-label variable inclass_n_friends_i "Out-Degree"
-label variable inclass_popularity_i "In-Degree"
-label variable mathscore_i "Math Score"
-label variable outgoing_i "Outgoing"
-label variable opened_i "Opened"
-label variable agreeable_i "Agreeable"
-label variable conscientious_i "Conscientious"
-label variable stable_i "Stable"
-
 * Create the summary statistics table
 * Calculate summary statistics using loops
-foreach var in ccei_i RA_i new2_I_ig male_i height_i inclass_n_friends_i inclass_popularity_i mathscore_i outgoing_i opened_i agreeable_i conscientious_i stable_i {
+foreach var in ccei_i RA_i new2_I_ig male_i height_i inclass_n_friends_i inclass_popularity_i mathscore_i RAT_strict_i outgoing_i opened_i agreeable_i conscientious_i stable_i {
     quietly summarize `var'
     local `var'_mean = r(mean)
     local `var'_sd = r(sd)
@@ -80,7 +67,7 @@ local N_panelB2 = `mathscore_i_N'
 
 * Export to LaTeX using file write
 cap file close myfile
-file open myfile using "../Tables/table1_summary_stats.tex", write replace
+file open myfile using "Tables/table1_summary_stats.tex", write replace
 
 file write myfile "\begin{tabular}{lccc}" _n
 file write myfile "\hline \toprule " _n
@@ -140,6 +127,7 @@ file write myfile " N & `N_panelB1' & & \\" _n
 
 * Math Score and Big 5 Personality
 file write myfile "Math Score & " %6.3f (`mathscore_i_mean') " & " %6.3f (`mathscore_i_sd') " & " %6.3f (`corr_math') "`stars_math' \\" _n
+file write myfile "RAT Score & " %6.3f (`RAT_strict_i_mean') " & " %6.3f (`RAT_strict_i_sd') " & " %6.3f (`corr_RAT') "`stars_RAT' \\" _n
 file write myfile "\textit{Big 5 Personality:} & & & \\" _n
 
 local big5_vars "outgoing_i opened_i agreeable_i conscientious_i stable_i"
@@ -155,7 +143,7 @@ file write myfile "N & `N_panelB2' & & \\" _n
 file write myfile "\midrule" _n
 
 * Now add group-level statistics
-use "data/finalized_panel_pbl_250831.dta", clear
+use "data/finalized_panel_pbl_251206.dta", clear
 g friend_oneside = cond(friendship==1,1,0) if !missing(friendship)
 g friend_mutual = cond(friendship==2,1,0) if !missing(friendship)
 
@@ -264,30 +252,14 @@ use "data/finalized_panel_individual_251206.dta", clear
 * Keep baseline observations only
 keep if post==0
 
-* Label variables nicely
-label variable ccei_i "CCEI"
-label variable RA_i "Risk Attitude"
-label variable new2_I_ig "Bargaining Power Index"
-label variable male_i "Male"
-label variable height_i "Height"
-label variable inclass_n_friends_i "Out-Degree"
-label variable inclass_popularity_i "In-Degree"
-label variable mathscore_i "Math Score"
-label variable RAT_strict_i "RAT Score"
-label variable outgoing_i "Outgoing"
-label variable opened_i "Opened"
-label variable agreeable_i "Agreeable"
-label variable conscientious_i "Conscientious"
-label variable stable_i "Stable"
-
 * Display correlation matrix
-corr ccei_i RA_i new2_I_ig inclass_n_friends_i inclass_popularity_i male_i height_i mathscore_i outgoing_i opened_i agreeable_i conscientious_i stable_i
+corr ccei_i RA_i new2_I_ig inclass_n_friends_i inclass_popularity_i male_i height_i mathscore_i RAT_strict_i outgoing_i opened_i agreeable_i conscientious_i stable_i
 
 * Create correlation table with significance stars (transposed)
 * Column variables (key experimental/network measures)
 local col_vars "ccei_i RA_i new2_I_ig inclass_n_friends_i inclass_popularity_i"
 * Row variables (all variables)
-local row_vars "ccei_i RA_i new2_I_ig inclass_n_friends_i inclass_popularity_i male_i height_i mathscore_i outgoing_i opened_i agreeable_i conscientious_i stable_i"
+local row_vars "ccei_i RA_i new2_I_ig inclass_n_friends_i inclass_popularity_i male_i height_i mathscore_i RAT_strict_i outgoing_i opened_i agreeable_i conscientious_i stable_i"
 
 local nrows : word count `row_vars'
 local ncols : word count `col_vars'
@@ -297,13 +269,6 @@ local j = 1
 foreach var of local col_vars {
     local collabel`j' : variable label `var'
     local ++j
-}
-
-* Get variable labels for rows
-local i = 1
-foreach var of local row_vars {
-    local rowlabel`i' : variable label `var'
-    local ++i
 }
 
 * Open file for correlation table
