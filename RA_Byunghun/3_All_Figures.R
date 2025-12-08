@@ -172,46 +172,68 @@ library(ggplot2)
 library(ggpattern)
 
 df <- data.frame(
-  Block = c("Time", "CCEI", "Group and individual Char., Friendship", "Class FE"),
-  Shapley = c(0.02165, 0.07197, 0.02554, 0.07627),
-  Contribution = c(11.08, 36.83, 13.07, 39.03)
+  Block = c("CCEI",
+            "Group Characteristics",
+            "Risk Aversion",
+            "Class FE",
+            "Others"),
+  Shapley = c(0.07701,
+              0.01562,
+              0.02928,
+              0.07512,
+              0.00884),        # Friendship + Time
+  Contribution = c(37.41,
+                   7.59,
+                   14.22,
+                   36.49,
+                   4.29)         # Friendship % + Time %
 )
 
-df$Label <- sprintf("%.4f (%.1f%%)", df$Shapley, df$Contribution)
+df$Label <- sprintf("%.4f (%.2f%%)", df$Shapley, df$Contribution)
 
 df$Block <- factor(df$Block,
-                   levels = c("CCEI", "Group and individual Char., Friendship", "Time", "Class FE"))
+                   levels = c("CCEI",
+                              "Group Characteristics",
+                              "Risk Aversion",
+                              "Class FE",
+                              "Others"))
 
-ggplot(df, aes(x = "", y = Shapley,
-               fill = Block, pattern = Block)) +
-  geom_bar_pattern(stat = "identity", width = 0.5,
-                   colour = "black",
-                   pattern_angle = c(-45, -45, 45, 0),
-                   pattern_spacing = 0.12,
-                   pattern_density = 0.4,
-                   pattern_fill = "white",
-                   pattern_colour = "white") +
+p <- ggplot(df, aes(x = "", y = Shapley,
+                    fill = Block, pattern = Block)) +
+  geom_bar_pattern(
+    stat = "identity", width = 0.5,
+    colour = "black",
+    pattern_angle = c(-45, -45, -45, 0, 45),
+    pattern_spacing = 0.12,
+    pattern_density = 0.4,
+    pattern_fill = "white",
+    pattern_colour = "white"
+  ) +
   geom_text(aes(label = Label),
-            position = position_stack(vjust = 0.5), size = 4) +
+            position = position_stack(vjust = 0.5),
+            size = 4) +
   scale_fill_manual(
     name = "Block",
-    values = c("Time" = "lightblue",
-               "CCEI" = "white",
-               "Group and individual Char., Friendship" = "pink",
-               "Class FE" = "grey90")
+    values = c("CCEI" = "white",
+               "Group Characteristics" = "lightblue",
+               "Risk Aversion" = "lightgreen",
+               "Class FE" = "grey80",
+               "Others" = "grey90")
   ) +
   scale_pattern_manual(
     name = "Block",
-    values = c("Time" = "stripe",
-               "CCEI" = "stripe",
-               "Group and individual Char., Friendship" = "stripe",
-               "Class FE" = "none")
+    values = c("CCEI" = "stripe",
+               "Group Characteristics" = "stripe",
+               "Risk Aversion" = "stripe",
+               "Class FE" = "none",
+               "Others" = "stripe")
   ) +
   labs(y = expression(R^2 ~ " Contribution"),
        x = "") +
   theme_minimal(base_size = 14)
 
-ggsave("results/shapley_1.png", width = 6, height = 5, dpi = 300)
+ggsave("results/shapley_1.png", plot = p,
+       width = 6, height = 5, dpi = 300)
 
 
 ##############################################################
@@ -221,56 +243,61 @@ library(ggpattern)
 library(scales)
 
 df <- data.frame(
-  Block = c("CCEI", "Risk Aversion",
-            "Demo/Cog/Non-Cog", "Mover", "Others"),
-  Shapley = c(0.23580, 0.01931, 0.08912, 0.07442, 0.00450),
-  Contribution = c(55.72, 4.56, 21.06, 17.59, 1.06)
+  Block = c("CCEI",
+            "Group Characteristics",
+            "Risk Aversion",
+            "Others"),
+  Shapley = c(0.34932, 0.02123, 0.05005, 0.00168),
+  Contribution = c(82.72, 5.03, 11.85, 0.40)
 )
 
-df$Label <- sprintf("%.4f (%.1f%%)", df$Shapley, df$Contribution)
+df$Label <- sprintf("%.5f (%.2f%%)", df$Shapley, df$Contribution)
 
-# Block 순서 지정: (넣고 싶은 순서대로)
 df$Block <- factor(df$Block,
                    levels = c("CCEI",
-                              "Demo/Cog/Non-Cog",
+                              "Group Characteristics",
                               "Risk Aversion",
-                              "Mover",
                               "Others"))
 
-# 패턴 그래프
 p <- ggplot(df, aes(x = "", y = Shapley,
                     fill = Block, pattern = Block)) +
-  geom_bar_pattern(stat = "identity", width = 0.5,
-                   colour = "black",
-                   pattern_angle = c(-45, -45, 45, 45, 0),
-                   pattern_spacing = 0.12,
-                   pattern_density = 0.4,
-                   pattern_fill = "white",
-                   pattern_colour = "white") +
+  geom_bar_pattern(
+    stat = "identity", width = 0.5,
+    colour = "black",
+    pattern_angle = c(-45, -45, 45, 0),
+    pattern_spacing = 0.12,
+    pattern_density = 0.4,
+    pattern_fill = "white",
+    pattern_colour = "white"
+  ) +
   geom_text(aes(label = Label),
-            position = position_stack(vjust = 0.5), size = 4) +
+            position = position_stack(vjust = 0.5),
+            size = 4) +
   scale_fill_manual(
     name = "Block",
-    values = c("CCEI" = "white",
-               "Demo/Cog/Non-Cog" = "lightblue",
-               "Risk Aversion" = "pink",
-               "Mover" = "grey80",
-               "Others" = "grey90")
+    values = c(
+      "CCEI" = "white",
+      "Group Characteristics" = "lightblue",
+      "Risk Aversion" = "pink",
+      "Others" = "grey90"
+    )
   ) +
   scale_pattern_manual(
     name = "Block",
-    values = c("CCEI" = "stripe",
-               "Demo/Cog/Non-Cog" = "stripe",
-               "Risk Aversion" = "stripe",
-               "Mover" = "stripe",
-               "Others" = "none")
+    values = c(
+      "CCEI" = "stripe",
+      "Group Characteristics" = "stripe",
+      "Risk Aversion" = "stripe",
+      "Others" = "none"
+    )
   ) +
   scale_y_continuous(labels = number_format(accuracy = 0.01)) +
-  labs(y = expression(R^2 ~ " Contribution"), x = "") +
+  labs(y = expression(R^2 ~ " Contribution"),
+       x = "") +
   theme_minimal(base_size = 14)
 
 ggsave("results/shapley_2.png", plot = p,
-       width = 6, height = 5, dpi = 300)
+       width = 7, height = 5, dpi = 300)
 
 
 

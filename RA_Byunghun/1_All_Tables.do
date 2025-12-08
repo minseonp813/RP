@@ -259,17 +259,9 @@ esttab using "results/table_groupCCEI_other.tex", replace ///
 
 
 
-* (New) Table A4 : shapley decomposition table
+* Table A4 : shapley decomposition table
 
-clear
 use "data/finalized_panel_pbl_251206.dta", clear
-
-tab malepair_co, gen(FE_malepair_)
-
-global group_char = "mathscore_max mathscore_dist mathscore_max_missing mathscore_dist_missing height_max height_dist FE_malepair_1 FE_malepair_2 FE_malepair_3 FE_malepair_4 FE_malepair_5	outgoing_max outgoing_dist opened_max opened_dist agreeable_max agreeable_dist conscientious_dist conscientious_max stable_max stable_dist big5_max_missing big5_dist_missing RAT_strict_max RAT_strict_dist" 
-/*  RAT_generous_max RAT_generous_dist */
-
-global friend_char = "oneside_friendship mutual_friendship inclass_n_friends_max inclass_n_friends_dist inclass_popularity_max inclass_popularity_dist"
 
 macro drop class
 global class ""
@@ -289,14 +281,44 @@ foreach c of local cls {
 
 display as result "$class"
 
-local G_TIME   "endline end_max end_dist"
-local G_CCEI   "ccei_max ccei_dist"
-local G_OBS "$group_char $friend_char"   
-local G_CLASS "$class"
+g male_diff = cond(male~=male2,1,0)
+g friend = cond(friendship>=1,1,0)
 
-local GROUPS "`G_TIME', `G_CCEI', `G_OBS', `G_CLASS'"
+g all_corner_max = max(RA_1<0.0002, RA_2<0.0002)
+g all_corner_diff = all_corner_max-min(RA_1<0.0002, RA_2<0.0002)
+g all_mid_max = max(RA_1>0.4998 & RA_1<0.5002, RA_2>0.4998 & RA_2<0.5002)
+g all_mid_diff = all_mid_max-min(RA_1>0.4998 & RA_1<0.5002, RA_2>0.4998 & RA_2<0.5002)
 
-reg ccei_g ccei_max ccei_dist endline end_max end_dist $class $group_char $friend_char, r cluster(class) 
+label var all_corner_max "max 1(All Corner)"
+label var all_corner_diff "Diff in 1(All Corner)"
+label var all_mid_max "max 1(All Middle)"
+label var all_mid_diff "Diff in 1(All Middle)"
+label var RA_dist "Diff in RA"
+label var RA_max "Max RA"
+
+la var ccei_max "Max CCEI"
+la var ccei_dist "Diff in CCEI"
+la var mathscore_max "Max Math Score"
+la var mathscore_dist "Diff Math Score"
+la var end_max "Max CCEI*Endline"
+la var end_dist "Diff in CCEI*Endline"
+la var male_diff "Diff Gender"
+la var friend "Friend"
+
+global group_char = "mathscore_max mathscore_dist mathscore_max_missing mathscore_dist_missing height_max height_dist male_diff	outgoing_max outgoing_dist opened_max opened_dist agreeable_max agreeable_dist conscientious_dist conscientious_max stable_max stable_dist big5_max_missing big5_dist_missing"
+global friend_char = "inclass_n_friends_max inclass_n_friends_dist inclass_popularity_max inclass_popularity_dist friend" 
+global RA_char "RA_max RA_dist all_corner_max all_corner_diff all_mid_max all_mid_diff"
+
+local G_CCEI   "ccei_max ccei_dist end_max end_dist"
+local G_GROUP   "$group_char"
+local G_FRIEND  "$friend_char"
+local G_RA      "$RA_char"
+local G_CLASS      "$class"
+local G_Endline      "endline"
+
+local GROUPS "`G_CCEI', `G_GROUP', `G_FRIEND', `G_RA', `G_CLASS', `G_Endline'"
+
+reghdfe ccei_g ccei_max ccei_dist $group_char $friend_char $RA_char end_max end_dist $class endline, vce(cluster class) // XXX this spec
 
 estimates store FULL
 
@@ -326,31 +348,55 @@ foreach c of local cls {
 
 display as result "$class"
 
-local G_TIME   "post"
-local G_CCEI   "HighCCEI HighCCEI_post ccei_i"
-local G_RISK   "RA_i"
-local G_FRIEND    "inclass_n_diff inclass_n_HighCCEI inclass_n_post inclass_n_HighCCEI_post inclass_pop_diff inclass_pop_HighCCEI inclass_pop_post inclass_pop_HighCCEI_post"
-local G_DEMO_COG_NCOG "mf fm ff mf_High fm_High ff_High mf_Post fm_Post ff_Post mf_High_Post fm_High_Post ff_High_Post" "math_diff math_High math_Post math_High_Post" "height_diff height_High height_Post height_High_Post" "outgoing_diff outgoing_HighCCEI outgoing_post outgoing_H_post opened_diff opened_HighCCEI opened_post opened_H_post agreeable_diff agreeable_HighCCEI agreeable_post agreeable_H_post conscientious_diff conscientious_HighCCEI conscientious_post conscientious_H_post stable_diff stable_HighCCEI stable_post stable_H_post" "RAT_strict_diff RAT_strict_HighCCEI RAT_strict_post RAT_strict_H_post"
-local G_MOVER  "mover mover_HighCCEI mover_post mover_HighCCEI_post"
-local G_ATT   "mathscore_dist_missing"
-local G_CLASS "$class"
+g male_diff = male_i- male_j
 
-local GROUPS "`G_TIME', `G_CCEI', `G_RISK', `G_FRIEND', `G_DEMO_COG_NCOG', `G_MOVER', `G_ATT', `G_CLASS'"
+* Imputation
+foreach v in mathscore_i outgoing_i opened_i agreeable_i conscientious_i stable_i {
+    replace `v' = 0 if missing(`v')
+}
 
-reg new2_I_ig post HighCCEI HighCCEI_post ccei_i RA_i ///
-    inclass_n_diff inclass_n_HighCCEI inclass_n_post inclass_n_HighCCEI_post ///
-    inclass_pop_diff inclass_pop_HighCCEI inclass_pop_post inclass_pop_HighCCEI_post ///
-    mf fm ff mf_High fm_High ff_High mf_Post fm_Post ff_Post mf_High_Post fm_High_Post ff_High_Post ///
-    math_diff math_High math_Post math_High_Post ///
-    height_diff height_High height_Post height_High_Post ///
-    mover mover_HighCCEI mover_post mover_HighCCEI_post ///
-    outgoing_diff outgoing_HighCCEI outgoing_post outgoing_H_post ///
-    opened_diff opened_HighCCEI opened_post opened_H_post ///
-    agreeable_diff agreeable_HighCCEI agreeable_post agreeable_H_post ///
-    conscientious_diff conscientious_HighCCEI conscientious_post conscientious_H_post RAT_strict_diff RAT_strict_HighCCEI RAT_strict_post RAT_strict_H_post ///
-    stable_diff stable_HighCCEI stable_post stable_H_post ///
-    mathscore_dist_missing ///
-    $class
+reghdfe new2_I_ig HighCCEI $group_char $friend_char $missing_char, absorb(class) vce(cluster class)
+gen cluster_class = e(sample)
+
+reghdfe new2_I_ig HighCCEI $group_char $friend_char $missing_char, absorb(id) vce(cluster class)
+gen cluster_id = e(sample)
+
+gen balanced = cluster_id
+sort id group_id post
+
+g RA_diff = RA_i-RA_j
+g all_corner_i = cond(RA_i<0.0002,1,0)
+g all_corner_j = cond(RA_j<0.0002,1,0)
+g all_mid_i = cond(RA_i>0.4998 & RA_i<0.5002,1,0)
+g all_mid_j = cond(RA_j>0.4998 & RA_j<0.5002,1,0)
+g all_corner_diff = all_corner_i - all_corner_j
+g all_mid_diff = all_mid_i - all_mid_j
+
+label var all_corner_i "1(All Corner)"
+label var all_corner_diff "Diff in 1(All Corner)"
+label var all_mid_i "1(All Middle)"
+label var all_mid_diff "Diff in 1(All Middle)"
+label var RA_diff "Diff in RA"
+label var math_diff "Diff in Math"
+label var HighCCEI_post "High CCEI*Endline" // post is not right since we're assuming there was no intervention
+label var RA_i "Risk Attitude"
+
+global group_char = "mathscore_i math_diff height_i height_diff outgoing_i outgoing_diff opened_i opened_diff agreeable_i agreeable_diff conscientious_i conscientious_diff stable_i stable_diff male_i male_diff"
+global friend_char = "inclass_n_friends inclass_n_diff inclass_popularity inclass_pop_diff" 
+global missing_char = "mathscore_dist_missing outgoing_diff_missing opened_diff_missing agreeable_diff_missing conscientious_diff_missing stable_diff_missing "
+global RA_char = "RA_i RA_diff all_corner_i all_corner_diff all_mid_i all_mid_diff"
+
+local G_CCEI   "HighCCEI HighCCEI_post"
+local G_GROUP   "$group_char"
+local G_FRIEND  "$friend_char"
+local G_MISSING "$missing_char"
+local G_RA      "$RA_char"
+local G_FE      "$class mover post"     // absorbed FE
+
+
+local GROUPS "`G_CCEI', `G_GROUP', `G_FRIEND', `G_MISSING', `G_RA', `G_FE'"
+
+reghdfe new2_I_ig HighCCEI HighCCEI_post $group_char $friend_char $missing_char $RA_char $class mover post if balanced==1, vce(cluster class) // XXX this spec
 
 estimates store FULL
 

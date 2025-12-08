@@ -1,6 +1,7 @@
 ********************************************************************************
 * Generate Descriptive Statistics 
 * Written by Minseon Park 09012025
+* Latest updated by Minseon Park 12272025
 ********************************************************************************
 
 set more off
@@ -8,55 +9,29 @@ set matsize 8000
 
 * Add path to ado files
 adopath + "`c(pwd)'"
-
-/********************************************************************************
-* Table: Collective CCEI
-********************************************************************************
-
-use "data/finalized_panel_pbl_250831.dta", clear
-
-egen malepair = group(male male2)
-
-global group_char = "mathscore_max mathscore_dist mathscore_max_missing mathscore_dist_missing height_max height_dist i.malepair	outgoing_max outgoing_dist opened_max opened_dist agreeable_max agreeable_dist conscientious_dist conscientious_max stable_max stable_dist big5_max_missing big5_dist_missing"
-global friend_char = "inclass_n_friends_max inclass_n_friends_dist inclass_popularity_max inclass_popularity_dist i.friendship" 
-
-la var ccei_max "$\text{CCEI}_{\text{max},gt}$"
-la var ccei_dist "$\text{CCEI}_{\text{dist},gt}$"
-la var mathscore_max "$\text{Math Score}_{\text{max},gt}$"
-la var mathscore_dist "$\text{Math Score}_{\text{dist},gt}$"
-la var endline "Endline"
-la var end_max "$\text{Endline} \times \text{CCEI}_{\text{max},gt}$ "
-la var end_dist "$\text{Endline} \times \text{CCEI}_{\text{dist},gt}$"
-
-eststo clear
-eststo: reghdfe ccei_g ccei_max ccei_dist, absorb(class) vce(cluster class)
-eststo: reghdfe ccei_g ccei_max ccei_dist endline end_max end_dist, absorb(class) vce(cluster class)
-eststo: reghdfe ccei_g $group_char $friend_char, absorb(class) vce(cluster class)
-eststo: reghdfe ccei_g ccei_max ccei_dist endline end_max end_dist $group_char $friend_char, absorb(class) vce(cluster class)
-eststo: reghdfe ccei_g ccei_max ccei_dist $group_char $friend_char, absorb(group_id) vce(cluster class)
-esttab using "results/table_groupCCEI.csv", replace b(3) se(3) stats(N r2, labels("N" "R-squared") fmt(0 3)) keep(*ccei* mathscore_max mathscore_dist *end* *pop* *malepair*) nogap compress star(+ 0.1 * 0.05 ** 0.01)
-esttab using "results/table_groupCCEI.tex", replace ///
-    b(%9.3f) se(%9.3f) stats(N r2, labels("N" "R-squared") fmt(0 3)) ///
-    keep(*ccei* mathscore_max mathscore_dist *end* *malepair*) label ///
-    nogap fragment nomtitles nonumbers compress collabels(none) nolines
+cd "~/Dropbox/RP/RA_Byunghun"
 
 
 ********************************************************************************
 * Table: Bargaining using CCEI
 ********************************************************************************
 
-use "data/finalized_panel_individual_250831.dta", clear
+use "data/finalized_panel_individual_251206.dta", clear
 
-egen malepair = group(male_i male_j)
+g male_diff = male_i- male_j
 
 * Imputation
 foreach v in mathscore_i outgoing_i opened_i agreeable_i conscientious_i stable_i {
     replace `v' = 0 if missing(`v')
 }
 
-global group_char = "mathscore_i math_diff height_i height_diff outgoing_i outgoing_diff opened_i opened_diff agreeable_i agreeable_diff conscientious_i conscientious_diff stable_i stable_diff i.malepair"
-global friend_char = "inclass_n_friends inclass_n_diff inclass_popularity inclass_pop_diff i.friendship" 
+* when choosing covarariates, don't include things like within-pair friendship. 
+* those only matters when interacted with CCEI variable. otherwise, given that 
+* bargaining index sums up to 1 within pair, those can't be significant
+global group_char = "mathscore_i math_diff height_i height_diff outgoing_i outgoing_diff opened_i opened_diff agreeable_i agreeable_diff conscientious_i conscientious_diff stable_i stable_diff male_i male_diff"
+global friend_char = "inclass_n_friends inclass_n_diff inclass_popularity inclass_pop_diff" 
 global missing_char = "mathscore_dist_missing outgoing_diff_missing opened_diff_missing agreeable_diff_missing conscientious_diff_missing stable_diff_missing "
+global RA_char = "RA_i RA_diff all_corner_i all_corner_diff all_mid_i all_mid_diff"
 
 reghdfe new2_I_ig HighCCEI $group_char $friend_char $missing_char, absorb(class) vce(cluster class)
 gen cluster_class = e(sample)
@@ -68,19 +43,60 @@ gen cluster_id = e(sample)
 gen balanced = cluster_id
 sort id group_id post
 
+g RA_diff = RA_i-RA_j
+g all_corner_i = cond(RA_i<0.0002,1,0)
+g all_corner_j = cond(RA_j<0.0002,1,0)
+g all_mid_i = cond(RA_i>0.4998 & RA_i<0.5002,1,0)
+g all_mid_j = cond(RA_j>0.4998 & RA_j<0.5002,1,0)
+g all_corner_diff = all_corner_i - all_corner_j
+g all_mid_diff = all_mid_i - all_mid_j
+
+label var all_corner_i "1(All Corner)"
+label var all_corner_diff "Diff in 1(All Corner)"
+label var all_mid_i "1(All Middle)"
+label var all_mid_diff "Diff in 1(All Middle)"
+label var RA_diff "Diff in RA"
+label var math_diff "Diff in Math"
+label var HighCCEI_post "High CCEI*Endline" // post is not right since we're assuming there was no intervention
+label var RA_i "Risk Attitude"
+
+
+** XXX Decomposition should be updated
 eststo clear
-eststo: reghdfe new2_I_ig HighCCEI if balanced==1, absorb(class mover) vce(cluster class)
-eststo: reghdfe new2_I_ig HighCCEI post HighCCEI_post if balanced==1, absorb(class mover) vce(cluster class)
-eststo: reghdfe new2_I_ig $group_char $friend_char $missing_char if balanced==1, absorb(class mover) vce(cluster class)
-eststo: reghdfe new2_I_ig HighCCEI post HighCCEI_post $group_char $friend_char $missing_char if balanced==1, absorb(class mover) vce(cluster class)
-eststo: reghdfe new2_I_ig HighCCEI $group_char $friend_char $missing_char if balanced==1, absorb(id) vce(cluster class)
-esttab , b(3) se(3) stats(N r2, labels("N" "R-squared") fmt(0 3)) nogap compress star(+ 0.1 * 0.05 ** 0.01) drop(*missing*)
-esttab using "results/table_bargainingCCEI.csv", replace b(3) se(3) stats(N r2, labels("N" "R-squared") fmt(0 3)) nogap compress star(+ 0.1 * 0.05 ** 0.01) drop(*missing*)
-// TODO: check why we're losing some obs
+eststo: reghdfe new2_I_ig HighCCEI if balanced==1, absorb(class mover post) vce(cluster class)
+eststo: reghdfe new2_I_ig HighCCEI $group_char $friend_char $missing_char if balanced==1, absorb(class mover post) vce(cluster class)
+eststo: reghdfe new2_I_ig HighCCEI $group_char $friend_char $missing_char $RA_char if balanced==1, absorb(class mover post) vce(cluster class)
+eststo: reghdfe new2_I_ig HighCCEI HighCCEI_post $group_char $friend_char $missing_char $RA_char if balanced==1, absorb(class mover post) vce(cluster class) // XXX this spec
+eststo: reghdfe new2_I_ig HighCCEI $group_char $friend_char $missing_char $RA_char if balanced==1, absorb(id) vce(cluster class)
+esttab , b(3) se(3) stats(N r2, labels("N" "R-squared") fmt(0 3)) nogap compress star(+ 0.1 * 0.05 ** 0.01) drop(*missing*) label
+esttab using "Tables/table_bargainingCCEI.tex", replace ///
+	b(3) se(3) stats(N r2, labels("N" "R-squared") fmt(0 3)) ///
+	nogap compress star(+ 0.1 * 0.05 ** 0.01) label ///
+	drop(*missing*) keep(*CCEI* *math* *RA*) ///
+	nomtitles fragment nonumbers nolines
+
 
 ********************************************************************************
 * Table: Bargaining using RA
 ********************************************************************************
+
+* why can't we try something similar with RA, too?
+* but we should think more about what's ther right way to construct this index
+g RA_I_ig = abs(RA_i-RA_g)/abs(RA_i-RA_j)
+replace RA_I_ig=. if abs(RA_i-RA_j)<0.001
+eststo clear
+eststo: reghdfe RA_I_ig  HighCCEI if balanced==1, absorb(class mover post) vce(cluster class)
+eststo: reghdfe RA_I_ig  HighCCEI $group_char $friend_char $missing_char if balanced==1, absorb(class mover post) vce(cluster class)
+eststo: reghdfe RA_I_ig  HighCCEI $group_char $friend_char $missing_char $RA_char if balanced==1, absorb(class mover post) vce(cluster class)
+eststo: reghdfe RA_I_ig  HighCCEI HighCCEI_post $group_char $friend_char $missing_char $RA_char if balanced==1, absorb(class mover post) vce(cluster class)
+eststo: reghdfe RA_I_ig  HighCCEI $group_char $friend_char $missing_char $RA_char if balanced==1, absorb(id) vce(cluster class)
+esttab , b(3) se(3) stats(N r2, labels("N" "R-squared") fmt(0 3)) nogap compress star(+ 0.1 * 0.05 ** 0.01) drop(*missing*) label
+esttab using "Tables/table_bargainingRA.tex", replace ///
+	b(3) se(3) stats(N r2, labels("N" "R-squared") fmt(0 3)) ///
+	nogap compress star(+ 0.1 * 0.05 ** 0.01) label ///
+	drop(*missing*) keep(*CCEI* *math* *RA*) ///
+	nomtitles fragment nonumbers nolines
+
 
 use "data/finalized_panel_pbl_250831.dta", clear
 
@@ -100,36 +116,83 @@ gen RA_highOPEN     = cond(opened >= opened2, RA_1, RA_2)
 gen RA_highOUT      = cond(outgoing >= outgoing2, RA_1, RA_2)
 gen RA_highSTAB     = cond(stable >= stable2, RA_1, RA_2)
 
+gen RA_highRA     = cond(RA_1 >= RA_2, RA_1, RA_2)
+
 global RA_obs = "RA_highMATH RA_lowMATH RA_highHEIGHT RA_highMALE RA_highFRIENDS RA_highPOP  RA_highAGREE RA_highCONS RA_highOPEN RA_highOUT RA_highSTAB"
 
 eststo clear
-eststo: reghdfe RA_g RA_highCCEI RA_lowCCEI, absorb(class) vce(cluster class)
+eststo: reghdfe RA_g RA_highCCEI RA_lowCCEI, absorb(class endline ) vce(cluster class)
+test RA_highCCEI=RA_lowCCEI
+estadd scalar p_val = r(p) 
+eststo: reghdfe RA_g RA_highCCEI RA_lowCCEI $RA_obs, absorb(class endline ) vce(cluster class)
 test RA_highCCEI=RA_lowCCEI
 estadd scalar p_val = r(p) 
 
-eststo: reghdfe RA_g RA_highCCEI RA_lowCCEI endline endline#c.RA_highCCEI, absorb(class) vce(cluster class)
-test RA_highCCEI=RA_lowCCEI
-estadd scalar p_val0 = r(p)
-test RA_highCCEI + 1.endline#c.RA_highCCEI = RA_lowCCEI+ endline 
-estadd scalar p_val1 = r(p)
-
-eststo: reghdfe RA_g $RA_obs, absorb(class) vce(cluster class)
-test RA_highMATH=RA_lowMATH
-estadd scalar p_val_math = r(p) 
-
-eststo: reghdfe RA_g RA_highCCEI RA_lowCCEI endline endline#c.RA_highCCEI $RA_obs, absorb(class) vce(cluster class)
-test RA_highCCEI=RA_lowCCEI
-estadd scalar p_val0 = r(p) 
-test RA_highCCEI + 1.endline#c.RA_highCCEI = RA_lowCCEI+ endline 
-estadd scalar p_val1 = r(p)
-
-eststo: reghdfe RA_g RA_highCCEI RA_lowCCEI $RA_obs, absorb(group_id) vce(cluster class)
+eststo: reghdfe RA_g RA_highCCEI RA_lowCCEI $RA_obs RA_highRA, absorb(class endline ) vce(cluster class)
 test RA_highCCEI=RA_lowCCEI
 estadd scalar p_val = r(p) 
-esttab, star(+ 0.1 * 0.05 ** 0.01) b(3) se(3) stats(N r2 p_val p_val0 p_val1 p_val_math, labels("N" "R-squared" "p-value") fmt(0 3 3))
-esttab using "results/table_bargainingRA.csv", replace b(3) se(3) stats(N r2 p_val p_val0 p_val1 p_val_math, labels("N" "R-squared" "p-value") fmt(0 3 3)) nogap compress star(+ 0.1 * 0.05 ** 0.01) 
+
+eststo: reghdfe RA_g RA_highCCEI RA_lowCCEI endline#c.RA_highCCEI $RA_obs RA_highRA endline , absorb(class endline) vce(cluster class)
+test RA_highCCEI=RA_lowCCEI
+estadd scalar p_val = r(p) 
+test RA_highCCEI + 1.endline#c.RA_highCCEI = RA_lowCCEI+ endline 
+estadd scalar p_val1 = r(p)
+eststo: reghdfe RA_g RA_highCCEI RA_lowCCEI $RA_obs RA_highRA, absorb(group_id ) vce(cluster class)
+test RA_highCCEI=RA_lowCCEI
+estadd scalar p_val = r(p) 
+esttab, star(+ 0.1 * 0.05 ** 0.01) b(3) se(3) stats(N r2 p_val p_val1, labels("N" "R-squared" "p-value") fmt(0 3 3))
+esttab using "results/table_bargainingRA.csv", replace b(3) se(3) stats(N r2 p_val p_val1, labels("N" "R-squared" "p-value") fmt(0 3 3)) nogap compress star(+ 0.1 * 0.05 ** 0.01) 
 
 
+
+********************************************************************************
+* Table: Collective CCEI
+********************************************************************************
+
+use "data/finalized_panel_pbl_251206.dta", clear
+
+g male_diff = cond(male~=male2,1,0)
+g friend = cond(friendship>=1,1,0)
+
+global group_char = "mathscore_max mathscore_dist mathscore_max_missing mathscore_dist_missing height_max height_dist male_diff	outgoing_max outgoing_dist opened_max opened_dist agreeable_max agreeable_dist conscientious_dist conscientious_max stable_max stable_dist big5_max_missing big5_dist_missing"
+global friend_char = "inclass_n_friends_max inclass_n_friends_dist inclass_popularity_max inclass_popularity_dist friend" 
+global RA_char "RA_max RA_dist all_corner* all_mid*"
+
+g all_corner_max = max(RA_1<0.0002, RA_2<0.0002)
+g all_corner_diff = all_corner_max-min(RA_1<0.0002, RA_2<0.0002)
+g all_mid_max = max(RA_1>0.4998 & RA_1<0.5002, RA_2>0.4998 & RA_2<0.5002)
+g all_mid_diff = all_mid_max-min(RA_1>0.4998 & RA_1<0.5002, RA_2>0.4998 & RA_2<0.5002)
+
+label var all_corner_max "max 1(All Corner)"
+label var all_corner_diff "Diff in 1(All Corner)"
+label var all_mid_max "max 1(All Middle)"
+label var all_mid_diff "Diff in 1(All Middle)"
+label var RA_dist "Diff in RA"
+label var RA_max "Max RA"
+
+la var ccei_max "Max CCEI"
+la var ccei_dist "Diff in CCEI"
+la var mathscore_max "Max Math Score"
+la var mathscore_dist "Diff Math Score"
+la var end_max "Max CCEI*Endline"
+la var end_dist "Diff in CCEI*Endline"
+la var male_diff "Diff Gender"
+la var friend "Friend"
+
+** XXX Decomposition should be updated
+eststo clear
+eststo: reghdfe ccei_g ccei_max ccei_dist, absorb(class endline) vce(cluster class)
+eststo: reghdfe ccei_g ccei_max ccei_dist $group_char $friend_char, absorb(class endline) vce(cluster class)
+eststo: reghdfe ccei_g ccei_max ccei_dist $group_char $friend_char $RA_char, absorb(class endline) vce(cluster class)
+eststo: reghdfe ccei_g ccei_max ccei_dist $group_char $friend_char $RA_char end_max end_dist, absorb(class endline) vce(cluster class) // XXX this spec
+eststo: reghdfe ccei_g ccei_max ccei_dist $group_char $friend_char $RA_char, absorb(group_id) vce(cluster class)
+esttab using "Tables/table_groupCCEI.tex", replace ///
+	b(3) se(3) stats(N r2, labels("N" "R-squared") fmt(0 3)) ///
+	nogap compress star(+ 0.1 * 0.05 ** 0.01) label ///
+	 keep(*ccei* mathscore_max mathscore_dist male_diff friend end_max end_dist RA_max RA_dist) ///
+	nomtitles fragment nonumbers nolines
+	
+	
 ********************************************************************************
 * Table: Bargaining using CCEI - Mechanism
 ********************************************************************************
@@ -153,7 +216,6 @@ foreach y of varlist `tab_vars' {
 * maybe it's easier to say what you want when you know what you want
 	* covariates that could mediate the "easiness of communication"
 	* not a direct evidence, but quite informative
-eststo clear
 
 * Friend
 eststo: reghdfe new2_I_ig HighCCEI if friendship~=2, absorb(class) vce(cluster class)
