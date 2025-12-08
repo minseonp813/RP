@@ -3,71 +3,20 @@
 # Replication Codes for All Figures
 ##########################################################
 
-
-# Figure 1
-
-
 library(haven)
 library(dplyr)
 library(ggplot2)
 library(stats)
+library(Hmisc)
+library(tidyr)
 
-df <- read_dta("data/finalized_panel_individual_250831.dta") %>%
-  filter(!is.na(new2_I_ig))
 
 #########################################################
 ### 1. FIGURE 1 LEFT
 #########################################################
 
-fig_a <- df %>%
-  group_by(risk_q3_i) %>%
-  summarise(
-    mean = mean(new2_I_ig),
-    sd   = sd(new2_I_ig),
-    n    = n(),
-    .groups = "drop"
-  ) %>%
-  mutate(
-    se  = sd / sqrt(n),
-    hi  = mean + qt(0.975, df = n - 1) * se,
-    low = mean - qt(0.975, df = n - 1) * se,
-    pct = round(100 * n / sum(n), 1)
-  )
-
-labels_fig_a <- fig_a %>%
-  mutate(label = paste0(
-    c("Mostly Partner's", "Both", "Mostly Mine", "Neither"),
-    "\n(N=", n, ", ", pct, "%)"
-  )) %>%
-  select(risk_q3_i, label)
-
-label_map <- setNames(labels_fig_a$label, labels_fig_a$risk_q3_i)
-
-p1 <- ggplot(fig_a, aes(x = factor(risk_q3_i), y = mean, fill = factor(risk_q3_i))) +
-  geom_col() +
-  geom_errorbar(aes(ymin = low, ymax = hi), width = 0.15) +
-  labs(
-    y = "Mean Revealed Preference Difference",
-    x = "Whose Suggestion"
-  ) +
-  scale_x_discrete(labels = label_map) +
-  scale_y_continuous(breaks = seq(0, 1, 0.2)) +
-  scale_fill_manual(values = c(
-    "1" = "lightblue",
-    "2" = "lightblue",
-    "3" = "lightblue",
-    "4" = "grey90"
-  )) +
-  theme_minimal(base_size = 14) +
-  theme(legend.position = "none")
-
-ggsave("results/ccei_bargaining_whose_suggestion.png", p1,
-       width = 7, height = 5, dpi = 300)
-
-
-#########################################################
-### 2. FIGURE 1 RIGHT — RA Difference Split
-#########################################################
+df <- read_dta("data/finalized_panel_individual_250831.dta") %>%
+  filter(!is.na(new2_I_ig))
 
 df <- df %>%
   mutate(RA_dif = abs(RA_i - RA_j))
@@ -78,92 +27,244 @@ df <- df %>%
   mutate(RA_dif_high = ifelse(RA_dif >= med, 1, 0))
 
 
-######################################
-### (A) High RA difference group
-######################################
+risk_q3_labels <- c(
+  "1" = "Mostly Partner's",
+  "2" = "Both",
+  "3" = "Mostly Mine",
+  "4" = "Neither"
+)
 
-fig_b_high <- df %>%
-  filter(RA_dif_high == 1) %>%
-  group_by(risk_q2_i) %>%
-  summarise(
-    mean = mean(new2_I_ig),
-    sd = sd(new2_I_ig),
-    n = n(),
-    .groups = "drop"
-  ) %>%
+generate_fig1_left_plot <- function(data) {
+  fig_a <- data %>%
+    group_by(risk_q3_i) %>%
+    summarise(
+      mean = mean(new2_I_ig),
+      sd   = sd(new2_I_ig),
+      n    = n(),
+      .groups = "drop"
+    ) %>%
+    mutate(
+      se  = sd / sqrt(n),
+      hi  = mean + qt(0.975, df = n - 1) * se,
+      low = mean - qt(0.975, df = n - 1) * se,
+      pct = round(100 * n / sum(n), 1)
+    )
+
+  labels_fig_a <- fig_a %>%
+    mutate(label = paste0(
+      risk_q3_labels[as.character(risk_q3_i)],
+      "\n(N=", n, ", ", pct, "%)"
+    )) %>%
+    select(risk_q3_i, label)
+
+  label_map <- setNames(labels_fig_a$label, labels_fig_a$risk_q3_i)
+
+  ggplot(fig_a, aes(x = factor(risk_q3_i), y = mean, fill = factor(risk_q3_i))) +
+    geom_col() +
+    geom_errorbar(aes(ymin = low, ymax = hi), width = 0.15) +
+    labs(
+      y = "Mean Revealed Preference Difference",
+      x = "Whose Suggestion"
+    ) +
+    scale_x_discrete(labels = label_map) +
+    scale_y_continuous(
+      breaks = seq(0, 0.8, 0.2),
+      limits = c(0, 0.8)
+    ) +
+    scale_fill_manual(values = c(
+      "1" = "lightblue",
+      "2" = "lightblue",
+      "3" = "lightblue",
+      "4" = "grey90"
+    )) +
+    theme_minimal(base_size = 14) +
+    theme(legend.position = "none")
+}
+
+fig1_variants <- list(
+  list(
+    data = df,
+    file = "results/ccei_bargaining_whose_suggestion.png"
+  ),
+  list(
+    data = df %>% filter(RA_dif_high == 1),
+    file = "results/ccei_bargaining_whose_suggestion_high_RA_diff.png"
+  ),
+  list(
+    data = df %>% filter(RA_dif_high == 0),
+    file = "results/ccei_bargaining_whose_suggestion_low_RA_diff.png"
+  )
+)
+
+for (spec in fig1_variants) {
+  plot_obj <- generate_fig1_left_plot(spec$data)
+  ggsave(spec$file, plot_obj,
+         width = 7, height = 5, dpi = 300)
+}
+
+
+#########################################################
+### 2. FIGURE 1 RIGHT — RA Difference Split
+#########################################################
+
+risk_q2_labels <- c(
+  "1" = "Very Differently",
+  "2" = "Somewhat Differently",
+  "3" = "Somewhat Similar",
+  "4" = "Mostly Similar"
+)
+
+generate_fig1_right_plot <- function(data) {
+  fig_a <- data %>%
+    group_by(risk_q2_i) %>%
+    summarise(
+      mean = mean(new2_I_ig),
+      sd   = sd(new2_I_ig),
+      n    = n(),
+      .groups = "drop"
+    ) %>%
+    mutate(
+      se  = sd / sqrt(n),
+      hi  = mean + qt(0.975, df = n - 1) * se,
+      low = mean - qt(0.975, df = n - 1) * se,
+      pct = round(100 * n / sum(n), 1)
+    )
+
+  labels_fig_a <- fig_a %>%
+    mutate(label = paste0(
+      risk_q2_labels[as.character(risk_q2_i)],
+      "\n(N=", n, ", ", pct, "%)"
+    )) %>%
+    select(risk_q2_i, label)
+
+  label_map <- setNames(labels_fig_a$label, labels_fig_a$risk_q2_i)
+
+  ggplot(fig_a, aes(x = factor(risk_q2_i), y = mean, fill = factor(risk_q2_i))) +
+    geom_col() +
+    geom_errorbar(aes(ymin = low, ymax = hi), width = 0.15) +
+    labs(
+      y = "Mean Revealed Preference Difference",
+      x = "Had Individually Decided"
+    ) +
+    scale_x_discrete(labels = label_map) +
+    scale_y_continuous(
+      breaks = seq(0, 0.8, 0.2),
+      limits = c(0, 0.8)
+    ) +
+    scale_fill_manual(values = c(
+      "1" = "lightblue",
+      "2" = "lightblue",
+      "3" = "lightblue",
+      "4" = "lightblue"
+    )) +
+    theme_minimal(base_size = 14) +
+    theme(legend.position = "none")
+}
+
+fig1_variants <- list(
+  list(
+    data = df,
+    file = "results/ccei_bargaining_had_individual.png"
+  ),
+  list(
+    data = df %>% filter(RA_dif_high == 1),
+    file = "results/ccei_bargaining_had_individual_high_RA_diff.png"
+  ),
+  list(
+    data = df %>% filter(RA_dif_high == 0),
+    file = "results/ccei_bargaining_had_individual_low_RA_diff.png"
+  )
+)
+
+for (spec in fig1_variants) {
+  plot_obj <- generate_fig1_right_plot(spec$data)
+  ggsave(spec$file, plot_obj,
+         width = 7, height = 5, dpi = 300)
+}
+
+
+###############################################
+# Figure 2: Correlation Heatmap
+###############################################
+
+vars <- c(
+  "ccei_i","RA_i","new2_I_ig",
+  "inclass_n_friends_i","inclass_popularity_i",
+  "male_i","height_i",
+  "mathscore_i",
+  "RAT_strict_i","outgoing_i","opened_i","agreeable_i","conscientious_i","stable_i"
+)
+
+dat <- read_dta("data/finalized_panel_individual_251206.dta") |>
+  filter(post == 0) |>
+  select(all_of(vars))
+  
+labels <- c(
+  "CCEI","Risk Aversion","Bargaining Index",
+  "Out-Degree","In-Degree",
+  "Male","Height (cm)",
+  "Math Score",
+  "RAT","Outgoing","Opened","Agreeable","Conscientious","Stable"
+)
+
+groups <- tibble(
+  var = vars,
+  label = labels,
+  group = c(
+    rep("Experimental Measures", 3),
+    rep("Friendship Network", 2),
+    rep("Demographics", 2),
+    rep("Cognitive Score", 1),
+    rep("Big 5 Personality", 6)
+  )
+)
+
+dat <- dat |> select(all_of(vars)) |> drop_na()
+rc <- rcorr(as.matrix(dat))
+
+corr <- rc$r
+pvals <- rc$P
+diag(corr ) <- NA  # remove diagonal p-values
+
+stars <- matrix("", nrow = length(vars), ncol = length(vars))
+stars[pvals < .10] <- "+"
+stars[pvals < .05] <- "*"
+stars[pvals < .01] <- "**"
+row_levels <- rev(labels[1:5])
+row_positions <- setNames(seq_along(row_levels), row_levels)
+
+plot_df <- as.data.frame(as.table(corr[1:5,])) |>
+  rename(row = Var1, col = Var2, value = Freq) |>
   mutate(
-    se = sd / sqrt(n),
-    hi = mean + qt(0.975, df = n - 1) * se,
-    low = mean - qt(0.975, df = n - 1) * se,
-    pct = round(100 * n / sum(n), 1)
+    row_idx = match(row, vars),
+    col_idx = match(col, vars),
+    value   = ifelse(row_idx>5, NA, value),   # hide lower triangle
+    star    = stars[cbind(row_idx, col_idx)],
+    label   = ifelse(is.na(value), "", sprintf("%.2f%s", value, star)),
+    row_label = factor(groups$label[row_idx], levels = rev(labels)),
+    col_label = factor(groups$label[col_idx], levels = labels)
   )
 
-label_high <- fig_b_high %>%
-  mutate(label = paste0(
-    c("Very Differently", "Somewhat Differently", "Somewhat Similar", "Mostly Similar"),
-    "\n(N=", n, ", ", pct, "%)"
-  )) %>%
-  select(risk_q2_i, label)
-
-label_map_high <- setNames(label_high$label, label_high$risk_q2_i)
-
-p2_high <- ggplot(fig_b_high, aes(x = factor(risk_q2_i), y = mean)) +
-  geom_col(fill = "lightblue") +
-  geom_errorbar(aes(ymin = low, ymax = hi), width = 0.15) +
-  labs(
-    y = "Mean Revealed Preference Difference",
-    x = "Had Individually Decided"
-  ) +
-  scale_x_discrete(labels = label_map_high) +
-  scale_y_continuous(breaks = seq(0, 1, 0.2)) +
-  theme_minimal(base_size = 14)
-
-ggsave("results/ccei_bargaining_had_individual_high.png", p2_high,
-       width = 7, height = 5, dpi = 300)
-
-
-######################################
-### (B) Low RA difference group
-######################################
-
-fig_b_low <- df %>%
-  filter(RA_dif_high == 0) %>%
-  group_by(risk_q2_i) %>%
-  summarise(
-    mean = mean(new2_I_ig),
-    sd = sd(new2_I_ig),
-    n = n(),
-    .groups = "drop"
-  ) %>%
-  mutate(
-    se = sd / sqrt(n),
-    hi = mean + qt(0.975, df = n - 1) * se,
-    low = mean - qt(0.975, df = n - 1) * se,
-    pct = round(100 * n / sum(n), 1)
+heatmap_plot <- ggplot(plot_df, aes(col_label, row_label, fill = value)) +
+  geom_tile(color = "white", size = 0.25) +
+  geom_text(aes(label = label), size = 2.4, na.rm = TRUE) +
+  scale_fill_gradient2(limits = c(-0.8, 0.8), midpoint = 0,
+                       high = "#2166ac", mid = "white", low = "#b2182b",
+                       na.value = "white", name = expression(rho)) +
+  scale_x_discrete(position = "top") +
+  labs(x = NULL, y = NULL) +
+  coord_fixed(clip = "off") +
+  theme_minimal(base_size = 9) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 0, vjust = 0, size = 8),
+    axis.text.y = element_text(hjust = 1, size = 8),
+    panel.grid = element_blank(),
+    legend.position = "right",
+    plot.margin = margin(8, 18, 4, 35)
   )
 
-label_low <- fig_b_low %>%
-  mutate(label = paste0(
-    c("Very Differently", "Somewhat Differently", "Somewhat Similar", "Mostly Similar"),
-    "\n(N=", n, ", ", pct, "%)"
-  )) %>%
-  select(risk_q2_i, label)
+ggsave("results/correlation_heatmap.png", heatmap_plot, width = 7.5, height = 6, dpi = 300)
 
-label_map_low <- setNames(label_low$label, label_low$risk_q2_i)
-
-p2_low <- ggplot(fig_b_low, aes(x = factor(risk_q2_i), y = mean)) +
-  geom_col(fill = "grey90") +
-  geom_errorbar(aes(ymin = low, ymax = hi), width = 0.15) +
-  labs(
-    y = "Mean Revealed Preference Difference",
-    x = "Had Individually Decided"
-  ) +
-  scale_x_discrete(labels = label_map_low) +
-  scale_y_continuous(breaks = seq(0, 1, 0.2)) +
-  theme_minimal(base_size = 14)
-
-ggsave("results/ccei_bargaining_had_individual_low.png", p2_low,
-       width = 7, height = 5, dpi = 300)
 
 
 ###############################################

@@ -145,6 +145,7 @@ esttab using "results/table_bargainingRA.csv", replace b(3) se(3) stats(N r2 p_v
 
 
 
+
 ********************************************************************************
 * Table: Collective CCEI
 ********************************************************************************
@@ -179,7 +180,6 @@ la var end_dist "Diff in CCEI*Endline"
 la var male_diff "Diff Gender"
 la var friend "Friend"
 
-** XXX Decomposition should be updated
 eststo clear
 eststo: reghdfe ccei_g ccei_max ccei_dist, absorb(class endline) vce(cluster class)
 eststo: reghdfe ccei_g ccei_max ccei_dist $group_char $friend_char, absorb(class endline) vce(cluster class)
