@@ -107,7 +107,7 @@ esttab , b(3) se(3) stats(N r2, labels("N" "R-squared") fmt(0 3)) nogap compress
 esttab using "Tables/table_bargainingCCEI.tex", replace ///
 	b(3) se(3) stats(N r2, labels("N" "R-squared") fmt(0 3)) ///
 	nogap compress star(+ 0.1 * 0.05 ** 0.01) label ///
-	drop(*missing*) keep(HighCCEI mathscore_i math_diff inclass_popularity inclass_pop_diff female_i_male_j male_i_female_j) ///
+	keep(HighCCEI mathscore_i math_diff inclass_popularity inclass_pop_diff female_i_male_j male_i_female_j) ///
 	nomtitles fragment nonumbers nolines
 
 
@@ -128,7 +128,7 @@ esttab , b(3) se(3) stats(N r2, labels("N" "R-squared") fmt(0 3)) nogap compress
 esttab using "Tables/table_bargainingRA_distance.tex", replace ///
 	b(3) se(3) stats(N r2, labels("N" "R-squared") fmt(0 3)) ///
 	nogap compress star(+ 0.1 * 0.05 ** 0.01) label ///
-	drop(*missing*) keep(HighCCEI mathscore_i math_diff inclass_popularity inclass_pop_diff female_i_male_j male_i_female_j) ///
+	keep(HighCCEI mathscore_i math_diff inclass_popularity inclass_pop_diff female_i_male_j male_i_female_j) ///
 	nomtitles fragment nonumbers nolines
 
 
@@ -190,41 +190,51 @@ g friend = cond(friendship>=1,1,0)
 
 global group_char = "mathscore_max mathscore_dist mathscore_max_missing mathscore_dist_missing height_max height_dist male_diff	outgoing_max outgoing_dist opened_max opened_dist agreeable_max agreeable_dist conscientious_dist conscientious_max stable_max stable_dist big5_max_missing big5_dist_missing"
 global friend_char = "inclass_n_friends_max inclass_n_friends_dist inclass_popularity_max inclass_popularity_dist friend" 
-global RA_char "RA_max RA_dist all_corner* all_mid*"
+global RA_char "RA_max RA_dist"
 
-g all_corner_max = max(RA_1<0.0002, RA_2<0.0002)
-g all_corner_diff = all_corner_max-min(RA_1<0.0002, RA_2<0.0002)
-g all_mid_max = max(RA_1>0.4998 & RA_1<0.5002, RA_2>0.4998 & RA_2<0.5002)
-g all_mid_diff = all_mid_max-min(RA_1>0.4998 & RA_1<0.5002, RA_2>0.4998 & RA_2<0.5002)
+label var RA_dist "$\text{RA}_{\text{dist},gt}$"
+label var RA_max "$\text{RA}_{\text{max},gt}$"
 
-label var all_corner_max "max 1(All Corner)"
-label var all_corner_diff "Diff in 1(All Corner)"
-label var all_mid_max "max 1(All Middle)"
-label var all_mid_diff "Diff in 1(All Middle)"
-label var RA_dist "Diff in RA"
-label var RA_max "Max RA"
-
-la var ccei_max "Max CCEI"
-la var ccei_dist "Diff in CCEI"
-la var mathscore_max "Max Math Score"
-la var mathscore_dist "Diff Math Score"
+la var ccei_max "$\text{CCEI}_{\text{max},gt}$"
+la var ccei_dist "$\text{CCEI}_{\text{dist},gt}$"
+la var mathscore_max "$\text{Math Score}_{\text{max},gt}$"
+la var mathscore_dist "$\text{Math Score}_{\text{dist},gt}$"
 la var end_max "Max CCEI*Endline"
 la var end_dist "Diff in CCEI*Endline"
-la var male_diff "Diff Gender"
-la var friend "Friend"
+la var male_diff "Different gender"
+la var friend "Friendship tie"
 
 ** Group-CCEI regressions
 eststo clear
-eststo: reghdfe ccei_g ccei_max ccei_dist, absorb(class endline) vce(cluster class)
-eststo: reghdfe ccei_g ccei_max ccei_dist $group_char $friend_char, absorb(class endline) vce(cluster class)
-eststo: reghdfe ccei_g ccei_max ccei_dist $group_char $friend_char $RA_char, absorb(class endline) vce(cluster class)
-eststo: reghdfe ccei_g ccei_max ccei_dist $group_char $friend_char $RA_char end_max end_dist, absorb(class endline) vce(cluster class) // Interaction specification
+eststo: reghdfe ccei_g ccei_max ccei_dist, absorb(class) vce(cluster class)
+estadd local student_controls "No"
+estadd local ra_controls "No"
+estadd local class_fe "Yes"
+estadd local pair_fe "No"
+
+eststo: reghdfe ccei_g ccei_max ccei_dist $group_char $friend_char, absorb(class) vce(cluster class)
+estadd local student_controls "Yes"
+estadd local ra_controls "No"
+estadd local class_fe "Yes"
+estadd local pair_fe "No"
+
+eststo: reghdfe ccei_g ccei_max ccei_dist $group_char $friend_char $RA_char, absorb(class) vce(cluster class)
+estadd local student_controls "Yes"
+estadd local ra_controls "Yes"
+estadd local class_fe "Yes"
+estadd local pair_fe "No"
+
 eststo: reghdfe ccei_g ccei_max ccei_dist $group_char $friend_char $RA_char, absorb(group_id) vce(cluster class)
+estadd local student_controls "Yes"
+estadd local ra_controls "Yes"
+estadd local class_fe "No"
+estadd local pair_fe "Yes"
+
 esttab using "Tables/table_groupCCEI.tex", replace ///
-	b(3) se(3) stats(N r2, labels("N" "R-squared") fmt(0 3)) ///
+	b(3) se(3) stats(student_controls ra_controls class_fe pair_fe N r2, labels("Student and friendship controls" "RA controls" "Class fixed effects" "Pair fixed effects" "N" "R-squared") fmt(%9s %9s %9s %9s 0 3)) ///
 	nogap compress star(+ 0.1 * 0.05 ** 0.01) label ///
-	 keep(*ccei* mathscore_max mathscore_dist male_diff friend end_max end_dist RA_max RA_dist) ///
-	nomtitles fragment nonumbers nolines
+	keep(ccei_max ccei_dist) ///
+	nomtitles fragment nonumbers nolines substitute(\_ _)
 	
 	
 ********************************************************************************
