@@ -242,6 +242,77 @@ file write myfile "\end{tabular}" _n
 
 file close myfile
 
+********************************************************************************
+* Table: CCEI and Bargaining Index Summary Stats
+********************************************************************************
+
+use "data/finalized_panel_individual_251206.dta", clear
+
+foreach period in 0 1 {
+    if `period' == 0 {
+        local t "base"
+    }
+    else {
+        local t "end"
+    }
+
+    foreach var in ccei_i RA_i new2_I_ig {
+        quietly summarize `var' if post == `period', detail
+        local `var'_`t'_mean = r(mean)
+        local `var'_`t'_sd   = r(sd)
+        local `var'_`t'_p10  = r(p10)
+        local `var'_`t'_p50  = r(p50)
+        local `var'_`t'_p90  = r(p90)
+        local `var'_`t'_N    = r(N)
+    }
+}
+
+use "data/finalized_panel_pbl_251206.dta", clear
+
+foreach period in 0 1 {
+    if `period' == 0 {
+        local t "base"
+    }
+    else {
+        local t "end"
+    }
+
+    foreach var in ccei_g RA_g {
+        quietly summarize `var' if endline == `period', detail
+        local `var'_`t'_mean = r(mean)
+        local `var'_`t'_sd   = r(sd)
+        local `var'_`t'_p10  = r(p10)
+        local `var'_`t'_p50  = r(p50)
+        local `var'_`t'_p90  = r(p90)
+        local `var'_`t'_N    = r(N)
+    }
+}
+
+cap file close cceifile
+file open cceifile using "Tables/table_ccei_summary.tex", write replace
+
+file write cceifile "\begin{tabular}{lcccccc}" _n
+file write cceifile "\toprule" _n
+file write cceifile "                 & Mean & SD & p10 & p50 & p90 & Observations \\" _n
+file write cceifile "\midrule" _n
+file write cceifile "\multicolumn{7}{l}{\emph{Panel A: Baseline}} \\" _n
+file write cceifile "\hspace{1em}Individual CCEI & " %6.3f (`ccei_i_base_mean') " & " %6.3f (`ccei_i_base_sd') " & " %6.3f (`ccei_i_base_p10') " & " %6.3f (`ccei_i_base_p50') " & " %6.3f (`ccei_i_base_p90') " & " %9.0fc (`ccei_i_base_N') " \\" _n
+file write cceifile "\hspace{1em}Group CCEI      & " %6.3f (`ccei_g_base_mean') " & " %6.3f (`ccei_g_base_sd') " & " %6.3f (`ccei_g_base_p10') " & " %6.3f (`ccei_g_base_p50') " & " %6.3f (`ccei_g_base_p90') " & " %9.0fc (`ccei_g_base_N') " \\" _n
+file write cceifile "\hspace{1em}Individual risk aversion & " %6.3f (`RA_i_base_mean') " & " %6.3f (`RA_i_base_sd') " & " %6.3f (`RA_i_base_p10') " & " %6.3f (`RA_i_base_p50') " & " %6.3f (`RA_i_base_p90') " & " %9.0fc (`RA_i_base_N') " \\" _n
+file write cceifile "\hspace{1em}Group risk aversion      & " %6.3f (`RA_g_base_mean') " & " %6.3f (`RA_g_base_sd') " & " %6.3f (`RA_g_base_p10') " & " %6.3f (`RA_g_base_p50') " & " %6.3f (`RA_g_base_p90') " & " %9.0fc (`RA_g_base_N') " \\" _n
+file write cceifile "\hspace{1em}Bargaining index \$I_{ig}\$ & " %6.3f (`new2_I_ig_base_mean') " & " %6.3f (`new2_I_ig_base_sd') " & " %6.3f (`new2_I_ig_base_p10') " & " %6.3f (`new2_I_ig_base_p50') " & " %6.3f (`new2_I_ig_base_p90') " & " %9.0fc (`new2_I_ig_base_N') " \\" _n
+file write cceifile "\addlinespace" _n
+file write cceifile "\multicolumn{7}{l}{\emph{Panel B: Endline}} \\" _n
+file write cceifile "\hspace{1em}Individual CCEI & " %6.3f (`ccei_i_end_mean') " & " %6.3f (`ccei_i_end_sd') " & " %6.3f (`ccei_i_end_p10') " & " %6.3f (`ccei_i_end_p50') " & " %6.3f (`ccei_i_end_p90') " & " %9.0fc (`ccei_i_end_N') " \\" _n
+file write cceifile "\hspace{1em}Group CCEI      & " %6.3f (`ccei_g_end_mean') " & " %6.3f (`ccei_g_end_sd') " & " %6.3f (`ccei_g_end_p10') " & " %6.3f (`ccei_g_end_p50') " & " %6.3f (`ccei_g_end_p90') " & " %9.0fc (`ccei_g_end_N') " \\" _n
+file write cceifile "\hspace{1em}Individual risk aversion & " %6.3f (`RA_i_end_mean') " & " %6.3f (`RA_i_end_sd') " & " %6.3f (`RA_i_end_p10') " & " %6.3f (`RA_i_end_p50') " & " %6.3f (`RA_i_end_p90') " & " %9.0fc (`RA_i_end_N') " \\" _n
+file write cceifile "\hspace{1em}Group risk aversion      & " %6.3f (`RA_g_end_mean') " & " %6.3f (`RA_g_end_sd') " & " %6.3f (`RA_g_end_p10') " & " %6.3f (`RA_g_end_p50') " & " %6.3f (`RA_g_end_p90') " & " %9.0fc (`RA_g_end_N') " \\" _n
+file write cceifile "\hspace{1em}Bargaining index \$I_{ig}\$ & " %6.3f (`new2_I_ig_end_mean') " & " %6.3f (`new2_I_ig_end_sd') " & " %6.3f (`new2_I_ig_end_p10') " & " %6.3f (`new2_I_ig_end_p50') " & " %6.3f (`new2_I_ig_end_p90') " & " %9.0fc (`new2_I_ig_end_N') " \\" _n
+file write cceifile "\bottomrule" _n
+file write cceifile "\end{tabular}" _n
+
+file close cceifile
+
 
 ********************************************************************************
 * Table: Correlation 

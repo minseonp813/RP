@@ -18,7 +18,43 @@ cd "~/Dropbox/RP/RA_Byunghun"
 
 use "data/finalized_panel_individual_251206.dta", clear
 
-g male_diff = male_i- male_j
+tempfile choice_shares partner_choice_shares
+preserve
+    use "data/for_graphs_baseline_raw.dta", clear
+    keep if game_type == 1
+    gen post = 0
+    gen corner_share = (coord_x == 0 | coord_y == 0)
+    gen mid_share = (coord_x == coord_y)
+    collapse (mean) corner_share mid_share, by(id post)
+    tempfile baseline_choice_shares
+    save `baseline_choice_shares'
+
+    use "data/for_graphs_endline_raw.dta", clear
+    keep if game_type == 1
+    gen post = 1
+    gen corner_share = (coord_x == 0 | coord_y == 0)
+    gen mid_share = (coord_x == coord_y)
+    collapse (mean) corner_share mid_share, by(id post)
+    append using `baseline_choice_shares'
+    save `choice_shares'
+
+    rename id partner_id
+    save `partner_choice_shares'
+restore
+
+merge m:1 id post using `choice_shares', keep(master match) nogen
+rename corner_share corner_share_i
+rename mid_share mid_share_i
+
+merge m:1 partner_id post using `partner_choice_shares', keep(master match) nogen
+rename corner_share corner_share_j
+rename mid_share mid_share_j
+
+gen corner_share_diff = corner_share_i - corner_share_j
+gen mid_share_diff = mid_share_i - mid_share_j
+
+gen female_i_male_j = (male_i == 0 & male_j == 1)
+gen male_i_female_j = (male_i == 1 & male_j == 0)
 
 * Imputation
 foreach v in mathscore_i outgoing_i opened_i agreeable_i conscientious_i stable_i {
@@ -28,15 +64,17 @@ foreach v in mathscore_i outgoing_i opened_i agreeable_i conscientious_i stable_
 * when choosing covarariates, don't include things like within-pair friendship. 
 * those only matters when interacted with CCEI variable. otherwise, given that 
 * bargaining index sums up to 1 within pair, those can't be significant
-global group_char = "mathscore_i math_diff height_i height_diff outgoing_i outgoing_diff opened_i opened_diff agreeable_i agreeable_diff conscientious_i conscientious_diff stable_i stable_diff male_i male_diff"
+global group_char = "mathscore_i math_diff height_i height_diff outgoing_i outgoing_diff opened_i opened_diff agreeable_i agreeable_diff conscientious_i conscientious_diff stable_i stable_diff female_i_male_j male_i_female_j"
+global group_char_no_gender = "mathscore_i math_diff height_i height_diff outgoing_i outgoing_diff opened_i opened_diff agreeable_i agreeable_diff conscientious_i conscientious_diff stable_i stable_diff"
 global friend_char = "inclass_n_friends inclass_n_diff inclass_popularity inclass_pop_diff" 
 global missing_char = "mathscore_dist_missing outgoing_diff_missing opened_diff_missing agreeable_diff_missing conscientious_diff_missing stable_diff_missing "
-global RA_char = "RA_i RA_diff all_corner_i all_corner_diff all_mid_i all_mid_diff"
+global RA_char = "RA_i RA_diff"
+global share_char = "corner_share_i corner_share_diff mid_share_i mid_share_diff"
 
 reghdfe new2_I_ig HighCCEI $group_char $friend_char $missing_char, absorb(class) vce(cluster class)
 gen cluster_class = e(sample)
 
-reghdfe new2_I_ig HighCCEI $group_char $friend_char $missing_char, absorb(id) vce(cluster class)
+reghdfe new2_I_ig HighCCEI $group_char_no_gender $friend_char $missing_char, absorb(id) vce(cluster class)
 gen cluster_id = e(sample)
 
 * keep if cluster_class == 0
@@ -44,57 +82,53 @@ gen balanced = cluster_id
 sort id group_id post
 
 g RA_diff = RA_i-RA_j
-g all_corner_i = cond(RA_i<0.0002,1,0)
-g all_corner_j = cond(RA_j<0.0002,1,0)
-g all_mid_i = cond(RA_i>0.4998 & RA_i<0.5002,1,0)
-g all_mid_j = cond(RA_j>0.4998 & RA_j<0.5002,1,0)
-g all_corner_diff = all_corner_i - all_corner_j
-g all_mid_diff = all_mid_i - all_mid_j
 
-label var all_corner_i "1(All Corner)"
-label var all_corner_diff "Diff in 1(All Corner)"
-label var all_mid_i "1(All Middle)"
-label var all_mid_diff "Diff in 1(All Middle)"
 label var RA_diff "Diff in RA"
 label var math_diff "Diff in Math"
+label var inclass_popularity "In-degree"
+label var inclass_pop_diff "Diff in In-degree"
+label var corner_share_i "Corner Share"
+label var corner_share_diff "Diff in Corner Share"
+label var mid_share_i "Midpoint Share"
+label var mid_share_diff "Diff in Midpoint Share"
+label var female_i_male_j "(Female_i, Male_j)"
+label var male_i_female_j "(Male_i, Female_j)"
 label var HighCCEI_post "High CCEI*Endline" // post is not right since we're assuming there was no intervention
 label var RA_i "Risk Attitude"
 
 
-** XXX Decomposition should be updated
+** Main bargaining-index regressions; Shapley decomposition is reported in the appendix
 eststo clear
-eststo: reghdfe new2_I_ig HighCCEI if balanced==1, absorb(class mover post) vce(cluster class)
-eststo: reghdfe new2_I_ig HighCCEI $group_char $friend_char $missing_char if balanced==1, absorb(class mover post) vce(cluster class)
-eststo: reghdfe new2_I_ig HighCCEI $group_char $friend_char $missing_char $RA_char if balanced==1, absorb(class mover post) vce(cluster class)
-eststo: reghdfe new2_I_ig HighCCEI HighCCEI_post $group_char $friend_char $missing_char $RA_char if balanced==1, absorb(class mover post) vce(cluster class) // XXX this spec
-eststo: reghdfe new2_I_ig HighCCEI $group_char $friend_char $missing_char $RA_char if balanced==1, absorb(id) vce(cluster class)
+eststo: reghdfe new2_I_ig HighCCEI if balanced==1, absorb(class) vce(cluster class)
+eststo: reghdfe new2_I_ig HighCCEI $group_char $friend_char $missing_char if balanced==1, absorb(class) vce(cluster class)
+eststo: reghdfe new2_I_ig HighCCEI $group_char $friend_char $missing_char $RA_char $share_char if balanced==1, absorb(class) vce(cluster class)
+eststo: reghdfe new2_I_ig HighCCEI $group_char_no_gender $friend_char $missing_char $RA_char $share_char if balanced==1, absorb(id) vce(cluster class)
 esttab , b(3) se(3) stats(N r2, labels("N" "R-squared") fmt(0 3)) nogap compress star(+ 0.1 * 0.05 ** 0.01) drop(*missing*) label
 esttab using "Tables/table_bargainingCCEI.tex", replace ///
 	b(3) se(3) stats(N r2, labels("N" "R-squared") fmt(0 3)) ///
 	nogap compress star(+ 0.1 * 0.05 ** 0.01) label ///
-	drop(*missing*) keep(*CCEI* *math* *RA*) ///
+	drop(*missing*) keep(HighCCEI mathscore_i math_diff inclass_popularity inclass_pop_diff female_i_male_j male_i_female_j) ///
 	nomtitles fragment nonumbers nolines
 
 
 ********************************************************************************
-* Table: Bargaining using RA
+* Table: Bargaining using normalized RA distance
 ********************************************************************************
 
-* why can't we try something similar with RA, too?
-* but we should think more about what's ther right way to construct this index
-g RA_I_ig = abs(RA_i-RA_g)/abs(RA_i-RA_j)
-replace RA_I_ig=. if abs(RA_i-RA_j)<0.001
+g RA_distance_denom = (RA_i-RA_g)^2 + (RA_j-RA_g)^2
+g RA_I_ig = (RA_i-RA_g)^2/RA_distance_denom
+replace RA_I_ig = . if RA_distance_denom == 0
+label var RA_I_ig "RA distance"
 eststo clear
-eststo: reghdfe RA_I_ig  HighCCEI if balanced==1, absorb(class mover post) vce(cluster class)
-eststo: reghdfe RA_I_ig  HighCCEI $group_char $friend_char $missing_char if balanced==1, absorb(class mover post) vce(cluster class)
-eststo: reghdfe RA_I_ig  HighCCEI $group_char $friend_char $missing_char $RA_char if balanced==1, absorb(class mover post) vce(cluster class)
-eststo: reghdfe RA_I_ig  HighCCEI HighCCEI_post $group_char $friend_char $missing_char $RA_char if balanced==1, absorb(class mover post) vce(cluster class)
-eststo: reghdfe RA_I_ig  HighCCEI $group_char $friend_char $missing_char $RA_char if balanced==1, absorb(id) vce(cluster class)
+eststo: reghdfe RA_I_ig HighCCEI if balanced==1, absorb(class) vce(cluster class)
+eststo: reghdfe RA_I_ig HighCCEI $group_char $friend_char $missing_char if balanced==1, absorb(class) vce(cluster class)
+eststo: reghdfe RA_I_ig HighCCEI $group_char $friend_char $missing_char $RA_char $share_char if balanced==1, absorb(class) vce(cluster class)
+eststo: reghdfe RA_I_ig HighCCEI $group_char $friend_char $missing_char $RA_char $share_char if balanced==1, absorb(id) vce(cluster class)
 esttab , b(3) se(3) stats(N r2, labels("N" "R-squared") fmt(0 3)) nogap compress star(+ 0.1 * 0.05 ** 0.01) drop(*missing*) label
-esttab using "Tables/table_bargainingRA.tex", replace ///
+esttab using "Tables/table_bargainingRA_distance.tex", replace ///
 	b(3) se(3) stats(N r2, labels("N" "R-squared") fmt(0 3)) ///
 	nogap compress star(+ 0.1 * 0.05 ** 0.01) label ///
-	drop(*missing*) keep(*CCEI* *math* *RA*) ///
+	drop(*missing*) keep(HighCCEI mathscore_i math_diff inclass_popularity inclass_pop_diff female_i_male_j male_i_female_j) ///
 	nomtitles fragment nonumbers nolines
 
 
@@ -179,12 +213,12 @@ la var end_dist "Diff in CCEI*Endline"
 la var male_diff "Diff Gender"
 la var friend "Friend"
 
-** XXX Decomposition should be updated
+** Group-CCEI regressions
 eststo clear
 eststo: reghdfe ccei_g ccei_max ccei_dist, absorb(class endline) vce(cluster class)
 eststo: reghdfe ccei_g ccei_max ccei_dist $group_char $friend_char, absorb(class endline) vce(cluster class)
 eststo: reghdfe ccei_g ccei_max ccei_dist $group_char $friend_char $RA_char, absorb(class endline) vce(cluster class)
-eststo: reghdfe ccei_g ccei_max ccei_dist $group_char $friend_char $RA_char end_max end_dist, absorb(class endline) vce(cluster class) // XXX this spec
+eststo: reghdfe ccei_g ccei_max ccei_dist $group_char $friend_char $RA_char end_max end_dist, absorb(class endline) vce(cluster class) // Interaction specification
 eststo: reghdfe ccei_g ccei_max ccei_dist $group_char $friend_char $RA_char, absorb(group_id) vce(cluster class)
 esttab using "Tables/table_groupCCEI.tex", replace ///
 	b(3) se(3) stats(N r2, labels("N" "R-squared") fmt(0 3)) ///
@@ -418,4 +452,3 @@ reghdfe new2_I_ig HighCCEI post HighCCEI_post, absorb(class mover) vce(cluster c
 reghdfe new2_I_ig HighCCEI##c.class_participate_i post HighCCEI_post, absorb(class mover) vce(cluster class)
 * TODO: one last shot with more "data mining" approach	
 * TODO: survey measure about overall vibe of the class or PBL
-
