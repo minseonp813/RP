@@ -33,6 +33,7 @@ Thumbs.db
 .Rhistory
 .RData
 .Rproj.user
+.R-library/
 
 # Python files (if any)
 __pycache__/
