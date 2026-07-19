@@ -45,6 +45,7 @@ __pycache__/
 # Large data files (uncomment if you want to exclude large datasets)
 *.dta
 *.csv
+*.xlsx
 *.pdf
 *.pptx
 *.zip
