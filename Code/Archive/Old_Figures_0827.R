@@ -1,578 +1,9 @@
 ##########################################################
-# Written By Byunghun Hahn, Nov 2025
-# Replication Codes for All Figures
-# Last Updated By Minseon Park/Claude Code: 2026-07-19 
-
-
-#########################################################
-### Figure 2: Had individually decided?
-#########################################################
-
-risk_q2_labels <- c(
-  "1" = "Very Differently",
-  "2" = "Somewhat Differently",
-  "3" = "Somewhat Similar",
-  "4" = "Mostly Similar"
-)
-
-generate_fig1_right_plot <- function(data) {
-  fig_a <- data %>%
-    group_by(risk_q2_i) %>%
-    summarise(
-      mean = mean(new2_I_ig),
-      sd   = sd(new2_I_ig),
-      n    = n(),
-      .groups = "drop"
-    ) %>%
-    mutate(
-      se  = sd / sqrt(n),
-      hi  = mean + qt(0.975, df = n - 1) * se,
-      low = mean - qt(0.975, df = n - 1) * se,
-      pct = round(100 * n / sum(n), 1)
-    )
-
-  labels_fig_a <- fig_a %>%
-    mutate(label = paste0(
-      risk_q2_labels[as.character(risk_q2_i)],
-      "\n(N=", n, ", ", pct, "%)"
-    )) %>%
-    select(risk_q2_i, label)
-
-  label_map <- setNames(labels_fig_a$label, labels_fig_a$risk_q2_i)
-
-  ggplot(fig_a, aes(x = factor(risk_q2_i), y = mean, fill = factor(risk_q2_i))) +
-    geom_col() +
-    geom_errorbar(aes(ymin = low, ymax = hi), width = 0.15) +
-    labs(
-      y = "Mean Revealed Preference Difference",
-      x = "Had Individually Decided"
-    ) +
-    scale_x_discrete(labels = label_map) +
-    scale_y_continuous(
-      breaks = seq(0, 0.8, 0.2),
-      limits = c(0, 0.8)
-    ) +
-    scale_fill_manual(values = c(
-      "1" = "lightblue",
-      "2" = "lightblue",
-      "3" = "lightblue",
-      "4" = "lightblue"
-    )) +
-    theme_minimal(base_size = 14) +
-    theme(legend.position = "none")
-}
-
-fig1_variants <- list(
-  list(
-    data = df,
-    file = "results/ccei_bargaining_had_individual.png"
-  ),
-  list(
-    data = df %>% filter(RA_dif_high == 1),
-    file = "results/ccei_bargaining_had_individual_high_RA_diff.png"
-  ),
-  list(
-    data = df %>% filter(RA_dif_high == 1),
-    file = "results/ccei_bargaining_had_individual_high.png"
-  ),
-  list(
-    data = df %>% filter(RA_dif_high == 0),
-    file = "results/ccei_bargaining_had_individual_low_RA_diff.png"
-  )
-)
-
-for (spec in fig1_variants) {
-  plot_obj <- generate_fig1_right_plot(spec$data)
-  ggsave(spec$file, plot_obj,
-         width = 7, height = 5, dpi = 300)
-}
-
-
-##############################################################
-# Figure 3 - Revealed Preference Distance Index by Members' CCEI
-##############################################################
-
-rp_distance_data <- panel_individual %>%
-  filter(!is.na(new2_I_ig), !is.na(high_dummy)) %>%
-  mutate(
-    ccei_group = factor(
-      high_dummy,
-      levels = c(0, 1),
-      labels = c("Lower CCEI", "Higher CCEI")
-    )
-  )
-
-rp_distance_stats <- rp_distance_data %>%
-  group_by(ccei_group) %>%
-  summarise(
-    mean = mean(new2_I_ig),
-    sd = sd(new2_I_ig),
-    n = n(),
-    .groups = "drop"
-  ) %>%
-  mutate(
-    se = sd / sqrt(n),
-    ci = qt(0.975, df = pmax(1, n - 1)) * se
-  )
-
-rp_distance_diff <- rp_distance_data %>%
-  summarise(
-    diff = mean(new2_I_ig[ccei_group == "Higher CCEI"]) -
-      mean(new2_I_ig[ccei_group == "Lower CCEI"]),
-    p_value = t.test(new2_I_ig ~ ccei_group)$p.value,
-    .groups = "drop"
-  ) %>%
-  mutate(
-    stars = case_when(
-      p_value < 0.01 ~ "***",
-      p_value < 0.05 ~ "**",
-      p_value < 0.10 ~ "*",
-      TRUE ~ ""
-    ),
-    label = sprintf("Diff. = %.3f%s", diff, stars)
-  )
-
-rp_y_top <- max(rp_distance_stats$mean + rp_distance_stats$ci, na.rm = TRUE)
-rp_y_min <- max(0, floor((min(rp_distance_stats$mean - rp_distance_stats$ci, na.rm = TRUE) - 0.02) * 100) / 100)
-
-rp_bar_plot <- ggplot(rp_distance_stats, aes(x = ccei_group, y = mean, fill = ccei_group)) +
-  geom_col(width = 0.62, color = "black", linewidth = 0.3) +
-  geom_errorbar(aes(ymin = mean - ci, ymax = mean + ci), width = 0.16, linewidth = 0.45) +
-  annotate("segment", x = 1, xend = 2, y = rp_y_top + 0.04, yend = rp_y_top + 0.04, linewidth = 0.45) +
-  annotate("segment", x = 1, xend = 1, y = rp_y_top + 0.02, yend = rp_y_top + 0.04, linewidth = 0.45) +
-  annotate("segment", x = 2, xend = 2, y = rp_y_top + 0.02, yend = rp_y_top + 0.04, linewidth = 0.45) +
-  annotate("label", x = 1.5, y = rp_y_top + 0.055, label = rp_distance_diff$label[1], size = 18 / .pt, label.size = 0, fill = "white") +
-  scale_fill_manual(values = c(
-    "Lower CCEI" = "#E39695",
-    "Higher CCEI" = "#74A9CF"
-  )) +
-  labs(x = NULL, y = "Mean revealed preference distance") +
-  scale_y_continuous(
-    limits = c(rp_y_min, rp_y_top + 0.12),
-    breaks = scales::pretty_breaks(n = 5),
-    labels = scales::label_number(accuracy = 0.01),
-    expand = c(0, 0)
-  ) +
-  theme_classic(base_size = 18) +
-  theme(
-    legend.position = "none",
-    axis.text.x = element_text(size = 18),
-    axis.title.y = element_text(size = 18),
-    panel.grid.major = element_line(color = "grey90", linewidth = 0.4),
-    panel.grid.minor = element_blank(),
-    plot.margin = margin(10, 10, 10, 10),
-    plot.background = element_rect(fill = "white", color = NA)
-  )
-
-rp_cdf_plot <- ggplot(rp_distance_data, aes(x = new2_I_ig, color = ccei_group, linetype = ccei_group)) +
-  stat_ecdf(geom = "step", linewidth = 0.9) +
-  scale_color_manual(values = c(
-    "Lower CCEI" = "red",
-    "Higher CCEI" = "blue"
-  )) +
-  scale_linetype_manual(values = c(
-    "Lower CCEI" = "dashed",
-    "Higher CCEI" = "solid"
-  )) +
-  guides(
-    color = guide_legend(ncol = 1, byrow = TRUE),
-    linetype = guide_legend(ncol = 1, byrow = TRUE)
-  ) +
-  labs(
-    x = "Revealed preference distance",
-    y = "Cumulative probability",
-    color = NULL,
-    linetype = NULL
-  ) +
-  scale_x_continuous(
-    limits = c(0, 1.0022),
-    breaks = seq(0, 1.0, by = 0.2),
-    expand = c(0, 0)
-  ) +
-  scale_y_continuous(
-    limits = c(0.0, 1.03),
-    breaks = seq(0.0, 1.0, by = 0.2),
-    expand = c(0, 0)
-  ) +
-  theme_minimal(base_size = 18) +
-  theme(
-    legend.position = c(0.02, 0.98),
-    legend.justification = c("left", "top"),
-    legend.key = element_rect(fill = "white", color = NA),
-    legend.background = element_rect(fill = "white", color = "black"),
-    legend.key.size = unit(1.2, "lines"),
-    legend.text = element_text(size = 18),
-    axis.text = element_text(size = 18),
-    axis.title = element_text(size = 18),
-    panel.grid.minor = element_blank(),
-    plot.margin = margin(10, 10, 10, 10),
-    plot.background = element_rect(fill = "white", color = NA)
-  )
-
-ggsave("results/bargaining_index_by_ccei_bar.png", rp_bar_plot,
-       width = 6, height = 5, dpi = 300)
-
-ggsave("results/bargaining_index_by_ccei_cdf.png", rp_cdf_plot,
-       width = 6, height = 5, dpi = 300)
-
-hist_bargaining_index <- ggplot(bar_data, aes(x = new2_I_ig)) +
-  geom_histogram(binwidth = 0.05, boundary = 0, closed = "left",
-                 fill = "#4C78A8", color = "white", linewidth = 0.25) +
-  scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.2),
-                     expand = c(0, 0)) +
-  labs(x = expression("Revealed bargaining index (" * I[ig] * ")"),
-       y = "Count") +
-  theme_classic(base_size = 13) +
-  theme(plot.background = element_rect(fill = "white", color = NA))
-
-ggsave("results/hist_bargaining_index.png", hist_bargaining_index,
-       width = 6, height = 4.5, dpi = 300)
-
-
-group_ccei_cdf_data <- panel_individual %>%
-  filter(!is.na(ccei_g), !is.na(post)) %>%
-  distinct(group_id, post, ccei_g) %>%
-  mutate(source = ifelse(post == 0, "Baseline", "Endline"))
-
-group_ccei_cdf <- ggplot(group_ccei_cdf_data,
-                         aes(x = ccei_g, color = source, linetype = source)) +
-  stat_ecdf(geom = "step", linewidth = 0.8) +
-  scale_color_manual(values = c("Baseline" = "blue", "Endline" = "red")) +
-  scale_linetype_manual(values = c("Baseline" = "solid", "Endline" = "dashed")) +
-  labs(x = "Group CCEI",
-       y = "Cumulative Frequency",
-       color = NULL,
-       linetype = NULL) +
-  scale_x_continuous(limits = c(0.1, 1.0022),
-                     breaks = seq(0.2, 1.0, by = 0.2),
-                     expand = c(0, 0)) +
-  scale_y_continuous(limits = c(0.0, 1.0),
-                     breaks = seq(0.0, 1.0, by = 0.2)) +
-  theme_minimal(base_size = 12) +
-  theme(
-    legend.position      = c(0.02, 0.98),
-    legend.justification = c("left", "top"),
-    legend.background    = element_rect(fill = "white", colour = "black"),
-    legend.key           = element_rect(fill = "white", colour = NA),
-    legend.key.size      = unit(1.5, "lines"),
-    legend.text          = element_text(size = 12),
-    axis.title           = element_text(size = 14),
-    axis.text            = element_text(size = 12),
-    plot.background      = element_rect(fill = "white", colour = NA)
-  )
-
-ggsave("results/figure_group_ccei_cdf_baseline_endline.png", group_ccei_cdf,
-       width = 7, height = 5, dpi = 300)
-
-
-
-
-##############################################################
-### SUPPLEMENTARY / APPENDIX FIGURES
-##############################################################
-
-
-###############################################
-
-library(ggplot2)
-library(ggpattern)
-
-df <- data.frame(
-  Block = c("Time", "CCEI", "Group and individual Char., Friendship", "Class FE"),
-  Shapley = c(0.02165, 0.07197, 0.02554, 0.07627),
-  Contribution = c(11.08, 36.83, 13.07, 39.03)
-)
-
-df$Label <- sprintf("%.4f (%.1f%%)", df$Shapley, df$Contribution)
-
-df$Block <- factor(df$Block,
-                   levels = c("CCEI", "Group and individual Char., Friendship", "Time", "Class FE"))
-
-ggplot(df, aes(x = "", y = Shapley,
-               fill = Block, pattern = Block)) +
-  geom_bar_pattern(stat = "identity", width = 0.5,
-                   colour = "black",
-                   pattern_angle = c(-45, -45, 45, 0),
-                   pattern_spacing = 0.12,
-                   pattern_density = 0.4,
-                   pattern_fill = "white",
-                   pattern_colour = "white") +
-  geom_text(aes(label = Label),
-            position = position_stack(vjust = 0.5), size = 4) +
-  scale_fill_manual(
-    name = "Block",
-    values = c("Time" = "lightblue",
-               "CCEI" = "white",
-               "Group and individual Char., Friendship" = "pink",
-               "Class FE" = "grey90")
-  ) +
-  scale_pattern_manual(
-    name = "Block",
-    values = c("Time" = "stripe",
-               "CCEI" = "stripe",
-               "Group and individual Char., Friendship" = "stripe",
-               "Class FE" = "none")
-  ) +
-  labs(y = expression(R^2 ~ " Contribution"),
-       x = "") +
-  theme_minimal(base_size = 14)
-
-ggsave("results/shapley_1.png", width = 6, height = 5, dpi = 300)
-
-
-##############################################################
-
-library(ggplot2)
-library(ggpattern)
-library(scales)
-
-df <- data.frame(
-  Block = c("CCEI", "Risk Aversion",
-            "Demo/Cog/Non-Cog", "Mover", "Others"),
-  Shapley = c(0.23580, 0.01931, 0.08912, 0.07442, 0.00450),
-  Contribution = c(55.72, 4.56, 21.06, 17.59, 1.06)
-)
-
-df$Label <- sprintf("%.4f (%.1f%%)", df$Shapley, df$Contribution)
-
-# Block 순서 지정: (넣고 싶은 순서대로)
-df$Block <- factor(df$Block,
-                   levels = c("CCEI",
-                              "Demo/Cog/Non-Cog",
-                              "Risk Aversion",
-                              "Mover",
-                              "Others"))
-
-# 패턴 그래프
-p <- ggplot(df, aes(x = "", y = Shapley,
-                    fill = Block, pattern = Block)) +
-  geom_bar_pattern(stat = "identity", width = 0.5,
-                   colour = "black",
-                   pattern_angle = c(-45, -45, 45, 45, 0),
-                   pattern_spacing = 0.12,
-                   pattern_density = 0.4,
-                   pattern_fill = "white",
-                   pattern_colour = "white") +
-  geom_text(aes(label = Label),
-            position = position_stack(vjust = 0.5), size = 4) +
-  scale_fill_manual(
-    name = "Block",
-    values = c("CCEI" = "white",
-               "Demo/Cog/Non-Cog" = "lightblue",
-               "Risk Aversion" = "pink",
-               "Mover" = "grey80",
-               "Others" = "grey90")
-  ) +
-  scale_pattern_manual(
-    name = "Block",
-    values = c("CCEI" = "stripe",
-               "Demo/Cog/Non-Cog" = "stripe",
-               "Risk Aversion" = "stripe",
-               "Mover" = "stripe",
-               "Others" = "none")
-  ) +
-  scale_y_continuous(labels = number_format(accuracy = 0.01)) +
-  labs(y = expression(R^2 ~ " Contribution"), x = "") +
-  theme_minimal(base_size = 14)
-
-ggsave("results/shapley_2.png", plot = p,
-       width = 6, height = 5, dpi = 300)
-
-
-##############################################################
-# Shapley Decomposition: RA-Based Bargaining Distance
-##############################################################
-
-shapley_r2 <- function(data, outcome, groups) {
-  group_names <- names(groups)
-  n_groups <- length(groups)
-  model_vars <- unique(c(outcome, unlist(groups, use.names = FALSE)))
-  data <- data[complete.cases(data[, model_vars]), ]
-  r2_cache <- new.env(parent = emptyenv())
-
-  active_groups <- function(mask) {
-    as.logical(as.integer(intToBits(mask))[seq_len(n_groups)])
-  }
-
-  r2_for_mask <- function(mask) {
-    key <- as.character(mask)
-    if (exists(key, envir = r2_cache, inherits = FALSE)) {
-      return(get(key, envir = r2_cache))
-    }
-
-    active <- active_groups(mask)
-    terms <- unlist(groups[active], use.names = FALSE)
-    r2 <- if (length(terms) == 0) {
-      0
-    } else {
-      summary(lm(reformulate(terms, response = outcome), data = data))$r.squared
-    }
-
-    assign(key, r2, envir = r2_cache)
-    r2
-  }
-
-  shapley <- numeric(n_groups)
-  full_mask <- bitwShiftL(1, n_groups) - 1
-
-  for (j in seq_len(n_groups)) {
-    j_mask <- bitwShiftL(1, j - 1)
-    for (mask in 0:full_mask) {
-      if (bitwAnd(mask, j_mask) == 0) {
-        subset_size <- sum(active_groups(mask))
-        weight <- factorial(subset_size) *
-          factorial(n_groups - subset_size - 1) /
-          factorial(n_groups)
-        shapley[j] <- shapley[j] +
-          weight * (r2_for_mask(bitwOr(mask, j_mask)) - r2_for_mask(mask))
-      }
-    }
-  }
-
-  total <- sum(shapley)
-  data.frame(
-    Block = group_names,
-    Shapley = shapley,
-    Contribution = if (total > 0) 100 * shapley / total else 0,
-    Total_R2 = r2_for_mask(full_mask)
-  )
-}
-
-ra_shapley_data <- read_dta("data/finalized_panel_individual_251206.dta") %>%
-  mutate(
-    across(
-      c(mathscore_i, outgoing_i, opened_i, agreeable_i, conscientious_i, stable_i),
-      ~ ifelse(is.na(.x), 0, .x)
-    ),
-    RA_distance_denom = (RA_i - RA_g)^2 + (RA_j - RA_g)^2,
-    RA_bargaining_distance = ifelse(
-      RA_distance_denom > 0,
-      (RA_i - RA_g)^2 / RA_distance_denom,
-      NA_real_
-    ),
-    male_diff = male_i - male_j,
-    RA_diff = RA_i - RA_j,
-    all_corner_i = as.integer(RA_i < 0.0002),
-    all_corner_j = as.integer(RA_j < 0.0002),
-    all_mid_i = as.integer(RA_i > 0.4998 & RA_i < 0.5002),
-    all_mid_j = as.integer(RA_j > 0.4998 & RA_j < 0.5002),
-    all_corner_diff = all_corner_i - all_corner_j,
-    all_mid_diff = all_mid_i - all_mid_j,
-    class_fe = factor(class)
-  )
-
-ra_shapley_groups <- list(
-  "Time" = c("post"),
-  "CCEI" = c("HighCCEI", "HighCCEI_post", "ccei_i"),
-  "Risk Aversion" = c(
-    "RA_i", "RA_diff", "all_corner_i", "all_corner_diff",
-    "all_mid_i", "all_mid_diff"
-  ),
-  "Individual Char." = c(
-    "mathscore_i", "math_diff", "height_i", "height_diff",
-    "outgoing_i", "outgoing_diff", "opened_i", "opened_diff",
-    "agreeable_i", "agreeable_diff", "conscientious_i",
-    "conscientious_diff", "stable_i", "stable_diff",
-    "male_i", "male_diff"
-  ),
-  "Friendship" = c(
-    "inclass_n_friends", "inclass_n_diff",
-    "inclass_popularity", "inclass_pop_diff"
-  ),
-  "Missing Indicators" = c(
-    "mathscore_dist_missing", "outgoing_diff_missing",
-    "opened_diff_missing", "agreeable_diff_missing",
-    "conscientious_diff_missing", "stable_diff_missing"
-  ),
-  "Class FE" = c("class_fe")
-)
-
-ra_shapley <- shapley_r2(
-  ra_shapley_data,
-  "RA_bargaining_distance",
-  ra_shapley_groups
-)
-
-ra_shapley$Label <- sprintf("%.4f (%.1f%%)", ra_shapley$Shapley, ra_shapley$Contribution)
-ra_shapley$Block <- factor(ra_shapley$Block, levels = ra_shapley$Block)
-
-p <- ggplot(ra_shapley, aes(x = "", y = Shapley, fill = Block)) +
-  geom_col(width = 0.5, colour = "black") +
-  geom_text(aes(label = Label),
-            position = position_stack(vjust = 0.5), size = 3.7) +
-  scale_fill_manual(
-    name = "Block",
-    values = c(
-      "Time" = "lightblue",
-      "CCEI" = "white",
-      "Risk Aversion" = "pink",
-      "Individual Char." = "#B9D7A8",
-      "Friendship" = "#F1D28A",
-      "Missing Indicators" = "grey80",
-      "Class FE" = "grey90"
-    )
-  ) +
-  labs(y = expression(R^2 ~ " Contribution"), x = "") +
-  theme_minimal(base_size = 14)
-
-ggsave("results/shapley_ra_bargaining.png", plot = p,
-       width = 7, height = 5, dpi = 300)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-###############################################################
-
-
-
-# Figure X - (a)
+# Written By Byunghun Hahn, 2025 08 25
+# Replication Codes for Figures 1, 2, A1
+##########################################################
+
+# Figure 1 - (a)
 
 library(ggplot2)
 library(dplyr)
@@ -654,237 +85,83 @@ ggsave(
 
 ####################################################################
 
-# Collective CCEI by members' median-CCEI category
+# Figure 1 - (b)
 
-library(haven)
 library(ggplot2)
 library(dplyr)
 library(tidyr)
 
 rm(list = ls())
 
-panel_individual <- read_dta("data/finalized_panel_individual_251206.dta")
+load("data/finalized_panel_final.RData")
 
-# Use pooled individual observations to define the sample median CCEI.
-ccei_median <- panel_individual %>%
-  summarise(med = median(ccei_i, na.rm = TRUE)) %>%
-  pull(med)
+# calculate median value of individual ccei
+ccei_long <- panel_final %>%
+  select(group_id, ccei_1_end, ccei_2_end) %>%
+  pivot_longer(
+    cols = starts_with("ccei_"),
+    names_to = "member",
+    values_to = "ccei"
+  )
 
-pair_wave <- panel_individual %>%
-  filter(!is.na(group_id), !is.na(post), !is.na(ccei_i), !is.na(ccei_g)) %>%
-  group_by(group_id, post) %>%
-  summarise(
-    ccei_g = first(ccei_g),
-    n_members = n(),
-    n_high = sum(ccei_i >= ccei_median),
-    .groups = "drop"
-  ) %>%
-  filter(n_members == 2) %>%
+ccei_median <- median(ccei_long$ccei, na.rm = TRUE)
+
+# labeling high median / low median
+panel_final <- panel_final %>%
   mutate(
-    pair_ccei_group = factor(
-      n_high,
+    ccei_both_median = as.integer(ccei_1_end >= ccei_median) +
+      as.integer(ccei_2_end >= ccei_median),
+    group_label_end = factor(
+      ccei_both_median,
       levels = c(0, 1, 2),
       labels = c("(Low, Low)", "(Low, High)", "(High, High)")
     )
   )
 
-bar_stats <- pair_wave %>%
-  group_by(pair_ccei_group) %>%
-  summarise(
-    mean = mean(ccei_g, na.rm = TRUE),
-    sd = sd(ccei_g, na.rm = TRUE),
-    n = n(),
-    se = sd / sqrt(n),
-    ci = qt(0.975, df = pmax(1, n - 1)) * se,
-    .groups = "drop"
-  )
-
-diff_stats <- pair_wave %>%
-  filter(pair_ccei_group %in% c("(Low, Low)", "(High, High)")) %>%
-  select(group_id, post, pair_ccei_group, ccei_g) %>%
-  pivot_wider(names_from = pair_ccei_group, values_from = ccei_g) %>%
-  filter(!is.na(`(Low, Low)`), !is.na(`(High, High)`)) %>%
-  summarise(
-    diff = mean(`(High, High)` - `(Low, Low)`),
-    p_value = t.test(`(High, High)`, `(Low, Low)`)$p.value,
-    .groups = "drop"
-  ) %>%
-  mutate(
-    stars = case_when(
-      p_value < 0.01 ~ "***",
-      p_value < 0.05 ~ "**",
-      p_value < 0.10 ~ "*",
-      TRUE ~ ""
-    ),
-    label = sprintf("Diff. = %.3f%s", diff, stars)
-  )
-
-diff_stats_lowhigh <- pair_wave %>%
-  filter(pair_ccei_group %in% c("(Low, Low)", "(Low, High)")) %>%
-  select(group_id, post, pair_ccei_group, ccei_g) %>%
-  pivot_wider(names_from = pair_ccei_group, values_from = ccei_g) %>%
-  filter(!is.na(`(Low, Low)`), !is.na(`(Low, High)`)) %>%
-  summarise(
-    diff = mean(`(Low, High)` - `(Low, Low)`),
-    p_value = t.test(`(Low, High)`, `(Low, Low)`)$p.value,
-    .groups = "drop"
-  ) %>%
-  mutate(
-    stars = case_when(
-      p_value < 0.01 ~ "***",
-      p_value < 0.05 ~ "**",
-      p_value < 0.10 ~ "*",
-      TRUE ~ ""
-    ),
-    label = sprintf("Diff. = %.3f%s", diff, stars)
-  )
-
-diff_stats_highhigh <- pair_wave %>%
-  filter(pair_ccei_group %in% c("(Low, High)", "(High, High)")) %>%
-  select(group_id, post, pair_ccei_group, ccei_g) %>%
-  pivot_wider(names_from = pair_ccei_group, values_from = ccei_g) %>%
-  filter(!is.na(`(Low, High)`), !is.na(`(High, High)`)) %>%
-  summarise(
-    diff = mean(`(High, High)` - `(Low, High)`),
-    p_value = t.test(`(High, High)`, `(Low, High)`)$p.value,
-    .groups = "drop"
-  ) %>%
-  mutate(
-    stars = case_when(
-      p_value < 0.01 ~ "***",
-      p_value < 0.05 ~ "**",
-      p_value < 0.10 ~ "*",
-      TRUE ~ ""
-    ),
-    label = sprintf("Diff. = %.3f%s", diff, stars)
-  )
-
-bar_y_min <- max(0.75, floor((min(bar_stats$mean - bar_stats$ci, na.rm = TRUE) - 0.02) * 100) / 100)
-bar_y_top <- max(bar_stats$mean + bar_stats$ci, na.rm = TRUE)
-
-brackets <- bar_stats %>%
-  summarise(y = bar_y_top + 0.07) %>%
-  bind_cols(diff_stats)
-
-brackets_lowhigh <- bar_stats %>%
-  summarise(y = bar_y_top + 0.025) %>%
-  bind_cols(diff_stats_lowhigh)
-
-brackets_highhigh <- bar_stats %>%
-  summarise(y = bar_y_top + 0.085) %>%
-  bind_cols(diff_stats_highhigh)
-
-bar_plot <- ggplot(bar_stats, aes(x = pair_ccei_group, y = mean, fill = pair_ccei_group)) +
-  geom_col(width = 0.62, color = "black", linewidth = 0.3) +
-  geom_errorbar(aes(ymin = mean - ci, ymax = mean + ci),
-                width = 0.16, linewidth = 0.45) +
-  geom_segment(data = brackets,
-               aes(x = "(Low, Low)", xend = "(High, High)", y = y, yend = y),
-               inherit.aes = FALSE, linewidth = 0.45) +
-  geom_segment(data = brackets,
-               aes(x = "(Low, Low)", xend = "(Low, Low)", y = y - 0.02, yend = y),
-               inherit.aes = FALSE, linewidth = 0.45) +
-  geom_segment(data = brackets,
-               aes(x = "(High, High)", xend = "(High, High)", y = y - 0.02, yend = y),
-               inherit.aes = FALSE, linewidth = 0.45) +
-  geom_label(data = brackets, aes(x = 2, y = y + 0.012, label = label),
-             inherit.aes = FALSE, size = 18 / .pt, label.size = 0, fill = "white") +
-  geom_segment(data = brackets_lowhigh,
-               aes(x = "(Low, Low)", xend = "(Low, High)", y = y, yend = y),
-               inherit.aes = FALSE, linewidth = 0.45) +
-  geom_segment(data = brackets_lowhigh,
-               aes(x = "(Low, Low)", xend = "(Low, Low)", y = y - 0.02, yend = y),
-               inherit.aes = FALSE, linewidth = 0.45) +
-  geom_segment(data = brackets_lowhigh,
-               aes(x = "(Low, High)", xend = "(Low, High)", y = y - 0.02, yend = y),
-               inherit.aes = FALSE, linewidth = 0.45) +
-  geom_label(data = brackets_lowhigh, aes(x = 1.48, y = y + 0.012, label = label),
-             inherit.aes = FALSE, size = 18 / .pt, label.size = 0, fill = "white") +
-  geom_segment(data = brackets_highhigh,
-               aes(x = "(Low, High)", xend = "(High, High)", y = y, yend = y),
-               inherit.aes = FALSE, linewidth = 0.45) +
-  geom_segment(data = brackets_highhigh,
-               aes(x = "(Low, High)", xend = "(Low, High)", y = y - 0.02, yend = y),
-               inherit.aes = FALSE, linewidth = 0.45) +
-  geom_segment(data = brackets_highhigh,
-               aes(x = "(High, High)", xend = "(High, High)", y = y - 0.02, yend = y),
-               inherit.aes = FALSE, linewidth = 0.45) +
-  geom_label(data = brackets_highhigh, aes(x = 2.58, y = y + 0.012, label = label),
-             inherit.aes = FALSE, size = 17 / .pt, label.size = 0, fill = "white") +
-  scale_fill_manual(values = c(
-    "(Low, Low)" = "#E39695",
-    "(Low, High)" = "#D8C98C",
-    "(High, High)" = "#74A9CF"
-  )) +
-  scale_x_discrete(labels = c(
-    "(Low, Low)" = "Low\nLow",
-    "(Low, High)" = "Low\nHigh",
-    "(High, High)" = "High\nHigh"
-  )) +
-  labs(x = NULL, y = "Mean collective CCEI") +
-  scale_y_continuous(
-    limits = c(bar_y_min, 1.08),
-    breaks = scales::pretty_breaks(n = 5),
-    labels = scales::label_number(accuracy = 0.01),
-    expand = c(0, 0)
-  ) +
-  theme_classic(base_size = 18) +
-  theme(
-    legend.position = "none",
-    axis.text.x = element_text(size = 18),
-    axis.title.y = element_text(size = 18),
-    panel.grid.major = element_line(color = "grey90", linewidth = 0.4),
-    panel.grid.minor = element_blank(),
-    plot.margin = margin(10, 10, 10, 10),
-    plot.background = element_rect(fill = "white", color = NA)
-  )
-
-cdf_plot <- ggplot(pair_wave, aes(x = ccei_g, color = pair_ccei_group, linetype = pair_ccei_group)) +
-  stat_ecdf(geom = "step", linewidth = 0.9) +
-  scale_color_manual(values = c(
-    "(Low, Low)" = "red",
-    "(Low, High)" = "#9E8F4A",
-    "(High, High)" = "blue"
-  )) +
-  scale_linetype_manual(values = c(
-    "(Low, Low)" = "dashed",
-    "(Low, High)" = "dotdash",
-    "(High, High)" = "solid"
-  )) +
+# cdf
+cdf_endline_plot <- ggplot(
+  panel_final,
+  aes(x = ccei_g_end,
+      colour = group_label_end,
+      linetype = group_label_end)
+) +
+  stat_ecdf(geom = "step", size = 0.8) +
+  scale_color_manual(values = c("black", "blue", "red")) +
+  scale_linetype_manual(values = c("solid", "dashed", "solid")) +
   labs(
     x = "Collective CCEI",
-    y = "Cumulative probability",
+    y = "Cumulative Frequency",
     color = NULL,
     linetype = NULL
   ) +
-  scale_x_continuous(limits = c(0.1, 1.0022),
-                     breaks = seq(0.2, 1.0, by = 0.2),
-                     expand = c(0, 0)) +
-  scale_y_continuous(limits = c(0.0, 1.03),
-                     breaks = seq(0.0, 1.0, by = 0.2),
-                     expand = c(0, 0)) +
-  guides(color = guide_legend(nrow = 1, byrow = TRUE),
-         linetype = guide_legend(nrow = 1, byrow = TRUE)) +
-  theme_minimal(base_size = 18) +
+  scale_x_continuous(
+    limits = c(0.1, 1.0022),
+    breaks = seq(0.2, 1.0, by = 0.2),
+    expand = c(0, 0)
+  ) +
+  scale_y_continuous(
+    limits = c(0.0, 1.0),
+    breaks = seq(0.0, 1.0, by = 0.2)
+  ) +
+  theme_minimal(base_size = 12) +
   theme(
-    legend.position = c(0.02, 0.98),
+    legend.position      = c(0.02, 0.98),
     legend.justification = c("left", "top"),
-    legend.key = element_rect(fill = "white", color = NA),
-    legend.background = element_rect(fill = "white", color = "black"),
-    legend.key.size = unit(1.2, "lines"),
-    legend.text = element_text(size = 18),
-    axis.text = element_text(size = 18),
-    axis.title = element_text(size = 18),
-    panel.grid.minor = element_blank(),
-    plot.margin = margin(10, 10, 10, 10),
-    plot.background = element_rect(fill = "white", color = NA)
+    legend.background    = element_rect(fill = "white", colour = "black"),
+    legend.key           = element_rect(fill = "white", colour = NA),
+    legend.key.size      = unit(1.5, "lines"),
+    legend.text          = element_text(size = 12),
+    axis.title           = element_text(size = 14),
+    axis.text            = element_text(size = 12),
+    plot.background      = element_rect(fill = "white", colour = NA)
   )
 
-ggsave("results/group_ccei_by_member_ccei_median_bar.png", bar_plot,
-       width = 6, height = 5, dpi = 300)
-
-ggsave("results/group_ccei_by_member_ccei_median_cdf.png", cdf_plot,
-       width = 6, height = 5, dpi = 300)
+ggsave(
+  filename = "figure_1b.png",
+  plot     = cdf_endline_plot,
+  path     = "results",
+  width    = 7, height = 5, dpi = 300
+)
 
 #####################################################################
 
@@ -955,6 +232,73 @@ plot_ra_diff <- function(data, time_val, output_name) {
 plot_ra_diff(panel_individual, time_val = 0, output_name = "figure_2a.png")
 plot_ra_diff(panel_individual, time_val = 1, output_name = "figure_2b.png")
 
+#############################################################
+
+# Figure 4 - (a), (b)
+
+# Note that 102 individuals (100 at Endline) whose index cannot be defined are excluded.
+# If CCEI_G equals CCEI_HLG, the index cannot be defined (denominator = 0).
+
+
+rm(list = ls())
+
+library(ggplot2)
+library(dplyr)
+
+load("data/finalized_panel_individual.RData")
+
+plot_I_ccei <- function(data, time_val, output_name) {
+  df <- data %>%
+    filter(time == time_val)
+  
+  ggplot(df, aes(x = new2_I_ig, color = factor(high_dummy), linetype = factor(high_dummy))) +
+    stat_ecdf(geom = "step", size = 1) +
+    scale_color_manual(
+      values = c("blue", "red"),
+      labels = c("Low Rationality", "High Rationality")
+    ) +
+    scale_linetype_manual(
+      values = c("dashed", "solid"),
+      labels = c("Low Rationality", "High Rationality")
+    ) +
+    labs(
+      x = expression(I[ig]),
+      y = "Cumulative Frequency",
+      color = NULL,
+      linetype = NULL
+    ) +
+    scale_x_continuous(
+      limits = c(-0.0022, 1.0022),
+      breaks = seq(0, 1.0, by = 0.2),
+      expand = c(0, 0)
+    ) +
+    scale_y_continuous(
+      limits = c(0, 1),
+      breaks = seq(0, 1, by = 0.2)
+    ) +
+    theme_minimal(base_size = 12) +
+    theme(
+      legend.position = c(0.02, 0.98),
+      legend.justification = c("left", "top"),
+      legend.text = element_text(size = 12),
+      legend.key = element_rect(fill = "white", color = NA),
+      legend.key.size = unit(1.5, "lines"),
+      legend.background = element_rect(fill = "white", color = "black"),
+      axis.title = element_text(size = 14),
+      axis.text = element_text(size = 12),
+      plot.background = element_rect(fill = "white", color = NA)
+    ) -> plot
+  
+  ggsave(
+    filename = output_name,
+    plot     = plot,
+    path     = "results",
+    width    = 7, height = 5, dpi = 300
+  )
+}
+
+plot_I_ccei(panel_individual, time_val = 0, output_name = "figure_4a.png")
+plot_I_ccei(panel_individual, time_val = 1, output_name = "figure_4b.png")
 
 
 ##############################################################
@@ -1259,6 +603,7 @@ mpi_endline_long <- panel_final %>%
   mutate(value = 1 - max_mpi,
          source = "Endline")
 
+# ← tiny negative 보정 단계 제거
 mpi_combined <- bind_rows(mpi_baseline_long, mpi_endline_long)
 
 mean_baseline <- mean(mpi_baseline_long$value, na.rm = TRUE)
@@ -1873,6 +1218,99 @@ ggsave("results/fig6_C_ver1.png", pC, width=6, height=4, dpi=300)
 
 #############################################
 
+library(haven)
+library(dplyr)
+library(ggplot2)
+library(stats)
+
+df <- read_dta("data/finalized_panel_individual_250831.dta") %>%
+  filter(!is.na(new2_I_ig))
+
+fig_a <- df %>%
+  group_by(risk_q3_i) %>%
+  summarise(
+    mean = mean(new2_I_ig),
+    sd   = sd(new2_I_ig),
+    n    = n(),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    se = sd / sqrt(n),
+    hi = mean + qt(0.975, df = n - 1) * se,
+    low = mean - qt(0.975, df = n - 1) * se
+  )
+
+ggplot(fig_a, aes(x = factor(risk_q3_i), y = mean, fill = factor(risk_q3_i))) +
+  geom_col() +
+  geom_errorbar(aes(ymin = low, ymax = hi), width = 0.2) +
+  labs(
+    y = "Mean Revealed Preference Difference",
+    x = "Whose Suggestion"
+  ) +
+  scale_x_discrete(labels = c(
+    "1" = "Mostly Partner's",
+    "2" = "Both",
+    "3" = "Mostly Mine",
+    "4" = "Neither"
+  )) +
+  scale_y_continuous(breaks = seq(0, 1, 0.2)) +
+  scale_fill_manual(values = c(
+    "1" = "lightblue",
+    "2" = "lightblue",
+    "3" = "lightblue",
+    "4" = "grey90"
+  )) +
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "none")
+
+
+ggsave("results/ccei_bargaining_whose_suggestion.png", width = 7, height = 5, dpi = 300)
+
+fig_b <- df %>%
+  group_by(risk_q2_i) %>%
+  summarise(
+    mean = mean(new2_I_ig),
+    sd   = sd(new2_I_ig),
+    n    = n(),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    se = sd / sqrt(n),
+    hi = mean + qt(0.975, df = n - 1) * se,
+    low = mean - qt(0.975, df = n - 1) * se
+  )
+
+ggplot(fig_b, aes(x = factor(risk_q2_i), y = mean)) +
+  geom_col(fill = "lightblue") +
+  geom_errorbar(aes(ymin = low, ymax = hi), width = 0.2) +
+  labs(
+    y = "Mean Revealed Preference Difference",
+    x = "Had Individually Decided"
+  ) +
+  scale_x_discrete(labels = c(
+    "1" = "Very Differently",
+    "2" = "Somewhat Differently",
+    "3" = "Somewhat Similar",
+    "4" = "Very Similar"
+  )) +
+  scale_y_continuous(breaks = seq(0, 1, 0.2)) +
+  theme_minimal(base_size = 14)
+
+ggsave("results/ccei_bargaining_had_individual.png", width = 7, height = 5, dpi = 300)
+
+fig_a_results <- fig_a %>%
+  select(risk_q3_i, mean, low, hi) %>%
+  mutate(across(c(mean, low, hi), ~ round(., 3)))
+
+fig_b_results <- fig_b %>%
+  select(risk_q2_i, mean, low, hi) %>%
+  mutate(across(c(mean, low, hi), ~ round(., 3)))
+
+print(fig_a_results)
+print(fig_b_results)
+
+###############################################################
+
 
 library(ggplot2)
 library(ggpattern)
@@ -1932,6 +1370,7 @@ df <- data.frame(
 
 df$Label <- sprintf("%.4f (%.1f%%)", df$Shapley, df$Contribution)
 
+# 보여줄 순서 지정 (원하시는 순서대로)
 df$Block <- factor(df$Block,
                    levels = c("CCEI", "Group/Friendship", "Time", "Mover", "Class FE"))
 
@@ -1980,6 +1419,7 @@ df <- data.frame(
   Contribution = c(27.5, 66.6, 5.9, 0.1, 0.0)
 )
 
+# --- "Mover" + "Class FE" 묶어서 Others ---
 df$Block <- as.character(df$Block) # 문자열 처리
 others <- data.frame(
   Block = "Others",
@@ -1992,12 +1432,14 @@ df <- rbind(
   others
 )
 
+# 라벨 다시 생성
 df$Label <- sprintf("%.4f (%.1f%%)", df$Shapley, df$Contribution)
 
+# Block 순서 지정
 df$Block <- factor(df$Block,
                    levels = c("CCEI", "Group/Friendship", "Time", "Others"))
 
-library(scales)
+library(scales)  # 꼭 불러와야 함
 
 p <- ggplot(df, aes(x = "", y = Shapley,
                     fill = Block, pattern = Block)) +
@@ -2025,13 +1467,11 @@ p <- ggplot(df, aes(x = "", y = Shapley,
                "Others" = "none")
   ) +
   scale_y_continuous(
-    labels = number_format(accuracy = 0.01)
+    labels = number_format(accuracy = 0.01)   # ← y축 눈금을 소수 둘째자리까지
   ) +
   labs(y = expression(R^2 ~ " Contribution"),
        x = "") +
   theme_minimal(base_size = 14)
-
-
 
 ggsave("shapley_2.png", plot = p, width = 6, height = 5, dpi = 300)
 
