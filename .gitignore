@@ -29,6 +29,9 @@ Thumbs.db
 *~
 ~$*
 
+# Archived analysis materials
+Code/Archive/
+
 # R files (if any)
 .Rhistory
 .RData
