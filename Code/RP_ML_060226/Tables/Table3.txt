@@ -1,0 +1,14 @@
+% latex table generated in R 4.6.0 by xtable 1.8-8 package
+% Wed Jun  3 04:26:52 2026
+\begin{table}[ht]
+\centering
+\begin{tabular}{lllll}
+  \hline
+V1 & ATE & HET & ATE & HET \\ 
+  \hline
+I\_ig & -0.447 & 0.710 & -0.410 & 0.912 \\ 
+   & (-0.487,-0.405) & (0.470,0.949) & (-0.459,-0.360) & (0.439,1.405) \\ 
+   & [0.000] & [0.000] & [0.000] & [0.000] \\ 
+   \hline
+\end{tabular}
+\end{table}
