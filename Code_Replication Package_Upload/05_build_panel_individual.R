@@ -1,4 +1,4 @@
-## Byunghun Hahn, June 29
+## Byunghun Hahn, July 21
 ## Build Individual Panel and Run Final Checks
 
 rm(list = ls())
@@ -99,7 +99,7 @@ make_individual_core <- function(df, suffix, person_num) {
   high <- value_or_na(df, paste0("high_", suffix))
   f_high <- value_or_na(df, paste0("f_high_", suffix))
   min_high <- value_or_na(df, paste0("min_mpi_high_", suffix))
-  max_high <- value_or_na(df, paste0("max_mpi_high_", suffix))
+  max_high <- value_or_na(df, paste0("rev_max_mpi_high_", suffix))
   
   high_i <- if (person_num == 1) high else 1 - high
   f_high_i <- if (person_num == 1) f_high else 1 - f_high

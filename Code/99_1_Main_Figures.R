@@ -13,8 +13,14 @@
 # - results/ccei_bargaining_had_individual_high.png
 # - results/bargaining_index_by_ccei_bar.png
 # - results/bargaining_index_by_ccei_cdf.png
+# - results/ra_distance_by_ccei_bar.png
+# - results/ra_distance_by_ccei_cdf.png
 # - results/group_ccei_by_member_ccei_median_bar.png
 # - results/group_ccei_by_member_ccei_median_cdf.png
+# - results/figure_individual_ccei_cdf_baseline_endline.png
+# - results/figure_group_ccei_cdf_baseline_endline.png
+# - results/figure_individual_ra_cdf_baseline_endline.png
+# - results/figure_group_ra_cdf_baseline_endline.png
 ##########################################################
 
 library(haven)
@@ -346,6 +352,168 @@ ggsave("results/bargaining_index_by_ccei_cdf.png", rp_cdf_plot,
 
 
 ####################################################################
+# Appendix Figure A8: Risk-aversion distance by members' CCEI
+####################################################################
+
+# This replacement follows Figure 3 exactly, pools both waves, and changes the
+# dependent variable to the normalized squared-distance index defined in (5.1).
+ra_distance_data <- panel_individual %>%
+  filter(!is.na(RA_i), !is.na(RA_j), !is.na(RA_g),
+         !is.na(HighCCEI), !is.na(post)) %>%
+  mutate(
+    RA_distance_denom = (RA_i - RA_g)^2 + (RA_j - RA_g)^2,
+    RA_distance = if_else(
+      RA_distance_denom > 0,
+      (RA_i - RA_g)^2 / RA_distance_denom,
+      NA_real_
+    ),
+    ccei_group = factor(
+      ifelse(HighCCEI == 1, "Higher CCEI", "Lower CCEI"),
+      levels = c("Lower CCEI", "Higher CCEI")
+    )
+  ) %>%
+  filter(!is.na(RA_distance))
+
+ra_distance_stats <- ra_distance_data %>%
+  group_by(ccei_group) %>%
+  summarise(
+    mean = mean(RA_distance),
+    sd = sd(RA_distance),
+    n = n(),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    se = sd / sqrt(n),
+    ci = qt(0.975, df = pmax(1, n - 1)) * se
+  )
+
+ra_distance_paired <- ra_distance_data %>%
+  select(group_id, post, ccei_group, RA_distance) %>%
+  pivot_wider(names_from = ccei_group, values_from = RA_distance) %>%
+  filter(!is.na(`Lower CCEI`), !is.na(`Higher CCEI`)) %>%
+  mutate(pairwise_difference = `Lower CCEI` - `Higher CCEI`)
+
+ra_distance_diff <- ra_distance_paired %>%
+  summarise(
+    difference = mean(pairwise_difference),
+    p_value = t.test(pairwise_difference)$p.value,
+    .groups = "drop"
+  ) %>%
+  mutate(
+    stars = case_when(
+      p_value < 0.01 ~ "**",
+      p_value < 0.05 ~ "*",
+      p_value < 0.10 ~ "+",
+      TRUE ~ ""
+    ),
+    label = sprintf("Diff. = %.3f%s", difference, stars)
+  )
+
+ra_distance_sd <- sd(ra_distance_data$RA_distance)
+ra_distance_sd_percent <- 100 * ra_distance_diff$difference / ra_distance_sd
+ra_distance_ks <- ks.test(
+  ra_distance_data$RA_distance[ra_distance_data$ccei_group == "Higher CCEI"],
+  ra_distance_data$RA_distance[ra_distance_data$ccei_group == "Lower CCEI"],
+  alternative = "two.sided",
+  exact = FALSE
+)
+
+ra_y_top <- max(ra_distance_stats$mean + ra_distance_stats$ci, na.rm = TRUE) + 0.025
+
+ra_distance_bar_plot <- ggplot(
+  ra_distance_stats,
+  aes(x = ccei_group, y = mean, fill = ccei_group)
+) +
+  geom_col(width = 0.62, color = "black", linewidth = 0.3) +
+  geom_errorbar(aes(ymin = mean - ci, ymax = mean + ci),
+                width = 0.16, linewidth = 0.45) +
+  annotate("segment", x = 1, xend = 2, y = ra_y_top, yend = ra_y_top,
+           linewidth = 0.45) +
+  annotate("segment", x = 1, xend = 1, y = ra_y_top - 0.008,
+           yend = ra_y_top, linewidth = 0.45) +
+  annotate("segment", x = 2, xend = 2, y = ra_y_top - 0.008,
+           yend = ra_y_top, linewidth = 0.45) +
+  annotate("text", x = 1.5, y = ra_y_top + 0.035,
+           label = ra_distance_diff$label[1], size = 18 / .pt) +
+  scale_fill_manual(values = c(
+    "Lower CCEI" = "#E39695",
+    "Higher CCEI" = "#74A9CF"
+  )) +
+  scale_x_discrete(labels = c(
+    "Lower CCEI" = "Lower\nCCEI",
+    "Higher CCEI" = "Higher\nCCEI"
+  )) +
+  labs(x = NULL, y = expression("Mean " * d(RA[i], RA[g]))) +
+  scale_y_continuous(limits = c(0, 0.70), breaks = seq(0, 0.70, by = 0.10),
+                     expand = c(0, 0)) +
+  theme_classic(base_size = 18) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = 18),
+    axis.title.y = element_text(size = 18),
+    panel.grid.major = element_line(color = "grey90", linewidth = 0.4),
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(10, 10, 10, 10),
+    plot.background = element_rect(fill = "white", color = NA)
+  )
+
+ra_distance_cdf_plot <- ggplot(
+  ra_distance_data,
+  aes(x = RA_distance, color = ccei_group, linetype = ccei_group)
+) +
+  stat_ecdf(geom = "step", linewidth = 0.9) +
+  scale_color_manual(values = c("Lower CCEI" = "red", "Higher CCEI" = "blue")) +
+  scale_linetype_manual(values = c("Lower CCEI" = "dashed", "Higher CCEI" = "solid")) +
+  guides(
+    color = guide_legend(ncol = 1, byrow = TRUE),
+    linetype = guide_legend(ncol = 1, byrow = TRUE)
+  ) +
+  labs(
+    x = expression("Risk-aversion distance " * d(RA[i], RA[g])),
+    y = "Cumulative probability",
+    color = NULL,
+    linetype = NULL
+  ) +
+  scale_x_continuous(limits = c(0, 1.0022), breaks = seq(0, 1, by = 0.2),
+                     expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0, 1.03), breaks = seq(0, 1, by = 0.2),
+                     expand = c(0, 0)) +
+  theme_minimal(base_size = 18) +
+  theme(
+    legend.position = c(0.55, 0.98),
+    legend.justification = c("left", "top"),
+    legend.key = element_rect(fill = "white", color = NA),
+    legend.background = element_rect(fill = "white", color = "black"),
+    legend.key.size = unit(1.2, "lines"),
+    legend.text = element_text(size = 18),
+    axis.text = element_text(size = 18),
+    axis.title = element_text(size = 18),
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(10, 10, 10, 10),
+    plot.background = element_rect(fill = "white", color = NA)
+  )
+
+ggsave("results/ra_distance_by_ccei_bar.png", ra_distance_bar_plot,
+       width = 6, height = 5, dpi = 300)
+
+ggsave("results/ra_distance_by_ccei_cdf.png", ra_distance_cdf_plot,
+       width = 6, height = 5, dpi = 300)
+
+cat(sprintf(
+  paste0("\nRA-distance appendix statistics:\n",
+         "Lower-CCEI mean = %.6f\nHigher-CCEI mean = %.6f\n",
+         "Within-pair difference = %.6f\nPooled SD = %.6f\n",
+         "Difference as percent of SD = %.2f%%\nKS p-value = %.8g\n"),
+  ra_distance_stats$mean[ra_distance_stats$ccei_group == "Lower CCEI"],
+  ra_distance_stats$mean[ra_distance_stats$ccei_group == "Higher CCEI"],
+  ra_distance_diff$difference,
+  ra_distance_sd,
+  ra_distance_sd_percent,
+  ra_distance_ks$p.value
+))
+
+
+####################################################################
 # Figure 5: Collective CCEI by members' median-CCEI category
 #########################################################
 
@@ -563,3 +731,129 @@ ggsave("results/group_ccei_by_member_ccei_median_bar.png", bar_plot,
 
 ggsave("results/group_ccei_by_member_ccei_median_cdf.png", cdf_plot,
        width = 6, height = 5, dpi = 300)
+
+
+#########################################################
+### APPENDIX: CDFS OF INDIVIDUAL AND GROUP CCEI / RISK AVERSION
+#########################################################
+
+# Rebuild Figure A4 from the current replication panel, rather than relying on
+# the old finalized_panel_final.RData. Baseline is blue/solid and endline is
+# red/dashed. Group measures enter once per pair-wave.
+appendix_cdf_theme <- theme_minimal(base_size = 12) +
+  theme(
+    legend.position      = c(0.02, 0.98),
+    legend.justification = c("left", "top"),
+    legend.background    = element_rect(fill = "white", colour = "black"),
+    legend.key           = element_rect(fill = "white", colour = NA),
+    legend.key.size      = grid::unit(1.5, "lines"),
+    legend.text          = element_text(size = 12),
+    axis.title           = element_text(size = 14),
+    axis.text            = element_text(size = 12),
+    plot.background      = element_rect(fill = "white", colour = NA)
+  )
+
+
+### Figure A4: CDF of individual and group CCEI
+
+individual_ccei_cdf_data <- panel_individual %>%
+  filter(!is.na(id), !is.na(post), !is.na(ccei_i)) %>%
+  distinct(id, post, ccei_i) %>%
+  mutate(source = factor(if_else(post == 0, "Baseline", "Endline"),
+                         levels = c("Baseline", "Endline")))
+
+individual_ccei_cdf <- ggplot(
+  individual_ccei_cdf_data,
+  aes(x = ccei_i, color = source, linetype = source)
+) +
+  stat_ecdf(geom = "step", linewidth = 0.8) +
+  scale_color_manual(values = c("Baseline" = "blue", "Endline" = "red")) +
+  scale_linetype_manual(values = c("Baseline" = "solid", "Endline" = "dashed")) +
+  labs(x = "Individual CCEI", y = "Cumulative Frequency",
+       color = NULL, linetype = NULL) +
+  scale_x_continuous(limits = c(-0.0022, 1.0022),
+                     breaks = seq(0.2, 1, by = 0.2), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.2)) +
+  appendix_cdf_theme
+
+ggsave("results/figure_individual_ccei_cdf_baseline_endline.png",
+       individual_ccei_cdf, width = 7, height = 5, dpi = 300)
+
+group_ccei_cdf_data <- panel_individual %>%
+  filter(!is.na(group_id), !is.na(post), !is.na(ccei_g)) %>%
+  distinct(group_id, post, ccei_g) %>%
+  mutate(source = factor(if_else(post == 0, "Baseline", "Endline"),
+                         levels = c("Baseline", "Endline")))
+
+group_ccei_cdf <- ggplot(
+  group_ccei_cdf_data,
+  aes(x = ccei_g, color = source, linetype = source)
+) +
+  stat_ecdf(geom = "step", linewidth = 0.8) +
+  scale_color_manual(values = c("Baseline" = "blue", "Endline" = "red")) +
+  scale_linetype_manual(values = c("Baseline" = "solid", "Endline" = "dashed")) +
+  labs(x = "Group CCEI", y = "Cumulative Frequency",
+       color = NULL, linetype = NULL) +
+  scale_x_continuous(limits = c(0.1, 1.0022),
+                     breaks = seq(0.2, 1, by = 0.2), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.2)) +
+  appendix_cdf_theme
+
+ggsave("results/figure_group_ccei_cdf_baseline_endline.png",
+       group_ccei_cdf, width = 7, height = 5, dpi = 300)
+
+
+### CDF of individual and group risk aversion
+
+individual_ra_cdf_data <- panel_individual %>%
+  filter(!is.na(id), !is.na(post), !is.na(RA_i)) %>%
+  distinct(id, post, RA_i) %>%
+  mutate(source = factor(if_else(post == 0, "Baseline", "Endline"),
+                         levels = c("Baseline", "Endline")))
+
+individual_ra_cdf <- ggplot(individual_ra_cdf_data,
+                            aes(x = RA_i, color = source, linetype = source)) +
+  stat_ecdf(geom = "step", linewidth = 0.8) +
+  scale_color_manual(values = c("Baseline" = "blue", "Endline" = "red")) +
+  scale_linetype_manual(values = c("Baseline" = "solid", "Endline" = "dashed")) +
+  labs(x = "Individual Risk Aversion", y = "Cumulative Frequency",
+       color = NULL, linetype = NULL) +
+  scale_x_continuous(limits = c(-0.0022, 1.0022),
+                     breaks = seq(0, 1, by = 0.2), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.2)) +
+  appendix_cdf_theme
+
+ggsave("results/figure_individual_ra_cdf_baseline_endline.png",
+       individual_ra_cdf, width = 7, height = 5, dpi = 300)
+
+group_ra_cdf_data <- panel_individual %>%
+  filter(!is.na(group_id), !is.na(post), !is.na(RA_g)) %>%
+  distinct(group_id, post, RA_g) %>%
+  mutate(source = factor(if_else(post == 0, "Baseline", "Endline"),
+                         levels = c("Baseline", "Endline")))
+
+group_ra_cdf <- ggplot(group_ra_cdf_data,
+                       aes(x = RA_g, color = source, linetype = source)) +
+  stat_ecdf(geom = "step", linewidth = 0.8) +
+  scale_color_manual(values = c("Baseline" = "blue", "Endline" = "red")) +
+  scale_linetype_manual(values = c("Baseline" = "solid", "Endline" = "dashed")) +
+  labs(x = "Group Risk Aversion", y = "Cumulative Frequency",
+       color = NULL, linetype = NULL) +
+  scale_x_continuous(limits = c(-0.0022, 1.0022),
+                     breaks = seq(0, 1, by = 0.2), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.2)) +
+  appendix_cdf_theme
+
+ggsave("results/figure_group_ra_cdf_baseline_endline.png",
+       group_ra_cdf, width = 7, height = 5, dpi = 300)
+
+# Console checks: these counts should correspond to one student-wave for the
+# individual panels and one pair-wave for the group panels.
+bind_rows(
+  count(individual_ccei_cdf_data, source) %>% mutate(measure = "Individual CCEI"),
+  count(group_ccei_cdf_data, source) %>% mutate(measure = "Group CCEI"),
+  count(individual_ra_cdf_data, source) %>% mutate(measure = "Individual RA"),
+  count(group_ra_cdf_data, source) %>% mutate(measure = "Group RA")
+) %>%
+  select(measure, source, n) %>%
+  print(n = Inf)
