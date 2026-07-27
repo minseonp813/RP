@@ -178,6 +178,20 @@ network_edges <- make_network_edges(network_all)
 
 panel_final <- read_dta("data/panel_final.dta")
 
+required_ihat_cols <- c(
+  "Ihat_hg_base", "Ihat_lg_base",
+  "Ihat_hg_end", "Ihat_lg_end"
+)
+
+missing_ihat_cols <- setdiff(required_ihat_cols, names(panel_final))
+
+if (length(missing_ihat_cols) > 0) {
+  stop(
+    "panel_final is missing cross-partition index columns from 01: ",
+    paste(missing_ihat_cols, collapse = ", ")
+  )
+}
+
 file.copy(
   "data/panel_final.dta",
   "data/panel_final_backup_before_updated_survey_network_merge.dta",
@@ -622,6 +636,15 @@ if (all(c("weight_1_base", "weight_2_base") %in% names(panel_final))) {
       weight_min_base = safe_pmin(weight_1_base, weight_2_base),
       weight_dist_base = safe_absdiff(weight_1_base, weight_2_base)
     )
+}
+
+missing_ihat_after_merge <- setdiff(required_ihat_cols, names(panel_final))
+
+if (length(missing_ihat_after_merge) > 0) {
+  stop(
+    "Cross-partition index columns were lost during the 03 merge: ",
+    paste(missing_ihat_after_merge, collapse = ", ")
+  )
 }
 
 write_dta(panel_final, "data/panel_final.dta")

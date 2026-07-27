@@ -54,7 +54,7 @@ data$row_id <- seq_len(nrow(data))
 data_original <- data
 
 # Outcome and treatment
-y_var <- "I_ig"
+y_var <- "Ihat_ig"
 d_var <- "HighCCEI"
 
 # Fixed effect and cluster.
@@ -104,7 +104,7 @@ beta    <- 0.5
 alpha   <- 0.05
 p_score <- 1       # known propensity score
 
-names   <- c("I_ig")
+names   <- c("Ihat_ig")
 Y       <- c(y_var)
 D       <- rep(d_var, length(Y))
 

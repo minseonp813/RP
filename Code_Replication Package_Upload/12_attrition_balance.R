@@ -10,10 +10,19 @@ suppressPackageStartupMessages({
   library(xml2)
 })
 
-rp_dir <- "/Users/minseonp/Library/CloudStorage/Dropbox/RP/Replication Package_Upload"
-ra_dir <- "/Users/minseonp/Dropbox/RP/RA_Byunghun"
-out_tex <- "tables_2025/table_attrition_balance.tex"
-out_diag <- "tables_2025/table_attrition_balance_diagnostics.csv"
+args <- commandArgs(trailingOnly = TRUE)
+if (length(args) != 3) {
+  stop(
+    "Usage: Rscript 12_attrition_balance.R ",
+    "<replication_dir> <stata_random_draw.dta> <output_dir>"
+  )
+}
+
+rp_dir <- normalizePath(args[[1]], mustWork = TRUE)
+random_draw_path <- normalizePath(args[[2]], mustWork = TRUE)
+out_dir <- normalizePath(args[[3]], mustWork = TRUE)
+out_tex <- file.path(out_dir, "table_attrition_balance.tex")
+out_diag <- file.path(out_dir, "table_attrition_balance_diagnostics.csv")
 
 id_as_char <- function(x) {
   x <- as.character(x)
@@ -321,8 +330,14 @@ balanced <- read_dta(file.path(rp_dir, "data/panel_individual.dta")) %>%
     inclass_popularity = inclass_popularity_i
   )
 
-randomization_draw <- read_dta(file.path(ra_dir, "data/finalized_panel_final_251203.dta")) %>%
-  transmute(group_id, random_1 = num(random_1), random_2 = num(random_2))
+randomization_draw <- read_dta(random_draw_path) %>%
+  transmute(group_id, selected_first = as.logical(num(selected_first)))
+
+stopifnot(
+  nrow(randomization_draw) == 652,
+  n_distinct(randomization_draw$group_id) == 652,
+  !anyNA(randomization_draw$selected_first)
+)
 
 randomization_covariates <- all_baseline %>%
   select(
@@ -344,8 +359,7 @@ randomization_raw <- read_dta(file.path(rp_dir, "data/panel_final.dta")) %>%
   transmute(
     group_id,
     class_fe = factor(num(class)),
-    random_1,
-    random_2,
+    selected_first,
     id_1 = id_as_char(id_mover_base),
     id_2 = id_as_char(id_nonmover_base)
   ) %>%
@@ -356,7 +370,8 @@ randomization_raw <- read_dta(file.path(rp_dir, "data/panel_final.dta")) %>%
     height_2 = pmin(pmax(num(height_2), 146), 182)
   )
 
-select_first <- randomization_raw$random_1 > randomization_raw$random_2
+stopifnot(!anyNA(randomization_raw$selected_first))
+select_first <- randomization_raw$selected_first
 
 pick_selected <- function(var) {
   ifelse(select_first, num(randomization_raw[[paste0(var, "_1")]]), num(randomization_raw[[paste0(var, "_2")]]))
@@ -526,7 +541,7 @@ tex_lines <- c(
     "The same valid-value restriction is used for the corresponding randomization-test regressions. ",
     "The attrition joint test regresses an indicator for inclusion in the analysis sample on all listed characteristics and tests that all coefficients are jointly zero. ",
     "The randomization-test columns report the coefficient and $p$-value from regressions of one randomly selected pair member's baseline characteristic on the partner's corresponding baseline characteristic, controlling for class fixed effects. ",
-    "The random member is selected using the fixed random draw stored in the finalized pair-level panel. ",
+    "The random member is selected reproducibly in Stata after sorting pairs by group ID, setting the MT64 random-number generator, and setting seed 100000. ",
     "The randomization-test joint statistic is a Wald test that all twelve partner-characteristic coefficients are jointly zero.}"
   ),
   "\\end{minipage}",

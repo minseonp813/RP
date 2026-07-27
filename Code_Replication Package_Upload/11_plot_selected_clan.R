@@ -112,7 +112,7 @@ plot_data <- estimates |>
   left_join(selection, by = "variable") |>
   mutate(
     full_sample_sd = full_sample_sd[match(variable, selection$variable)],
-    # Table 5 reports top-score minus bottom-score. Since lower effects on I_ig
+    # Table 5 reports top-score minus bottom-score. Since lower effects on Ihat_ig
     # imply a larger bargaining-power premium, reverse the comparison here.
     estimate = -difference_table / full_sample_sd,
     conf_low = -ci_high_table / full_sample_sd,

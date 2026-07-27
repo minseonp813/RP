@@ -35,11 +35,31 @@ if (rstudioapi::isAvailable()) {
 
 panel_final <- read_dta("data/panel_final.dta")
 
+required_ihat_cols <- c(
+  "Ihat_hg_base", "Ihat_lg_base",
+  "Ihat_hg_end", "Ihat_lg_end"
+)
+
+missing_ihat_cols <- setdiff(required_ihat_cols, names(panel_final))
+
+if (length(missing_ihat_cols) > 0) {
+  stop(
+    "panel_final is missing cross-partition index columns: ",
+    paste(missing_ihat_cols, collapse = ", ")
+  )
+}
+
 if (!"class" %in% names(panel_final)) {
   stop("panel_final must contain class. Run the updated merge script first.")
 }
 
 panel_final <- panel_final %>%
+  select(
+    -tidyselect::any_of(c(
+      "Ihat_1g_base", "Ihat_2g_base",
+      "Ihat_1g_end", "Ihat_2g_end"
+    ))
+  ) %>%
   mutate(
     group_id = as.character(group_id),
     class = as.character(class)

@@ -95,6 +95,7 @@ eststo: reghdfe I_ig HighCCEI if balanced==1, absorb(class) vce(cluster class)
 eststo: reghdfe I_ig HighCCEI $group_char $friend_char $missing_char if balanced==1, absorb(class) vce(cluster class)
 eststo: reghdfe I_ig HighCCEI $group_char $friend_char $missing_char $RA_char $share_char if balanced==1, absorb(class) vce(cluster class)
 eststo: reghdfe I_ig HighCCEI $group_char_no_gender $friend_char $missing_char $RA_char $share_char if balanced==1, absorb(id_fe) vce(cluster class)
+scalar table3_col4_r2 = e(r2)
 esttab , b(3) se(3) stats(N r2, labels("N" "R-squared") fmt(0 3)) nogap compress star(+ 0.1 * 0.05 ** 0.01) drop(*missing*) label substitute(\_ _)
 esttab using "Tables/table_bargainingCCEI.tex", replace ///
 	b(3) se(3) stats(N r2, labels("N" "R-squared") fmt(0 3)) ///
@@ -103,6 +104,70 @@ esttab using "Tables/table_bargainingCCEI.tex", replace ///
 	nomtitles fragment nonumbers nolines ///
 	prefoot("\hline") postfoot("\bottomrule")
 	
+********************************************************************************
+* Shapley decomposition of Table 3, Column (4)
+********************************************************************************
+
+* shapley2 cannot decompose fixed effects hidden inside absorb(). Re-estimate
+* Column (4) with explicit individual indicators on the identical sample.
+capture drop FE_id_*
+quietly tabulate id_fe if balanced==1, generate(FE_id_)
+unab table3_id_dummies : FE_id_*
+local table3_id_base : word 1 of `table3_id_dummies'
+local G_INDIVIDUAL_FE : list table3_id_dummies - table3_id_base
+
+local G_CCEI_T3  "HighCCEI"
+local G_CHAR_T3  "$group_char_no_gender $friend_char $missing_char"
+local G_RA_T3    "$RA_char"
+local G_SHARE_T3 "$share_char"
+local TABLE3_SHAPLEY_GROUPS "`G_CCEI_T3', `G_CHAR_T3', `G_RA_T3', `G_SHARE_T3', `G_INDIVIDUAL_FE'"
+
+reg I_ig `G_CCEI_T3' `G_CHAR_T3' `G_RA_T3' `G_SHARE_T3' ///
+    `G_INDIVIDUAL_FE' if balanced==1, vce(cluster class)
+assert e(N) == 2228
+assert abs(e(r2) - table3_col4_r2) < 1e-10
+estimates store TABLE3_COL4_SHAPLEY
+
+capture which shapley2
+if _rc {
+    di as error "shapley2 is required. Install it once with: ssc install shapley2"
+    exit 199
+}
+
+estimates restore TABLE3_COL4_SHAPLEY
+shapley2, stat(r2) group("`TABLE3_SHAPLEY_GROUPS'")
+
+matrix BISh = e(shapley)
+matrix BISr = e(shapley_rel)
+if rowsof(BISh) == 1 matrix BISh = BISh'
+if rowsof(BISr) == 1 matrix BISr = BISr'
+
+preserve
+clear
+set obs 5
+
+gen str40 block = ""
+replace block = "CCEI"                         in 1
+replace block = "Individual/Friendship"        in 2
+replace block = "Risk Aversion"                in 3
+replace block = "Corner/Midpoint Shares"       in 4
+replace block = "Individual FE"                in 5
+
+svmat double BISh
+rename BISh1 shapley_value
+svmat double BISr
+rename BISr1 shapley_share
+gen shapley_percent = 100 * shapley_share
+egen total_r2 = total(shapley_value)
+
+format shapley_value total_r2 %9.4f
+format shapley_percent %9.2f
+export excel block shapley_value shapley_percent total_r2 ///
+    using "results/shapley_bargaining_index.xlsx", firstrow(variables) replace
+export delimited block shapley_value shapley_percent total_r2 ///
+    using "results/shapley_bargaining_index.csv", replace
+restore
+
 
 ********************************************************************************
 * Appendix: Table 3 robustness using FGARP
@@ -260,63 +325,302 @@ esttab using "results/table_bargainingRA.csv", replace b(3) se(3) stats(N r2 p_v
 
 
 ********************************************************************************
-* Table: Collective CCEI
+* Table 5: Collective CCEI
 ********************************************************************************
 
-use "data/finalized_panel_pbl_251206.dta", clear
+* Use the current replication panel. It contains two oriented member rows per
+* pair-wave; all Table 5 regressors below are made symmetric before keeping one.
+use "data/panel_individual.dta", clear
 
-g male_diff = cond(male~=male2,1,0)
-g friend = cond(friendship>=1,1,0)
+* Construct individual corner and midpoint shares from the current raw choices.
+tempfile table5_shares table5_partner_shares table5_base_shares
+preserve
+    use "data/base_raw.dta", clear
+    keep if game_type == 1
+    gen post = 0
+    gen byte corner_share = (coord_x == 0 | coord_y == 0) if !missing(coord_x, coord_y)
+    gen byte mid_share = (coord_x == coord_y) if !missing(coord_x, coord_y)
+    collapse (mean) corner_share mid_share, by(id post)
+    save `table5_base_shares'
 
-global group_char = "mathscore_max mathscore_dist mathscore_max_missing mathscore_dist_missing height_max height_dist male_diff	outgoing_max outgoing_dist opened_max opened_dist agreeable_max agreeable_dist conscientious_dist conscientious_max stable_max stable_dist big5_max_missing big5_dist_missing"
-global friend_char = "inclass_n_friends_max inclass_n_friends_dist inclass_popularity_max inclass_popularity_dist friend" 
-global RA_char "RA_max RA_dist"
+    use "data/end_raw.dta", clear
+    keep if game_type == 1
+    gen post = 1
+    gen byte corner_share = (coord_x == 0 | coord_y == 0) if !missing(coord_x, coord_y)
+    gen byte mid_share = (coord_x == coord_y) if !missing(coord_x, coord_y)
+    collapse (mean) corner_share mid_share, by(id post)
+    append using `table5_base_shares'
+    save `table5_shares'
+
+    rename id partner_id
+    save `table5_partner_shares'
+restore
+
+merge m:1 id post using `table5_shares', keep(master match) nogen
+rename corner_share corner_share_i
+rename mid_share mid_share_i
+merge m:1 partner_id post using `table5_partner_shares', keep(master match) nogen
+rename corner_share corner_share_j
+rename mid_share mid_share_j
+
+* 05_build_panel_individual.R zero-imputes the selected *_i and *_diff
+* variables and creates the corresponding missing indicators, but deliberately
+* leaves *_j and *_dist unimputed. Table 5 uses symmetric max/dist controls, so
+* zero-impute both member values before rebuilding them. The existing
+* *_diff_missing variables remain in $group_char and flag any member missing.
+foreach v in mathscore outgoing opened agreeable conscientious stable {
+    replace `v'_i = 0 if missing(`v'_i)
+    replace `v'_j = 0 if missing(`v'_j)
+}
+
+* Pair-level max and absolute-difference controls, matching the Table 5 notes.
+foreach v in ccei RA mathscore height outgoing opened agreeable conscientious stable inclass_n_friends inclass_popularity corner_share mid_share {
+    * 05_build_panel_individual.R already creates most *_dist variables.
+    * Drop max and distance separately: if one is absent, a combined drop
+    * would fail as a whole and leave the existing distance variable behind.
+    capture drop `v'_max
+    capture drop `v'_dist
+    egen `v'_max = rowmax(`v'_i `v'_j)
+    gen `v'_dist = abs(`v'_i - `v'_j)
+}
+
+capture drop male_diff
+capture drop friend
+gen male_diff = (male_i != male_j)
+gen friend = (friendship >= 1)
+
+* panel_individual contains both orientations of each pair-wave. The variables
+* used below are symmetric, so retain exactly one observation per pair-wave.
+bysort group_id post: keep if _n == 1
+isid group_id post
+assert !missing(corner_share_max, corner_share_dist, mid_share_max, mid_share_dist)
+assert !missing(mathscore_max, mathscore_dist, height_max, height_dist)
+assert !missing(outgoing_max, outgoing_dist, opened_max, opened_dist)
+assert !missing(agreeable_max, agreeable_dist, conscientious_max, conscientious_dist)
+assert !missing(stable_max, stable_dist, inclass_n_friends_max, inclass_n_friends_dist)
+assert !missing(inclass_popularity_max, inclass_popularity_dist, RA_max, RA_dist)
+capture drop class_fe
+capture drop pair_fe
+egen long class_fe = group(class)
+egen long pair_fe = group(group_id)
+
+global group_char = "mathscore_max mathscore_dist height_max height_dist male_diff outgoing_max outgoing_dist opened_max opened_dist agreeable_max agreeable_dist conscientious_max conscientious_dist stable_max stable_dist mathscore_diff_missing outgoing_diff_missing opened_diff_missing agreeable_diff_missing conscientious_diff_missing stable_diff_missing"
+global friend_char = "inclass_n_friends_max inclass_n_friends_dist inclass_popularity_max inclass_popularity_dist friend"
+global RA_char = "RA_max RA_dist"
+global share_char_group = "corner_share_max corner_share_dist mid_share_max mid_share_dist"
 
 label var RA_dist "$\text{RA}_{\text{dist},gt}$"
 label var RA_max "$\text{RA}_{\text{max},gt}$"
+label var corner_share_max "Max corner share"
+label var corner_share_dist "Diff. in corner share"
+label var mid_share_max "Max midpoint share"
+label var mid_share_dist "Diff. in midpoint share"
 
 la var ccei_max "$\text{CCEI}_{\text{max},gt}$"
 la var ccei_dist "$\text{CCEI}_{\text{dist},gt}$"
 la var mathscore_max "$\text{Math Score}_{\text{max},gt}$"
 la var mathscore_dist "$\text{Math Score}_{\text{dist},gt}$"
-la var end_max "Max CCEI*Endline"
-la var end_dist "Diff in CCEI*Endline"
 la var male_diff "Different gender"
 la var friend "Friendship tie"
 
 ** Group-CCEI regressions
 eststo clear
-eststo: reghdfe ccei_g ccei_max ccei_dist, absorb(class) vce(cluster class)
+eststo: reghdfe ccei_g ccei_max ccei_dist, absorb(class_fe) vce(cluster class_fe)
 estadd local student_controls "No"
 estadd local ra_controls "No"
+estadd local share_controls "No"
 estadd local class_fe "Yes"
 estadd local pair_fe "No"
 
-eststo: reghdfe ccei_g ccei_max ccei_dist $group_char $friend_char, absorb(class) vce(cluster class)
+eststo: reghdfe ccei_g ccei_max ccei_dist $group_char $friend_char, absorb(class_fe) vce(cluster class_fe)
 estadd local student_controls "Yes"
 estadd local ra_controls "No"
+estadd local share_controls "No"
 estadd local class_fe "Yes"
 estadd local pair_fe "No"
 
-eststo: reghdfe ccei_g ccei_max ccei_dist $group_char $friend_char $RA_char, absorb(class) vce(cluster class)
+eststo: reghdfe ccei_g ccei_max ccei_dist $group_char $friend_char $RA_char $share_char_group, absorb(class_fe) vce(cluster class_fe)
 estadd local student_controls "Yes"
 estadd local ra_controls "Yes"
+estadd local share_controls "Yes"
 estadd local class_fe "Yes"
 estadd local pair_fe "No"
 
-eststo: reghdfe ccei_g ccei_max ccei_dist $group_char $friend_char $RA_char, absorb(group_id) vce(cluster class)
+eststo: reghdfe ccei_g ccei_max ccei_dist $group_char $friend_char $RA_char $share_char_group, absorb(pair_fe) vce(cluster class_fe)
 estadd local student_controls "Yes"
 estadd local ra_controls "Yes"
+estadd local share_controls "Yes"
 estadd local class_fe "No"
 estadd local pair_fe "Yes"
 
-esttab using "Tables/table_groupCCEI.tex", replace ///
-	b(3) se(3) stats(student_controls ra_controls class_fe pair_fe N r2, labels("Student and friendship controls" "RA controls" "Class fixed effects" "Pair fixed effects" "N" "R-squared") fmt(%9s %9s %9s %9s 0 3)) ///
+esttab using "Tables/final_collective_ccei.tex", replace ///
+	b(3) se(3) stats(N r2, labels("N" "R-squared") fmt(0 3)) ///
 	nogap compress star(+ 0.1 * 0.05 ** 0.01) label ///
 	keep(ccei_max ccei_dist) ///
+	prefoot("\midrule") postfoot("\bottomrule") ///
 	nomtitles fragment nonumbers nolines substitute(\_ _)
+
+* Appendix A2: report the full coefficient set from the same four Table 5
+* specifications. Missing-value indicators remain included in the regressions
+* but are suppressed from the displayed table.
+label var height_max "Max height"
+label var height_dist "Diff. in height"
+label var outgoing_max "Max extraversion"
+label var outgoing_dist "Diff. in extraversion"
+label var opened_max "Max openness"
+label var opened_dist "Diff. in openness"
+label var agreeable_max "Max agreeableness"
+label var agreeable_dist "Diff. in agreeableness"
+label var conscientious_max "Max conscientiousness"
+label var conscientious_dist "Diff. in conscientiousness"
+label var stable_max "Max emotional stability"
+label var stable_dist "Diff. in emotional stability"
+label var inclass_n_friends_max "Max number of friends"
+label var inclass_n_friends_dist "Diff. in number of friends"
+label var inclass_popularity_max "Max in-degree"
+label var inclass_popularity_dist "Diff. in in-degree"
+
+esttab using "Tables/final_collective_ccei_full.tex", replace ///
+	b(3) se(3) stats(N r2, labels("N" "R-squared") fmt(0 3)) ///
+	nogap compress star(+ 0.1 * 0.05 ** 0.01) label ///
+	order(ccei_max ccei_dist mathscore_max mathscore_dist height_max height_dist male_diff outgoing_max outgoing_dist opened_max opened_dist agreeable_max agreeable_dist conscientious_max conscientious_dist stable_max stable_dist inclass_n_friends_max inclass_n_friends_dist inclass_popularity_max inclass_popularity_dist friend RA_max RA_dist corner_share_max corner_share_dist mid_share_max mid_share_dist) ///
+	drop(*_missing) ///
+	prefoot("\midrule") postfoot("\bottomrule") ///
+	noomitted nobaselevels nomtitles fragment nonumbers nolines substitute(\_ _)
 	
 	
+********************************************************************************
+* Shapley decomposition of Table 5, Column (4)
+********************************************************************************
+
+* shapley2 cannot decompose fixed effects hidden inside absorb(). Re-estimate
+* the identical pair-FE specification with explicit pair indicators. The first
+* pair is the omitted category, just as in an ordinary dummy-variable model.
+capture drop FE_pair_*
+quietly tabulate pair_fe, generate(FE_pair_)
+unab table5_pair_dummies : FE_pair_*
+local table5_pair_base : word 1 of `table5_pair_dummies'
+local G_PAIR_FE : list table5_pair_dummies - table5_pair_base
+
+local G_CCEI  "ccei_max ccei_dist"
+local G_GROUP "$group_char $friend_char"
+local G_RA    "$RA_char"
+local G_SHARE "$share_char_group"
+local TABLE5_SHAPLEY_GROUPS "`G_CCEI', `G_GROUP', `G_RA', `G_SHARE', `G_PAIR_FE'"
+
+reg ccei_g `G_CCEI' `G_GROUP' `G_RA' `G_SHARE' `G_PAIR_FE', ///
+    vce(cluster class_fe)
+assert e(N) == 1304
+estimates store TABLE5_COL4_SHAPLEY
+
+capture which shapley2
+if _rc {
+    di as error "shapley2 is required. Install it once with: ssc install shapley2"
+    exit 199
+}
+
+estimates restore TABLE5_COL4_SHAPLEY
+shapley2, stat(r2) group("`TABLE5_SHAPLEY_GROUPS'")
+
+* Save the decomposition in both Excel and CSV form. The R figure script reads
+* the CSV; the Excel file is retained for easy manual inspection.
+matrix Sh = e(shapley)
+matrix Sr = e(shapley_rel)
+if rowsof(Sh) == 1 matrix Sh = Sh'
+if rowsof(Sr) == 1 matrix Sr = Sr'
+
+preserve
+clear
+set obs 5
+
+gen str40 block = ""
+replace block = "CCEI"                   in 1
+replace block = "Group/Friendship"       in 2
+replace block = "Risk Aversion"          in 3
+replace block = "Corner/Midpoint Shares" in 4
+replace block = "Pair FE"                in 5
+
+svmat double Sh
+rename Sh1 shapley_value
+svmat double Sr
+rename Sr1 shapley_share
+gen shapley_percent = 100 * shapley_share
+egen total_r2 = total(shapley_value)
+
+format shapley_value total_r2 %9.4f
+format shapley_percent %9.2f
+export excel block shapley_value shapley_percent total_r2 ///
+    using "results/shapley_collective_ccei.xlsx", firstrow(variables) replace
+export delimited block shapley_value shapley_percent total_r2 ///
+    using "results/shapley_collective_ccei.csv", replace
+restore
+
+********************************************************************************
+* Appendix: Table 5 robustness using FGARP
+********************************************************************************
+
+label var f_ccei_pair_max "\$\text{FGARP}_{\text{max},gt}\$"
+label var f_ccei_dist "\$\text{FGARP}_{\text{dist},gt}\$"
+
+eststo clear
+eststo: reghdfe f_ccei_g f_ccei_pair_max f_ccei_dist, ///
+    absorb(class_fe) vce(cluster class_fe)
+assert e(N) == 1304
+
+eststo: reghdfe f_ccei_g f_ccei_pair_max f_ccei_dist ///
+    $group_char $friend_char, absorb(class_fe) vce(cluster class_fe)
+assert e(N) == 1304
+
+eststo: reghdfe f_ccei_g f_ccei_pair_max f_ccei_dist ///
+    $group_char $friend_char $RA_char $share_char_group, ///
+    absorb(class_fe) vce(cluster class_fe)
+assert e(N) == 1304
+
+eststo: reghdfe f_ccei_g f_ccei_pair_max f_ccei_dist ///
+    $group_char $friend_char $RA_char $share_char_group, ///
+    absorb(pair_fe) vce(cluster class_fe)
+assert e(N) == 1304
+
+esttab using "Tables/final_collective_fgarp.tex", replace ///
+    b(3) se(3) stats(N r2, labels("N" "R-squared") fmt(0 3)) ///
+    nogap compress star(+ 0.1 * 0.05 ** 0.01) label ///
+    keep(f_ccei_pair_max f_ccei_dist) ///
+    prefoot("\midrule") postfoot("\bottomrule") ///
+    nomtitles fragment nonumbers nolines substitute(\_ _)
+
+********************************************************************************
+* Appendix: Table 5 robustness using reversed MaxMPI
+********************************************************************************
+
+label var rev_max_mpi_pair_max "\$\text{RevMaxMPI}_{\text{max},gt}\$"
+label var rev_max_mpi_dist "\$\text{RevMaxMPI}_{\text{dist},gt}\$"
+
+eststo clear
+eststo: reghdfe rev_max_mpi_g rev_max_mpi_pair_max rev_max_mpi_dist, ///
+    absorb(class_fe) vce(cluster class_fe)
+assert e(N) == 1304
+
+eststo: reghdfe rev_max_mpi_g rev_max_mpi_pair_max rev_max_mpi_dist ///
+    $group_char $friend_char, absorb(class_fe) vce(cluster class_fe)
+assert e(N) == 1304
+
+eststo: reghdfe rev_max_mpi_g rev_max_mpi_pair_max rev_max_mpi_dist ///
+    $group_char $friend_char $RA_char $share_char_group, ///
+    absorb(class_fe) vce(cluster class_fe)
+assert e(N) == 1304
+
+eststo: reghdfe rev_max_mpi_g rev_max_mpi_pair_max rev_max_mpi_dist ///
+    $group_char $friend_char $RA_char $share_char_group, ///
+    absorb(pair_fe) vce(cluster class_fe)
+assert e(N) == 1304
+
+esttab using "Tables/final_collective_rev_max_mpi.tex", replace ///
+    b(3) se(3) stats(N r2, labels("N" "R-squared") fmt(0 3)) ///
+    nogap compress star(+ 0.1 * 0.05 ** 0.01) label ///
+    keep(rev_max_mpi_pair_max rev_max_mpi_dist) ///
+    prefoot("\midrule") postfoot("\bottomrule") ///
+    nomtitles fragment nonumbers nolines substitute(\_ _)
+
 ********************************************************************************
 * Table: Bargaining using CCEI - Mechanism
 ********************************************************************************

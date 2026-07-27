@@ -77,6 +77,20 @@ if (!"class" %in% names(panel_final)) {
   stop("panel_final must contain class. Run the updated merge script first.")
 }
 
+required_ihat_cols <- c(
+  "Ihat_hg_base", "Ihat_lg_base",
+  "Ihat_hg_end", "Ihat_lg_end"
+)
+
+missing_ihat_cols <- setdiff(required_ihat_cols, names(panel_final))
+
+if (length(missing_ihat_cols) > 0) {
+  stop(
+    "panel_final is missing required cross-partition index columns: ",
+    paste(missing_ihat_cols, collapse = ", ")
+  )
+}
+
 make_individual_core <- function(df, suffix, person_num) {
   endline_value <- ifelse(suffix == "end", 1L, 0L)
   id1_col <- paste0("id_mover_", suffix)
@@ -132,6 +146,11 @@ make_individual_core <- function(df, suffix, person_num) {
     ),
     I_hg = value_or_na(df, paste0("I_hg_", suffix)),
     I_lg = value_or_na(df, paste0("I_lg_", suffix)),
+    Ihat_ig = ifelse(
+      high_i == 1,
+      value_or_na(df, paste0("Ihat_hg_", suffix)),
+      value_or_na(df, paste0("Ihat_lg_", suffix))
+    ),
     f_ccei_i = value_or_na(df, paste0("f_ccei_", my_num, "_", suffix)),
     f_ccei_j = value_or_na(df, paste0("f_ccei_", partner_num, "_", suffix)),
     f_ccei_g = value_or_na(df, paste0("f_ccei_g_", suffix)),
@@ -666,6 +685,41 @@ dir.create("data/checks", showWarnings = FALSE, recursive = TRUE)
 write_csv(
   missing_imputation_summary,
   "data/checks/panel_individual_selected_missing_imputation_summary.csv"
+)
+
+ihat_individual_check <- panel_individual %>%
+  group_by(group_id, endline) %>%
+  summarise(
+    n_members = n(),
+    n_defined = sum(!is.na(Ihat_ig)),
+    Ihat_sum = ifelse(
+      n_defined == 2,
+      sum(Ihat_ig),
+      NA_real_
+    ),
+    .groups = "drop"
+  )
+
+ihat_individual_problem <- ihat_individual_check %>%
+  filter(
+    n_members != 2 |
+      n_defined == 1 |
+      (!is.na(Ihat_sum) & abs(Ihat_sum - 1) > 1e-8)
+  )
+
+if (nrow(ihat_individual_problem) > 0) {
+  cat("\nInvalid Ihat mapping in panel_individual:\n")
+  print(ihat_individual_problem, n = Inf, width = Inf)
+  stop("Ihat_ig mapping failed; panel_individual.dta was not written.")
+}
+
+cat("\nIhat_ig successfully mapped to panel_individual.\n")
+cat(
+  "Defined individual rows:",
+  sum(!is.na(panel_individual$Ihat_ig)),
+  " Undefined individual rows:",
+  sum(is.na(panel_individual$Ihat_ig)),
+  "\n"
 )
 
 write_dta(panel_individual, "data/panel_individual.dta")
