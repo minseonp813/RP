@@ -5,13 +5,13 @@ suppressPackageStartupMessages({
   library(cowplot)
 })
 
-# Run from Replication_Package (temp_cei_min.do invokes this file there).
+# Run from Code (temp_cei_min.do invokes this file there).
 code_dir <- getwd()
 figure_dir <- file.path(code_dir, "results", "figures")
 
 panel_individual <- read_dta(file.path(code_dir, "data", "panel_individual.dta"))
 cei <- read.csv(
-  file.path(code_dir, "..", "CEI-files", "results", "cei_pairwave.csv"),
+  file.path(code_dir, "..", "Archive", "CEI-files", "results", "cei_pairwave.csv"),
   colClasses = c(pair_id = "character")
 ) |>
   filter(spec == "tempered") |>
