@@ -1,0 +1,9 @@
+{
+  "budget_pool": "all",
+  "n_rows": 82296,
+  "n_unique_budgets": 81732,
+  "intercept_x_min": 300.0,
+  "intercept_x_max": 3000.0,
+  "intercept_y_min": 300.0,
+  "intercept_y_max": 3000.0
+}

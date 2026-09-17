@@ -1,0 +1,113 @@
+#' Tests consistency with the Strong Axiom of Revealed Preference at efficiency \eqn{e}
+#'
+#' This function allows the user to check whether a given data set is consistent with the Strong Axiom of Revealed Preference
+#' at efficiency level \eqn{e} (\eqn{e}SARP) and computes the number of \eqn{e}SARP violations.
+#' We say that a data set satisfies SARP at efficiency level \eqn{e} if \eqn{q_t R_e q_s} implies \eqn{ep_s'q_s < p_s'q_t}
+#' (see the definition of \eqn{R_e} below). It is clear that by setting \eqn{e = 1}, we obtain the standard version of SARP.
+#' While if \eqn{e < 1}, we allow for some optimization error in the choices to make the data set consistent with SARP.
+#' The smaller the \eqn{e} is, the larger will be the optimization error allowed in the test.
+#' It is well known that SARP is a necessary and sufficient condition for a data set to be rationalized
+#' by a continuous, strictly increasing, and strictly concave preference function (see Matzkin and Richter (1991)).
+#'
+#' @param p A \eqn{T X N} matrix of observed prices where each row corresponds to an observation
+#' and each column corresponds to a consumption category. \eqn{T} is the number of observations
+#' and \eqn{N} is the number of consumption categories.
+#'
+#' @param q A \eqn{T X N} matrix of observed quantities where each row corresponds to an observation
+#' and each column corresponds to a consumption category.\eqn{T} is the number of observations
+#' and \eqn{N} is the number of consumption categories.
+#'
+#' @param efficiency The efficiency level \eqn{e}, is a real number between 0 and 1, which allows for a
+#' small margin of error when checking for consistency with the axiom. The default value is 1, which corresponds to the
+#' test of consistency with the exact SARP.
+#'
+#' @return The function returns two elements. The first element (\code{passsarp}) is a binary indicator telling us whether
+#' the data set is consistent with SARP at a given efficiency level \eqn{e}. It takes a value 1 if the data set
+#' is \eqn{e}SARP consistent and a value 0 if the data set is \eqn{e}SARP inconsistent.
+#' The second element (\code{nviol}) reports the number of \eqn{e}SARP violations. If the data is \eqn{e}SARP
+#' consistent, \code{nviol} is 0. Note that the maximum number of violations in an \eqn{e}SARP inconsistent data is
+#' \eqn{T(T-1)}.
+#'
+#'
+#' @section Definitions:
+#' For a given efficiency level \eqn{0 \le e \le 1}, we say that:
+#'
+#' \itemize{
+#'
+#' \item bundle \eqn{q_t} is directly revealed preferred to bundle \eqn{q_s} at efficiency level \eqn{e} (denoted as
+#' \eqn{q_t R^D_e q_s}) if \eqn{ep_t'q_t \ge p_t'q_s}.
+#'
+#' \item bundle \eqn{q_t} is strictly directly revealed preferred to bundle \eqn{q_s} at efficiency level \eqn{e}
+#' (denoted as \eqn{q_t P^D_e q_s}) if \eqn{ep_t'q_t > p_t'q_s}.
+#'
+#' \item bundle \eqn{q_t} is revealed preferred to bundle \eqn{q_s} at efficiency level \eqn{e} (denoted as
+#' \eqn{q_t R_e q_s}) if there exists a (possibly empty) sequence of observations (\eqn{t,u,v,\cdots,w,s}) such that
+#' \eqn{q_t R^D_e q_u}, \eqn{q_u R^D_e q_v}, \eqn{\cdots, q_w R^D_e q_s}.
+#' }
+#'
+#' @section References:
+#' \itemize{
+#' \item Matzkin, Rosa L., and Marcel K. Richter. "Testing strictly concave rationality."
+#'  Journal of Economic Theory 53, no. 2 (1991): 287-303.
+#' }
+#'
+#'
+#' @examples
+#' # define a price matrix
+#' p = matrix(c(4,4,4,1,9,3,2,8,3,1,
+#' 8,4,3,1,9,3,2,8,8,4,
+#' 1,4,1,8,9,3,1,8,3,2),
+#' nrow = 10, ncol = 3, byrow = TRUE)
+#'
+#' # define a quantity matrix
+#' q = matrix(c( 1.81,0.19,10.51,17.28,2.26,4.13,12.33,2.05,2.99,6.06,
+#' 5.19,0.62,11.34,10.33,0.63,4.33,8.08,2.61,4.36,1.34,
+#' 9.76,1.37,36.35, 1.02,3.21,4.97,6.20,0.32,8.53,10.92),
+#' nrow = 10, ncol = 3, byrow = TRUE)
+#'
+#' # Test consistency with SARP and compute the number of SARP violations
+#' sarp(p,q)
+#'
+#' # Test consistency with SARP and compute the number of SARP violations at e = 0.95
+#' sarp(p,q, efficiency = 0.95)
+#'
+#'
+#' @seealso \code{\link{garp}} for the Generalized Axiom of Revealed Preference and \code{\link{warp}} for
+#' the Weak Axiom of Revealed Preference.
+#'
+#' @export
+sarp <- function(p,q,efficiency=1)
+{
+  if (nrow(p)!=nrow(q)) stop("Number of observations must be the same for both price and quanity matrices")
+  if (ncol(p)!=ncol(q)) stop("Number of consumption categories must be the same for both price and quanity matrices")
+  if (!(0 <= efficiency & efficiency <= 1)) stop("Efficiency index must be between 0 and 1")
+
+  passsarp <- 1
+  t <- dim(p)[1]
+  DRP <- diag(t)
+  for(i in 1:t)
+  {
+    for(j in 1:t)
+    {
+      if(sum(p[i,]*q[j,]) <= efficiency*sum(p[i,]*q[i,])) {DRP[i,j] = 1}
+    }
+  }
+
+  RP <- warshall(DRP)
+  nviol <- 0
+
+  for(i in 1:t)
+  {
+    for(j in 1:t)
+    {
+      if(i != j)
+      {if(RP[i,j] == 1 & DRP[j,i] == 1 & !identical(q[i,],q[j,])) # i is revealed preferred to j & j is directly revealed preferred to i
+      {
+        passsarp = 0
+        nviol = nviol + 1
+      }
+      }
+    }
+  }
+  return(c(passsarp,nviol))
+}

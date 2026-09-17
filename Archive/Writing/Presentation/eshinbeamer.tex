@@ -1,0 +1,154 @@
+\usetheme{Madrid}
+\usecolortheme{dolphin} % Simple and clean template
+\setbeamertemplate{footline}[frame number]
+\usefonttheme{professionalfonts}
+
+% reduce the margins
+\setbeamersize{text margin left = 0.25 in}
+\setbeamersize{text margin right = 0.25 in}
+
+%
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{mathrsfs}
+\usepackage{color}
+\usepackage{setspace}
+\usepackage{bbm}
+\usepackage{subfigure}
+
+%without auto-caption labeling
+\usepackage{stackengine}
+
+%%%%% for graphics in latex (e.g. arrows)
+\usepackage{tikz}
+\usetikzlibrary{arrows,chains,matrix,positioning,scopes,automata}
+\tikzset{
+  invisible/.style={opacity=0},
+  visible on/.style={alt={#1{}{invisible}}},
+  alt/.code args={<#1>#2#3}{%
+    \alt<#1>{\pgfkeysalso{#2}}{\pgfkeysalso{#3}} % \pgfkeysalso doesn't change the path
+  },
+}
+
+%%%%% draw functions by using tikz
+\usepackage{pgfplots}
+
+%colors
+\definecolor{tred}{rgb}{0.35, 0.0, 0.0}
+\definecolor{tblue}{rgb}{0.0, 0.0, 0.35}
+\definecolor{grey}{rgb}{0.4, 0.4, 0.4}
+\definecolor{wbgrey}{rgb}{0.9, 0.9, 1}
+\definecolor{wrgrey}{rgb}{1, 0.9, 0.9}
+\definecolor{wggrey}{rgb}{0.9, 1, 0.9}
+\definecolor{periwinkle}{rgb}{0.8, 0.8, 1.0}
+\definecolor{purpleheart}{rgb}{0.41, 0.21, 0.61}
+
+%block color
+\setbeamercolor{block title}{bg=purpleheart!90, fg=white}
+
+\usepackage{mathtools}
+\usepackage[export]{adjustbox}
+
+% set separated appendix numbers
+\usepackage{appendixnumberbeamer}
+
+%%% vertical skips
+\newcommand{\sk}{\vspace{0.1 in}}
+\newcommand{\mk}{\vspace{0.2 in}}
+\newcommand{\bk}{\vspace{0.3 in}}
+\newcommand{\nk}{\vspace{- 0.1 in}}
+
+
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+
+\newcommand{\scrG}{\mathscr{G}}
+\newcommand{\scrF}{\mathscr{F}}
+
+\newtheorem{proposition}[theorem]{Proposition}
+
+% turn off navigation symbols
+\setbeamertemplate{navigation symbols}{}
+
+% for appendix
+\usepackage{appendixnumberbeamer}
+
+%\usepackage{bm}         % For typesetting bold math (not \mathbold)
+%\logo{\includegraphics[height=0.6cm]{caltechslide.pdf}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Here are some custumized commands %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newtheorem{axiom}{Axiom}
+
+\newcommand{\plim}{\overset{p}{\longrightarrow}}% converges in probability to.
+\newcommand{\rthlim}{\overset{L^r}{\longrightarrow}}% converges in r-th mean
+\newcommand{\ip}[1]{\langle #1 \rangle}
+\newcommand{\Lim}[1]{\raisebox{0.5ex}{\scalebox{0.8}{$\displaystyle \lim_{#1}\;$}}}
+
+\newcommand{\argmax}{\operatornamewithlimits{argmax}}
+\newcommand{\argmin}{\operatornamewithlimits{argmin}}
+\newcommand{\bigtimes}{\operatornamewithlimits{\BIGOP{\times}}}
+
+\newcommand{\pr}{\mathbbm{P}}
+\newcommand{\ex}{\mathbbm{E}}
+\newcommand{\norm}[1]{\left|\left|#1\right|\right|}
+
+% Number systems
+\newcommand{\NN}{\mathbb{N}}
+\newcommand{\ZZ}{\mathbb{Z}}
+\newcommand{\QQ}{\mathbb{Q}}
+\newcommand{\RR}{\mathbb{R}}
+
+\newcommand{\GG}{\bm{G}}
+\newcommand{\RN}{\bm{N}}
+\newcommand{\RM}{\bm{M}}
+\newcommand{\RZ}{\bm{Z}}
+\newcommand{\bI}{\bm{I}}
+\newcommand{\XX}{\bm{X}}
+
+\newcommand{\ff}{\bm{f}}
+\newcommand{\xx}{\bm{x}}
+\newcommand{\ba}{\bm{a}}
+\newcommand{\rz}{\bm{z}}
+
+
+\newcommand{\idc}{\mathbbm{1}}
+
+\newcommand{\calE}{\mathcal{E}}
+\newcommand{\calP}{\mathcal{P}}
+\newcommand{\calR}{\mathcal{R}}
+\newcommand{\calF}{\mathcal{F}}
+\newcommand{\calV}{\mathcal{V}}
+\newcommand{\calI}{\mathcal{I}}
+
+\newcommand{\rmu}{\bm{\mu}}
+\newcommand{\Rm}{\bm{m}}
+\newcommand{\pp}{\bm{p}}
+\newcommand{\dd}{\bm{d}}
+
+\newcommand{\DD}{\mathcal{D}}
+
+\definecolor{tred}{RGB}{200,50,80}
+\definecolor{tgreen}{RGB}{80,180,80}
+\definecolor{tblue}{RGB}{50,50,250}
+\definecolor{tpupple}{RGB}{150,50,200}
+
+% reduce space around align
+\usepackage{etoolbox}
+\newcommand{\zerodisplayskips}{%
+  \setlength{\abovedisplayskip}{0.05 in}
+  \setlength{\belowdisplayskip}{0.05 in}
+  \setlength{\abovedisplayshortskip}{0.05 in}
+  \setlength{\belowdisplayshortskip}{0.05 in}}
+\appto{\normalsize}{\zerodisplayskips}
+\appto{\small}{\zerodisplayskips}
+\appto{\footnotesize}{\zerodisplayskips}
+
+\setbeamerfont{caption}{size=\scriptsize}
+\setbeamerfont{footnote}{size=\scriptsize}
+
+
+% include pdf version 1.6
+%\pdfoptionpdfminorversion=7 

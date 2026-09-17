@@ -1,0 +1,14 @@
+% latex table generated in R 4.6.1 by xtable 1.8-8 package
+% Mon Jul 20 10:00:47 2026
+\begin{table}[ht]
+\centering
+\begin{tabular}{lllllll}
+  \hline
+V1 & Most Affected & Least Affected & Difference & Most Affected & Least Affected & Difference \\ 
+  \hline
+I\_ig & -0.250 & -0.606 & 0.360 & -0.268 & -0.544 & 0.272 \\ 
+   & (-0.360,-0.137) & (-0.680,-0.538) & (0.228,0.491) & (-0.381,-0.153) & (-0.623,-0.465) & (0.133,0.409) \\ 
+   & [0.000] & [0.000] & [0.000] & [0.000] & [0.000] & [0.000] \\ 
+   \hline
+\end{tabular}
+\end{table}

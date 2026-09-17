@@ -1,0 +1,224 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{listings}
+\lstset{basicstyle=\ttfamily\small,columns=fullflexible,breaklines=true,frame=single,xleftmargin=1em}
+
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{definition}{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Ii}{\mathcal{I}}
+
+\title{Testing Collective (rather than Unitary) Rationality of Group Choices:\\
+Implementation Note for Referee Comment 3\thanks{Internal memo. This version incorporates a verification of the revealed-preference characterization and the two-good non-refutability result against \citet{cherchye2007} and \citet{cherchye2011}; see Sections~\ref{sec:cdrv} and~\ref{sec:vacuity}. This version also adds the reference implementation and validation results of Section~\ref{sec:code}.}}
+\author{}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\noindent\emph{Section~\ref{sec:test} contains the operational test and a closed-form violation condition; Section~\ref{sec:implementation} has pseudocode, and Section~\ref{sec:code} documents the reference implementation (\texttt{cei.py}) and its validation. Please read Section~\ref{sec:vacuity} first --- it explains why we cannot simply ``run the CDRV test'' in our data and what we propose instead.}
+
+\section{Purpose and context}\label{sec:purpose}
+
+The referee's point is the following. In Section~7 of the paper we measure the rationality of a pair's collective choices by GARP/CCEI against a \emph{single} utility function --- the \emph{unitary} benchmark. But our own benchmark model (Eq.~6.7 of the paper) implies unitary consistency only when the Pareto weight is constant across rounds. A pair that efficiently aggregates two stable individual preferences with a weight that \emph{varies} across budgets (e.g., alternating concessions) can violate unitary GARP while being perfectly rational in the sense of the collective model of \citet{chiappori1988,chiappori1992}, whose nonparametric revealed-preference characterization is due to \citet{cherchye2007} (hereafter CDRV), with integer-programming implementations in \citet{cherchye2008IP} and \citet{cherchye2011}. Low group CCEI therefore conflates two very different things: (i) noisy implementation (``decision quality,'' our preferred reading) and (ii) systematic weight instability (efficient but shifting bargaining). The referee asks us to test collective rationalizability directly and to reinterpret Section~7 accordingly.
+
+This note explains (a) the CDRV framework and how it specializes to our setting; (b) a published non-refutability result --- CDRV's Proposition~3 --- implying that the \emph{unrestricted} collective test has \textbf{no power} in our two-security, common-payoff environment, which is itself an answer we should report; (c) the test we should actually run, which restores power by exploiting the design feature the household literature rarely has: we separately observe each member's individual choices; and (d) the empirical exhibits, robustness variants, power analysis, and inference.
+
+\section{The collective model and its revealed-preference characterization}\label{sec:cdrv}
+
+\paragraph{Setup mapped to our data.}
+For pair $g$ in a given wave, we observe the collective dataset $D_g=\{(p^t,x^t)\}_{t=1}^{18}$, with $x^t\in\R^2_+$ the chosen portfolio of Arrow securities, $p^t\in\R^2_{++}$, and $p^t\cdot x^t=1$. Because the collective choice pays \emph{both} members the same allocation, every unit of $x^t$ is consumed jointly: in CDRV's taxonomy, all consumption is \emph{public}, and --- unlike in household applications --- the (public) quantities are fully observed. We also observe each member's individual dataset $D_m=\{(p^t_m,x^t_m)\}_{t=1}^{18}$, $m\in\{i,j\}$.
+
+\paragraph{Collective rationalization.}
+Following \citet[Def.~1]{cherchye2007} and \citet[Def.~2]{cherchye2011}, specialized to the case with all consumption public and observed: a pair of continuous, concave, non-satiated, non-decreasing utility functions $(u_i,u_j)$ provides a \emph{collective rationalization} of $D_g$ if for each observation $t$ there exists a Pareto weight $\mu^t>0$ such that $x^t$ maximizes $\mu^t u_i(x)+u_j(x)$ on the budget $\{x:\,p^t\cdot x\le 1\}$. Equivalently, each $x^t$ is Pareto efficient on its budget with respect to $(u_i,u_j)$. The unitary model is the special case of a constant weight; indeed \citet[fn.~4]{cherchye2007} note that unitary rationality corresponds to a collective rationalization with $\mu^t$ constant over all observations.
+
+\paragraph{CDRV characterization (public-goods case).}
+For publicly consumed goods, the operative concept is \emph{feasible personalized prices}: vectors $p^t_i,p^t_j\in\R^2_+$ with $p^t_i+p^t_j=p^t$ for every $t$ \citep[Def.~3]{cherchye2011}. These are Lindahl prices: as \citet[p.~558]{cherchye2007} put it, following \citet{chiappori1988} all goods may be interpreted as public, and the personalized prices ``must add up (over members 1 and 2) to the observed market prices so as to be consistent with Pareto efficiency.'' The characterization is then \citep[Prop.~1(ii)]{cherchye2007}; \citealp[Prop.~1(ii)]{cherchye2011}):
+\begin{quote}
+$D_g$ is collectively rationalizable \textbf{iff} there exist feasible personalized prices $\{(p^t_i,p^t_j)\}_t$ such that each member's \emph{personalized dataset} $\{(p^t_m,x^t)\}_t$ satisfies GARP.
+\end{quote}
+In general environments the existence problem over unobserved personalized prices (and, with private goods, unobserved personalized quantities) is nonlinear; \citet{cherchye2008IP} and \citet[Prop.~2]{cherchye2011} reformulate it as a mixed-integer program that also supports recovery of the sharing rule. In our environment we will not need the MIP, for the reason given next.
+
+\section{Non-refutability with two goods: CDRV's Proposition 3 applied to our design}\label{sec:vacuity}
+
+This is the central design fact. \citet[Prop.~3]{cherchye2007} prove:
+
+\begin{quote}
+\emph{There do not always exist utility functions $U^1$ and $U^2$ that provide a collective rationalization of the set of observations $S$ if and only if (i) the number of goods $n\ge 3$ and (ii) the number of observations $T\ge 3$.}
+\end{quote}
+
+\noindent In words, the two-member collective model is \emph{refutable only when there are at least three goods and at least three observations}. Our data have $T=18\ge 3$ but $n=2<3$: non-refutability binds through the goods dimension, so \emph{every} collective dataset in our experiment is collectively rationalizable, and the unrestricted CDRV test has no empirical content here.
+
+For completeness, and because CDRV's $n=2$ construction is stated for privately consumed goods (each good assigned exclusively to one member), we record the explicit argument for our all-public case. It is the Lindahl-price mirror image of their construction, exactly as anticipated by the price--quantity symmetry that \citet[fn.~8]{cherchye2011} attribute to \citet{chiapporiekeland2009}: quantities in the private-goods case play the role of personalized prices in the public-goods case.
+
+\begin{lemma}\label{lem:vacuity}
+Any collective dataset $\{(p^t,x^t)\}_{t=1}^{T}$ with two goods, two members, and fully public consumption is collectively rationalizable.
+\end{lemma}
+
+\begin{proof}
+Set $p^t_i=(p^t_r,0)$ and $p^t_j=(0,p^t_b)$ for every $t$; these are feasible personalized prices. Member $i$'s personalized direct revealed-preference relation is $x^s\,R^0_i\,x^t \iff p^s_r x^t_r\le p^s_r x^s_r \iff x^t_r\le x^s_r$: a complete preorder ordered by the first coordinate, so no cycle containing a strict step exists and GARP holds; $u_i(x)=x_r$ (continuous, concave, non-decreasing, non-satiated) rationalizes the personalized dataset. Symmetrically for member $j$ with $u_j(x)=x_b$. Apply the characterization of Section~\ref{sec:cdrv}.
+\end{proof}
+
+\begin{remark}
+Even where the unrestricted model \emph{is} refutable, it has little bite in practice: in CDRV's own application with $n=21$ goods and $T=8$, the limiting model with all goods public rationalizes the behaviour of \emph{all} 148 households, which they attribute to the model putting ``very little a priori structure on observed behaviour, which makes [it] hardly rejectable'' \citep[Table~1 and p.~187]{cherchye2011}.
+\end{remark}
+
+\begin{remark}\label{rem:content}
+Two consequences for the paper. First, Proposition~3 of CDRV should be cited (with Lemma~\ref{lem:vacuity} relegated to a footnote or short appendix as the all-public specialization) when the collective benchmark is introduced: it answers the referee's literal request formally. Second, it clarifies where empirical content must come from. A \emph{stable}-weight collective model over fixed member utilities implies unitary GARP (Section~\ref{sec:cdrv}), so our existing group CCEI is exactly the test of the stable-weight collective model; the unrestricted varying-weight model is irrefutable at $n=2$; hence the interesting intermediate object requires outside discipline. CDRV restore power in household data through \emph{assignable quantity information} --- observed lower bounds on members' private consumption --- and show that power rises steeply with assignability \citep[Sec.~4.2, Table~2]{cherchye2011}; they note explicitly that such information ``is easily obtained in the context of experimental data'' \citep[p.~185]{cherchye2011}, citing \citet{bruyneel2008}. Our individual choice rounds are the experimental analogue --- indeed a stronger one, since they identify each member's preferences directly rather than bounding quantities.
+\end{remark}
+
+\section{The proposed test: collective rationality with individually stable preferences}\label{sec:test}
+
+\paragraph{Maintained hypothesis.}
+Each member has a stable preference revealed (imperfectly) by her individual rounds, and the pair's choices are Pareto efficient with respect to those \emph{same} preferences, with weights free to vary round by round. This is the CDRV notion of collective rationalization, strengthened by cross-dataset stability --- precisely the object our paper is about.
+
+\paragraph{Testable implication.}
+A group choice $x^t$ is inconsistent with the maintained hypothesis if there exists an \emph{affordable} alternative $y$ on the same budget that \textbf{both} members reveal to prefer to $x^t$ through their own individual data. Requiring both members to object makes the test conservative (a virtue, given the referee's posture): we flag only unambiguous Pareto improvements.
+
+\paragraph{Operational construction.}
+Fix pair $g$, wave, and group observation $t$.
+\begin{enumerate}[leftmargin=1.6em]
+\item For each member $m$, build the \emph{objector set} $A_m(t)$: the set of member-$m$ individual observations $s$ such that $x^s_m$ is revealed preferred to $x^t$ through $D_m$ --- i.e., there is a chain $x^s_m\,R^0\,x^{k_1}_m\,R^0\cdots R^0\,x^{k_n}_m\,R^0\,x^t$ using $m$'s direct relations, where the final step uses the cross comparison $p^{k_n}_m\cdot x^t\le 1$. (These chains are exactly the cross relations our existing $c_{mg}$ code already computes; the implementation is a transitive-closure pass, $O(19^3)$ per member--pair--wave, i.e., free.)
+\item \textbf{Violation condition (closed form).} With monotone preferences, any bundle weakly above $x^s_m$ is at least as good as $x^t$ for member $m$. Hence a commonly-preferred affordable alternative exists iff some componentwise \emph{join} of one objector from each member is affordable with slack:
+\begin{equation}\label{eq:join}
+\min_{s\in A_i(t),\; s'\in A_j(t)}\; p^t\cdot\bigl(x^s_i \vee x^{s'}_j\bigr)\;<\;1,
+\end{equation}
+where $\vee$ is the componentwise maximum. If the minimum join cost is below the group's expenditure, a bundle slightly above the join is affordable and strictly better for both members (non-satiation in each own-relevant direction), so $x^t$ is Pareto dominated under the members' revealed preferences.
+\item \textbf{Collective efficiency index (CEI).} Define the observation-level index $e_t=$ the minimum join cost in \eqref{eq:join}, capped at $1$ (with $e_t=1$ if either objector set is empty), and the pair--wave index $e^{\mathrm{coll}}_g=\min_t e_t$ (report the mean over $t$ as well). The index has the same expenditure reading as CCEI: $1-e^{\mathrm{coll}}_g$ is the largest fraction of the group's budget that could have been \emph{thrown away} while still leaving an alternative that both members' own choices reveal they prefer. $e^{\mathrm{coll}}_g=1$ means the group's choices are fully consistent with Pareto-efficient aggregation of the members' revealed preferences under freely varying weights.
+\end{enumerate}
+
+\paragraph{Geometric intuition (useful for the paper's exposition).}
+With two goods and strictly concave utilities, the Pareto set on a budget line is the interval between the two members' most-preferred points on that line. The test asks whether each group choice lies (approximately) inside the interval spanned by the members' revealed-preference-consistent demand predictions; a violation occurs when the group choice sits strictly on the \emph{same side} of both members' predicted demands --- both members would move it the same way. The join formulation in \eqref{eq:join} is the exact revealed-preference implementation of this idea and avoids computing \citet{varian1982} support sets explicitly, but plotting a few budget lines with the two members' support intervals and the group choice will make an excellent illustrative figure.
+
+\paragraph{Handling individual irrationality (important).}
+A noisy member's individual data contain internal cycles, which mechanically inflate $A_m(t)$ --- a member's spurious ``objections'' would make groups matched with irrational members look collectively inefficient by construction, re-importing the very confound the referee dislikes. Primary specification: build $A_m(t)$ using member-$m$-tempered relations $R^0_{e_m}$ with $e_m$ set to that member's own CCEI (all comparisons in the chain, including the final cross step, must survive contraction to $e_m$). Report the untempered version as an upper bound on violations. This mirrors the logic of our existing cross-consistency construction and should be one code path.
+
+\section{Nested variants (increasing power, increasing assumptions)}\label{sec:variants}
+
+\begin{itemize}[leftmargin=1.6em]
+\item \textbf{Test 0 --- dominance floor.} A group choice strictly violating first-order stochastic dominance (buying strictly more of the more expensive security than of the cheaper one, symmetric equal-probability states) is Pareto dominated for \emph{any} pair of FOSD-respecting members, with no use of individual data. Report as a floor; violations should be rare, and this connects to the FOSD robustness the referee separately requests.
+\item \textbf{Test 1 --- main test (Section~\ref{sec:test}).} Preferences restricted only to monotone $+$ stable within person.
+\item \textbf{Test 2 --- expected-utility sharpening.} Impose that each member is an expected-utility maximizer over the two equally likely states, using the lattice tests of \citet{polisson2020} to construct tighter member-level revealed-preference relations before forming $A_m(t)$. EU adds cross-observation restrictions (e.g., symmetry across the certainty line), enlarging objector sets and strictly increasing power. Given we already cite \citet{polisson2020}, this is a natural robustness panel, not the headline.
+\item \textbf{Test 3 --- stable-Lindahl-share benchmark (optional).} Restrict personalized prices to constant shares per good across rounds, $p^t_i=(\alpha p^t_r,\;\beta p^t_b)$ with $\alpha,\beta\in[0,1]$ constant within pair--wave, and grid-search $(\alpha,\beta)$ for joint GARP of both personalized datasets. This interpolates between unitary ($\alpha=\beta$, which reduces to household GARP because proportional scaling leaves revealed-preference relations unchanged) and the irrefutable unrestricted case of Section~\ref{sec:vacuity}. A footnote at most; Tests 0--2 answer the referee.
+\end{itemize}
+
+\section{Power and inference}\label{sec:power}
+
+Because Test~1's power depends on how much the members' preferences differ and how informative 18 individual choices are, we must quantify it --- otherwise a high pass rate is uninterpretable. This is CDRV's own practice: they report household-specific power against random behaviour and show that power rises with assignable information and with the number of observations \citep[Sec.~4.2]{cherchye2011}. Two simulations, both reusing the engine from the mechanical-dependence response:
+
+\begin{enumerate}[leftmargin=1.6em]
+\item \textbf{Power against random behaviour.} For each pair--wave, keep the actual individual data and replace group choices with random points on the actual group budgets; compute the CEI distribution. For the random draw, report both the uniform benchmark of \citet{bronars1987} and the bootstrap benchmark of \citet{harbaugh2001} and \citet{andreonimiller2002}, which draws budget shares from the observed pool of choices (see \citealp{andreoniharbaugh2006} for a discussion of power notions). The gap between actual and random CEI is the test's discriminatory power, pair by pair. Note the direction of the main comparative static: the Pareto set on a budget line is the interval between the members' demands, so power \emph{falls} as the members' preferences diverge (Table~\ref{tab:power}). Because preference heterogeneity may itself vary with pair type, Exhibit~B should report pair-type-specific power alongside pair-type-specific pass rates.
+\item \textbf{Protocol lineup.} Simulate group choices under (a) dictatorship by $H$, (b) dictatorship by $L$, (c) fixed 50/50 compromise on the budget line between predicted demands, (d) random dictator per round, (e) odd/even turn taking --- all with members' preferences calibrated to their individual data (CRRA or nonparametric bootstrap from own choices, with fitted noise). Key display: protocols (a)--(e) all pass Test~1 (each is Pareto efficient round by round under stable individual preferences) while (d) and (e) can \emph{fail} unitary GARP. Two cautions from the synthetic runs in Section~\ref{sec:code}: with 18 random budgets, turn taking between CRRA members with $\rho\in\{0.5,3\}$ violates unitary GARP in only about half of the replications (Table~\ref{tab:lineup}), so the exhibit should report the \emph{fraction} of simulated pair--waves that fail unitary while passing collective rather than assert failure; and the fixed midpoint compromise (c) passed unitary GARP in every replication, so it does not separate the models. Indeed, (d)/(e) are two-good instances of CDRV's \emph{situation-dependent dictatorship} model, which they show is exactly what the collective model's empirical content converges to \citep[Sec.~4]{cherchye2007}. This is the wedge the referee is pointing at, made visible, and it dovetails with our Section~6.3 taking-turns analysis.
+\end{enumerate}
+
+Inference: pair-level permutation/randomization tests for differences in CEI across pair types (re-randomize pairings within classroom, as in the randomization-inference response to Comment~8), plus wild-cluster bootstrap for any regressions.
+
+\section{Empirical exhibits and how they answer the referee}\label{sec:exhibits}
+
+\begin{itemize}[leftmargin=1.6em]
+\item \textbf{Exhibit A (headline).} Distribution of $e^{\mathrm{coll}}_g$ and the pass rate ($e^{\mathrm{coll}}_g=1$), side by side with group CCEI. The comparison decomposes observed group inconsistency: pair--waves with group CCEI $<1$ but CEI $=1$ are consistent with \emph{efficient aggregation under varying weights} (weight instability, not noise); pair--waves failing both are making choices some feasible alternative Pareto-dominates under the members' own revealed preferences --- ``decision quality'' failures in the strongest sense.
+\item \textbf{Exhibit B.} CEI (and an indicator for CEI $=1$) by pair type Low--Low / Low--High / High--High, and a replication of Table~4 with CEI as the dependent variable. Two possible worlds, both fine for us: if Low--Low pairs also fail the \emph{collective} test, the decision-quality interpretation of Section~7 is strengthened and we say so; if Low--Low failures are largely weight instability (fail unitary, pass collective), we reframe Section~7's mechanism --- low-rationality pairs settle on less stable aggregation rules --- which is arguably a more interesting finding and still supports the paper's thesis that individual rationality shapes collective decision quality, now with a sharper channel.
+\item \textbf{Exhibit C.} Power panels from Section~\ref{sec:power}, including the protocol lineup showing turn taking passes collective but fails unitary.
+\item \textbf{Text changes.} (i) Cite \citet[Prop.~3]{cherchye2007} and state Lemma~\ref{lem:vacuity} (footnote or short appendix) when introducing the collective benchmark; (ii) relabel group CCEI as ``consistency with the unitary benchmark, equivalently the stable-weight collective model''; (iii) add the maintained-hypothesis paragraph making explicit that our collective test leverages individually stable preferences measured in the individual rounds --- the experimental analogue of CDRV's assignable information and our design's comparative advantage over observational household data.
+\end{itemize}
+
+\section{Implementation plan (pseudocode and division of labor)}\label{sec:implementation}
+
+Per pair--wave (all steps vectorizable; total compute is trivial):
+\begin{enumerate}[leftmargin=1.6em]
+\item Load $D_i,D_j,D_g$ (18 observations each, income normalized to one).
+\item For each member $m$: build the $19\times 19$ direct-relation matrix over $D_m\cup\{(p^t,x^t)\}$ at efficiency $e\in\{1,e_m\}$: entry $(k,l)=1$ if $p^k\cdot x^l\le e$; Warshall transitive closure; read off $A_m(t)=\{s: s\to t\}$ for each group observation $t$. (A light modification of the existing cross-violation code.)
+\item For each $t$: if either objector set is empty, $e_t=1$; else $e_t=\min\bigl(1,\ \min_{s,s'} p^t\cdot(x^s_i\vee x^{s'}_j)\bigr)$ over $s\in A_i(t)$, $s'\in A_j(t)$ --- an $18\times 18$ componentwise-max grid, closed form.
+\item Store $e^{\mathrm{coll}}_g=\min_t e_t$, $\mathrm{mean}_t\, e_t$, and the violation count $\#\{t: e_t<1\}$; flag which members' observations generate the binding join (useful descriptives: whose revealed preferences the dominated compromises ignore).
+\item Robustness loops: tempered vs.\ untempered chains (step 2); \citet{polisson2020} EU relations (Test~2); FOSD floor (Test~0).
+\item Simulations: random-behaviour power (Bronars and bootstrap variants); protocol lineup (shares the DGP module we are building for the Comment~1 response --- please coordinate so this is one codebase).
+\item Analysis: Exhibits A--C; permutation inference; Table~4 replication with CEI.
+\end{enumerate}
+
+Suggested split: one person owns steps 1--4 (Section~\ref{sec:code} provides a validated reference implementation; the remaining work is hooking it to the cleaned data and, if desired, porting it into the existing revealed-preference code), one owns 5--6 (simulation engine, shared with the Comment~1 response; the protocol simulator in \texttt{cei.py} is a starting point), one drafts the new subsection, the CDRV citations, and Lemma~\ref{lem:vacuity} for the theory appendix.
+
+
+\section{Reference implementation: \texttt{cei.py}}\label{sec:code}
+
+This section documents a self-contained Python module (\texttt{cei.py}, NumPy/pandas only) that implements steps~1--4 of Section~\ref{sec:implementation}, Test~0, the random-behaviour power simulation, and a protocol simulator, together with a validation script (\texttt{validate\_cei.py}) whose output is reproduced below. Nothing in it depends on the paper's existing code, so it can be run directly on the cleaned choice data or used as a specification against which a Stata/MATLAB port is checked.
+
+\subsection{Data interface}
+
+The batch driver \texttt{run\_panel} takes a long-format table with one row per observation and columns
+\begin{center}
+\texttt{pair\_id, wave, role, round, p\_r, p\_b, x\_r, x\_b}, \qquad \texttt{role}$\in\{$\texttt{i},\texttt{j},\texttt{g}$\}$,
+\end{center}
+where \texttt{i}/\texttt{j} are the two members' individual rounds and \texttt{g} the pair's collective rounds. Prices may be entered as KRW prices or converted from the experiment's axis intercepts (\texttt{from\_intercepts}); each observation is rescaled so that $p^k\cdot x^k=1$ (\texttt{normalize\_income}), matching the paper's normalization. From the command line,
+\begin{lstlisting}
+python cei.py choices.csv --out cei_pairwave.csv --rounds-out cei_rounds.csv --power 200
+\end{lstlisting}
+writes a pair--wave table (columns \texttt{e\_coll}, \texttt{e\_mean}, \texttt{n\_viol}, \texttt{pass\_coll}, the unitary \texttt{ccei\_g} and \texttt{pass\_unitary}, member CCEIs, the tempering levels actually used, the Test~0 floor \texttt{fosd\_min}, and objector-set descriptives), a round-level table (each $e_t$, the FOSD index, $|A_i(t)|$, $|A_j(t)|$, and the binding pair $(s,s')$ in \eqref{eq:join}), and, if \texttt{--power} is set, the Bronars and bootstrap random-behaviour benchmarks per pair--wave. Both the tempered (primary) and untempered specifications are computed in one pass (\texttt{spec} column).
+
+\subsection{Algorithm as implemented}
+
+All objects are built from the cost matrix $C_{kl}=p^k\cdot x^l$.
+\begin{enumerate}[leftmargin=1.6em]
+\item \textbf{Relations.} \texttt{direct\_relation(C,e)} returns $R^0_e$ ($C_{kl}\le e$) or $P^0_e$ ($C_{kl}<e$), with an absolute tolerance of $10^{-9}$ so that an alternative costing exactly the group's expenditure is not counted as affordable with slack. \texttt{transitive\_closure} is Warshall's algorithm; an $e$-violation exists iff $(R^*_e\wedge P^{0\prime}_e)$ has a nonzero entry, which is Definition~1 of the paper.
+\item \textbf{Exact CCEI.} Violations can only be created as $e$ rises, so $e^*$ is a break point of the step function $e\mapsto\mathbb{1}\{\text{$e$-violation}\}$, and the break points are the entries $C_{kl}\le 1$. \texttt{ccei} binary-searches the sorted break points, testing at midpoints between consecutive candidates, and returns the candidate just below the first midpoint with a violation (or $1$ if none). This is exact rather than bisection-approximate; the validation script confirms agreement with bisection to $10^{-9}$ and reproduces the closed-form values $e^{\times}_{jg}=e^{\times}_{Ng}=7/8$, $c_{ig}=0$ of the paper's appendix example.
+\item \textbf{Objector sets.} \texttt{objector\_sets(P\_m,X\_m,P\_g,X\_g,e\_m)} computes the $18\times 18$ member closure $R^*_{e_m}$ on $D_m$ and the $18\times 18$ cross matrix $\mathbb{1}\{p^k_m\cdot x^t\le e_m\}$; their Boolean product is the $18\times 18$ array $\mathbb{1}\{s\in A_m(t)\}$. Chains therefore use only member $m$'s own relations, with the cross comparison as the final step, exactly as in Section~\ref{sec:test}; the group observation never serves as an intermediate node. Tempered chains use $e_m=$ member CCEI, untempered chains $e_m=1$.
+\item \textbf{Join test and index.} For each $t$, \texttt{join\_cost\_min} forms the $|A_i(t)|\times|A_j(t)|\times 2$ array of componentwise maxima, multiplies by $p^t$, and returns the minimum and its argmin; $e_t=\min(1,\cdot)$, with $e_t=1$ when either set is empty. \texttt{cei\_pair\_wave} returns $e_t$, $e^{\mathrm{coll}}_g=\min_t e_t$, $\mathrm{mean}_t e_t$, the violation count, objector-set sizes, and the binding $(s,s')$.
+\item \textbf{Test~0.} \texttt{fosd\_floor} returns, per round, the cost at $p^t$ of the state-swapped bundle $(x^t_b,x^t_r)$, capped at $1$. With equal state probabilities the swap has the same payoff distribution, and it costs less than one exactly when the group bought strictly more of the more expensive security; the index has the same expenditure reading as $e_t$.
+\item \textbf{Power.} \texttt{power\_random} keeps the actual individual data, replaces the group's choices by random bundles on the actual group budgets --- budget share of the $r$ security uniform on $[0,1]$ (Bronars) or resampled from a supplied pool of observed shares (bootstrap) --- and returns the CEI distribution. \texttt{simulate\_protocol} generates group choices under dictatorship by either member, the fixed midpoint on the budget line between the members' demands, random dictator, and alternation, for CRRA members with equal state probabilities; \texttt{fit\_crra} is a placeholder grid calibration to be replaced by the paper's CRRA estimation routine when merging with the Comment~1 codebase.
+\end{enumerate}
+Compute is negligible: one pair--wave (three exact CCEIs, both specifications) takes a few milliseconds.
+
+\subsection{Validation (output of \texttt{validate\_cei.py})}
+
+\begin{enumerate}[leftmargin=1.6em]
+\item[A.] \emph{Known answers.} On the paper's appendix example, \texttt{ccei} returns $1$, $7/8$, $7/8$ for $\mathcal{D}^{ig},\mathcal{D}^{jg},\mathcal{D}^{Ng}$. Both members object to $x^g$ but the join $(5.1,1.5)$ costs $1.35$ at $p^g$, so $e_t=1$: revealed disagreement is not the same as Pareto dominance.
+\item[B.] \emph{Hand-built violation.} $p^g=(\tfrac14,\tfrac14)$, $x^g=(3.8,0.2)$; member $i$ chose $(1.6,1.2)$ and member $j$ chose $(1.2,1.8)$ on budgets at which $x^g$ was affordable. The join $(1.6,1.8)$ costs $0.85$, and the code returns $e_t=0.85$ with the correct binding pair.
+\item[C.] \emph{Cross-checks} on 150 synthetic pair--waves with noisy CRRA members: exact CCEI equals bisection CCEI ($\max$ deviation $1.1\times 10^{-9}$); the vectorized join equals an explicit double loop in every round; tempered $e_t\ge$ untempered $e_t$ in every round; $e_t=1$ whenever an objector set is empty.
+\item[D.] \emph{Protocol lineup} (Table~\ref{tab:lineup}). Rational CRRA members ($\rho_i=0.5$, $\rho_j=3$), 18 budgets drawn as in the experiment, 200 replications. Every protocol passes Test~1 in every replication, as it must. The varying-weight protocols fail unitary GARP in roughly half of the replications, with mean group CCEI $0.983$: the wedge the referee points at is real but, with 18 observations and two goods, not large. With budget-share noise of s.d.\ $0.10$ added to the members' individual choices (member CCEIs $\approx 0.998$ and $0.947$), the tempered specification passes turn taking in $97.5\%$ of replications and the untempered in $95.0\%$, illustrating the role of tempering.
+\item[E.] \emph{Power} (Table~\ref{tab:power}). Rational CRRA members with $|\rho_i-\rho_j|$ drawn from $[0,3.7]$, 60 pair--waves, 40 random draws each. Uniform random behaviour passes Test~1 in $11.5\%$ of draws (mean CEI $0.80$); bootstrap random behaviour, which resamples shares from the pool of simulated group choices and therefore mimics ``sensible'' portfolios, passes in $69\%$. Power falls with preference disagreement in both benchmarks.
+\item[F.] \emph{Vacuity.} Replacing the members' data with the corner datasets of Lemma~\ref{lem:vacuity} ($u_i=x_r$, $u_j=x_b$) yields $e^{\mathrm{coll}}_g=1$ for random group choices whose unitary CCEI is $0.90$: the test's content comes entirely from the individual data.
+\end{enumerate}
+
+\begin{table}[htbp]\centering
+\caption{Protocol lineup, rational CRRA members ($\rho_i=0.5$, $\rho_j=3$), 200 replications}\label{tab:lineup}
+\begin{tabular}{lcccc}\toprule
+Protocol & Pass Test~1 & Mean $e^{\mathrm{coll}}_g$ & Pass unitary GARP & Mean group CCEI\\\midrule
+Dictator $i$ & 1.000 & 1.000 & 1.000 & 1.000\\
+Dictator $j$ & 1.000 & 1.000 & 1.000 & 1.000\\
+Fixed midpoint compromise & 1.000 & 1.000 & 1.000 & 1.000\\
+Random dictator & 1.000 & 1.000 & 0.555 & 0.983\\
+Alternation (odd/even) & 1.000 & 1.000 & 0.520 & 0.983\\\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]\centering
+\caption{Random-behaviour benchmarks (share of random draws passing Test~1)}\label{tab:power}
+\begin{tabular}{lccccc}\toprule
+& Mean random CEI & Pass rate & \multicolumn{3}{c}{Pass rate by $|\rho_i-\rho_j|$}\\
+\cmidrule(lr){4-6}
+Benchmark & & & $(0,0.5]$ & $(0.5,1.5]$ & $(1.5,4]$\\\midrule
+Bronars (uniform shares) & 0.804 & 0.115 & 0.089 & 0.092 & 0.165\\
+Bootstrap (resampled shares) & 0.975 & 0.691 & 0.643 & 0.655 & 0.775\\\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Not yet implemented}
+
+Test~2 (EU-sharpened relations via \citealp{polisson2020}) and Test~3 (stable Lindahl shares) are not in the module; Test~2 requires the lattice construction and is the natural next extension of \texttt{objector\_sets}. The protocol simulator is calibrated by a grid fit in budget shares and should be replaced by the paper's CRRA estimates. Permutation inference and the Table~4 replication with CEI as the outcome are standard once \texttt{cei\_pairwave.csv} is merged with the analysis file. Finally, the data loader assumes exactly the three roles per pair--wave and skips pair--waves with a missing role; the attrition rules of the main sample should be applied upstream.
+
+\section{Caveats to acknowledge in the paper}\label{sec:caveats}
+
+First, Test~1's maintained hypothesis is preference stability between the individual and collective phases within a session; deliberation-induced preference change would register as collective inefficiency. This is the same maintained assumption underlying our distance measure, so it should be stated once, jointly. Second, the test is one-sided by design: passing it does not certify efficiency (limited data, conservative both-object requirement) --- the same asymmetry CDRV stress for their sufficiency condition, which shows only that collective rationality \emph{cannot be rejected} on the available observations \citep[fn.~11]{cherchye2007}. This is why the power simulations are mandatory companions to any pass-rate claim. Third, with heavy bunching of individual choices near the certainty line, objector sets can be sparse for some pairs; report the distribution of $|A_i(t)|\times|A_j(t)|$ so readers can see where the test has teeth. Finally, sharing-rule recovery in the sense of \citet[Sec.~3.3]{cherchye2011} is possible in principle (feasible Lindahl-price splits imply feasible income shares), but by Section~\ref{sec:vacuity} the unrestricted bounds are uninformative at $n=2$; recovery under the individual-data restrictions is a possible extension, not part of this response.
+
+\bibliographystyle{plainnat}
+\bibliography{cdrv_note}
+
+\end{document}

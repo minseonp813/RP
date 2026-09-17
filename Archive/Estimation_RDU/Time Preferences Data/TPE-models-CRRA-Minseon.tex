@@ -1,0 +1,70 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\author{Minseon Park}
+\begin{document}
+\large\textbf{2.2 Power Utility Function}
+\begin{equation*}
+u(c|w)=\frac{(c+w)^{(1-\rho)}}{1-\rho} 
+\end{equation*}
+\textbf{Case 1.} $c_t>0$ and $c_{t+s}=0$, which means $\lambda_{t+s}>0$
+
+F.O.Cs are 
+\begin{equation}
+(c_t+w)^{-\rho}-\lambda=0
+\end{equation}
+\begin{equation}
+\beta(c_{t+s}+w)^{-\rho}-\frac{1}{1+r}\lambda+\lambda_{t+s}=0
+\end{equation}
+
+\begin{align*}
+\lambda_{t+s}>0 \\
+&\iff -\beta w^{-\rho} + \frac{1}{1+r}(m+w)^{-\rho} >0 \\
+&\iff \frac{1}{1+r}>\frac{\beta(m+w)^{\rho}}{w^{\rho}} \\
+&\iff 1+r < \frac{w^{\rho}}{\beta(m+w)^{\rho}}
+\end{align*}
+
+
+\textbf{Case 2.} $c_t=0$ and $c_{t+s}>0$, which means $\lambda_t>0$
+
+F.O.Cs are 
+\begin{equation}
+(c_t+w)^{-\rho}-\lambda+\lambda_t=0
+\end{equation}
+\begin{equation}
+\beta(c_{t+s}+w)^{-\rho}-\frac{1}{1+r}\lambda=0
+\end{equation}
+
+As in case 1, we can get 
+\begin{equation}
+(1+r)>\frac{((1+r)m+w)^{\rho}}{w^{\rho}\beta}
+\end{equation}
+
+
+\textbf{Case 3.}
+F.O.Cs are 
+\begin{equation}
+(c_t+w)^{-\rho}-\lambda=0
+\end{equation}
+\begin{equation}
+\beta(c_{t+s}+w)^{-\rho}-\frac{1}{1+r}\lambda=0
+\end{equation}
+
+(6) and (7) yields
+\begin{equation}
+c_t+w=((1+r)\beta)^{-\frac{1}{\rho}}(c_{t+s}+w)
+\end{equation}
+
+Using the budget constraint,
+
+\begin{equation*}
+c^*_{t+s}=\frac{K(1+r)}{K+(1+r)}\lbrace m+(1-\frac{1}{K})w \rbrace
+\end{equation*}
+\begin{equation*}
+c^*_t=\frac{(1+r)}{K+(1+r)}m+\frac{1-K}{K+(1+r)}w
+\end{equation*}
+where $K=((1+r)\beta)^{\frac{1}{\rho}}$
+
+\end{document}
