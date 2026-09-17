@@ -1,0 +1,15 @@
+% latex table generated in R 4.6.1 by xtable 1.8-8 package
+% Thu Jul 16 11:28:54 2026
+\begin{table}[ht]
+\centering
+\begin{tabular}{llll}
+  \hline
+Elastic Net & Boosting & Nnet & Random Forest \\ 
+  \hline
+0.128 & 0.263 & 0.142 & 0.212 \\ 
+  [0.128, 0.128] & [0.263, 0.263] & [0.142, 0.142] & [0.212, 0.212] \\ 
+  0.01 & 0.109 & 0.005 & 0.079 \\ 
+  [0.01, 0.01] & [0.109, 0.109] & [0.005, 0.005] & [0.079, 0.079] \\ 
+   \hline
+\end{tabular}
+\end{table}

@@ -1,0 +1,208 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage[hidelinks]{hyperref}
+
+\newcommand{\sym}[1]{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\newcommand{\oldindex}{I_{ig}}
+\newcommand{\newindex}{\widehat{I}_{ig}}
+
+\title{Index Comparison}
+\author{}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\noindent
+This note compares the original revealed-preference distance index,
+$\oldindex$, with the new cross-partition index, $\newindex$.
+For both indices, lower values indicate that an individual's choices are
+closer to the corresponding group choices and therefore indicate greater
+revealed influence on the group decision.
+
+\section{Validation}
+
+\subsection{Original index: \texorpdfstring{$\oldindex$}{Iig}}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.485\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]
+        {figures_2025/ccei_bargaining_whose_suggestion_I_ig.png}
+        \caption{Whose suggestions were reflected?}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.485\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]
+        {figures_2025/ccei_bargaining_had_individual_high_I_ig.png}
+        \caption{How similar would own choices have been?}
+    \end{subfigure}
+    \caption{Self-reported influence and the original RP distance index}
+    \label{fig:validation_original}
+\end{figure}
+
+\subsection{New index: \texorpdfstring{$\newindex$}{Ihatig}}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.485\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]
+        {figures_2025/ccei_bargaining_whose_suggestion_Ihat_ig.png}
+        \caption{Whose suggestions were reflected?}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.485\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]
+        {figures_2025/ccei_bargaining_had_individual_high_Ihat_ig.png}
+        \caption{How similar would own choices have been?}
+    \end{subfigure}
+    \caption{Self-reported influence and the new cross-partition index}
+    \label{fig:validation_new}
+\end{figure}
+
+\noindent
+\textit{Notes}: Bars report index means with 95\% confidence intervals.
+Panel (a) uses the survey question asking whose suggestions were most
+reflected in the final choices. Panel (b) uses the question asking how similar
+the respondent's own choices would have been and restricts the sample to pairs
+with preference disagreement at or above the median.
+
+\section{Index by Members' CCEI}
+
+\subsection{Original index: \texorpdfstring{$\oldindex$}{Iig}}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.485\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]
+        {figures_2025/bargaining_index_by_ccei_bar_I_ig.png}
+        \caption{Mean distance}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.485\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]
+        {figures_2025/bargaining_index_by_ccei_cdf_I_ig.png}
+        \caption{Empirical CDF}
+    \end{subfigure}
+    \caption{Original RP distance index by members' CCEI}
+    \label{fig:ccei_original}
+\end{figure}
+
+\subsection{New index: \texorpdfstring{$\newindex$}{Ihatig}}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.485\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]
+        {figures_2025/bargaining_index_by_ccei_bar_Ihat_ig.png}
+        \caption{Mean distance}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.485\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]
+        {figures_2025/bargaining_index_by_ccei_cdf_Ihat_ig.png}
+        \caption{Empirical CDF}
+    \end{subfigure}
+    \caption{New cross-partition index by members' CCEI}
+    \label{fig:ccei_new}
+\end{figure}
+
+\noindent
+\textit{Notes}: The left panels report mean index values for the lower- and
+higher-CCEI members, pooling both waves, with 95\% confidence intervals.
+The brackets report within-pair mean differences. The right panels report the
+corresponding empirical CDFs.
+
+\section{Histograms}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.485\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]
+        {figures_2025/hist_bargaining_index_I_ig.png}
+        \caption{Original index, $\oldindex$}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.485\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]
+        {figures_2025/hist_bargaining_index_Ihat_ig.png}
+        \caption{New index, $\newindex$}
+    \end{subfigure}
+    \caption{Distributions of the original and new indices}
+    \label{fig:hist_comparison}
+\end{figure}
+
+\noindent
+\textit{Notes}: Both panels pool individual-level observations across baseline
+and endline. The horizontal and vertical axes use common scales to facilitate
+direct comparison.
+
+\section{Regression Results}
+
+\subsection{Original index: \texorpdfstring{$\oldindex$}{Iig}}
+
+\begin{table}[H]
+    \centering
+    \caption{Individual rationality and revealed influence: original index}
+    \label{tab:reg_original}
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{lcccc}
+        \toprule
+        Dependent variable: $\oldindex$ & (1) & (2) & (3) & (4) \\
+        Fixed effects & Class & Class & Class & Individual \\
+        Other individual characteristics & No & Yes & Yes & Yes \\
+        Other friendship characteristics & No & Yes & Yes & Yes \\
+        $RA_i$ controls & No & No & Yes & Yes \\
+        Corner/midpoint share controls & No & No & Yes & Yes \\
+        \midrule
+        \input{tables_2025/table_bargainingCCEI_I_ig}
+    \end{tabular}%
+    }
+\end{table}
+
+\subsection{New index: \texorpdfstring{$\newindex$}{Ihatig}}
+
+\begin{table}[H]
+    \centering
+    \caption{Individual rationality and revealed influence: new index}
+    \label{tab:reg_new}
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{lcccc}
+        \toprule
+        Dependent variable: $\newindex$ & (1) & (2) & (3) & (4) \\
+        Fixed effects & Class & Class & Class & Individual \\
+        Other individual characteristics & No & Yes & Yes & Yes \\
+        Other friendship characteristics & No & Yes & Yes & Yes \\
+        $RA_i$ controls & No & No & Yes & Yes \\
+        Corner/midpoint share controls & No & No & Yes & Yes \\
+        \midrule
+        \input{tables_2025/table_bargainingCCEI_Ihat_ig}
+    \end{tabular}%
+    }
+\end{table}
+
+\noindent
+\textit{Notes}: Columns (1)--(3) include class fixed effects, while Column (4)
+includes individual fixed effects. Standard errors are clustered at the class
+level and reported in parentheses. The symbols $+$, $*$, and $**$ denote
+significance at the 10\%, 5\%, and 1\% levels, respectively. Because the two
+indices have different domains of definition, their estimation samples may
+differ.
+
+\end{document}

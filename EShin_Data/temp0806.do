@@ -1,0 +1,4 @@
+twoway (scatter beta_NLLS_ind beta_MMI_ind) (lfit beta_NLLS_ind beta_MMI_ind if beta_NLLS_ind>=0 & beta_MMI_ind >=0) (lfit beta_NLLS_ind beta_MMI_ind if beta_NLLS_ind<0 & beta_MMI_ind <0), yline(0) xline(0) note(Corr. in each quadrant: 0.381/ -0.087/ 0.076/ 0.081 clockwise from quadrant 1)
+
+twoway (scatter beta_NLLS_ind beta_MMI_ind) (lfit beta_NLLS_ind beta_MMI_ind if beta_NLLS_ind>=0 & beta_MMI_ind >=0) (lfit beta_NLLS_ind beta_MMI_ind if beta_NLLS_ind<0 & beta_MMI_ind <0), yline(0) xline(0) by(, note(Corr. in each quadrant: 0.381/ -0.087/ 0.076/ 0.081 clockwise from quadrant 1)) by(ccei_ind90)
+twoway (scatter beta_NLLS_ind beta_MMI_ind) (lfit beta_NLLS_ind beta_MMI_ind if beta_NLLS_ind>=0 & beta_MMI_ind >=0) (lfit beta_NLLS_ind beta_MMI_ind if beta_NLLS_ind<0 & beta_MMI_ind <0), yline(0) xline(0) by(, note(Corr. in each quadrant: 0.381/ -0.087/ 0.076/ 0.081 clockwise from quadrant 1)) by(ccei_ind95)

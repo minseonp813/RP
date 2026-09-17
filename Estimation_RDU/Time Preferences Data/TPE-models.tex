@@ -1,0 +1,164 @@
+
+\documentclass[12pt]{article}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{amsfonts}
+\usepackage{mitpress}
+
+%TCIDATA{OutputFilter=LATEX.DLL}
+%TCIDATA{Version=5.50.0.2953}
+%TCIDATA{<META NAME="SaveForMode" CONTENT="1">}
+%TCIDATA{BibliographyScheme=Manual}
+%TCIDATA{Created=Tuesday, June 28, 2011 11:27:27}
+%TCIDATA{LastRevised=Wednesday, November 16, 2011 18:05:11}
+%TCIDATA{<META NAME="GraphicsSave" CONTENT="32">}
+%TCIDATA{<META NAME="DocumentShell" CONTENT="Articles\SW\A Simple MIT Press Article">}
+%TCIDATA{CSTFile=LaTeX Article (bright).cst}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{acknowledgement}[theorem]{Acknowledgement}
+\newtheorem{algorithm}[theorem]{Algorithm}
+\newtheorem{axiom}[theorem]{Axiom}
+\newtheorem{case}[theorem]{Case}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{conclusion}[theorem]{Conclusion}
+\newtheorem{condition}[theorem]{Condition}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{criterion}[theorem]{Criterion}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{exercise}[theorem]{Exercise}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{notation}[theorem]{Notation}
+\newtheorem{problem}[theorem]{Problem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{solution}[theorem]{Solution}
+\newtheorem{summary}[theorem]{Summary}
+\newenvironment{proof}[1][Proof]{\noindent\textbf{#1.} }{\ \rule{0.5em}{0.5em}}
+\newdimen\dummy
+\dummy=\oddsidemargin
+\addtolength{\dummy}{72pt}
+\marginparwidth=.5\dummy
+\marginparsep=.1\dummy
+\input{tcilatex}
+\begin{document}
+
+
+\section{Decision problem}
+
+An individual subject in the time preference experiment chooses a
+consumption profile over two periods, $\left( c_{t},c_{t+s}\right) $, to
+maximize his intertemporal utilities subject to a budget constraint:
+
+\[
+u\left( c_{t}|\omega _{t}\right) +\beta _{t,s}u\left( c_{t+s}|\omega
+_{t+s}\right) 
+\]%
+\[
+\text{s.t.}\ c_{t}+\frac{1}{1+r_{t,s}}c_{t+s}=m, 
+\]%
+where $u\left( \cdot |\omega \right) $ is the per-period utility function
+based on the baseline consumption level, $\omega $. $\beta _{t,s}$ denotes a
+discount factor. If we assume the exponential discounting function, the
+discount factor only depends on the time horizon between two periods, $s$. $%
+r_{t,s}$ represents an experimental interest rate of payments between two
+periods.
+
+\section{Optimal demands}
+
+We derive the optimal demands in each of exponential and power utility
+functions.
+
+\subsection{Exponential utility function}
+
+Assume that the utility function $u$ is represented by the exponential
+function:%
+\[
+u\left( c|\omega \right) =-\frac{1}{A}\exp \left( -A\left( c-\omega \right)
+\right) \text{,} 
+\]%
+where $A$ determines the curvature of utility function, which is an absolute
+risk aversion coefficient in the decision making under risk. Note that in
+this case the optimal demand does not depend on the baseline consumption
+level, $\omega $. From the constrained maximization problem, we have the
+following results.
+
+\subparagraph{Case 1: $-m\leq \frac{1}{A}\ln \left( \protect\beta %
+_{t,s}\left( 1+r_{t,s}\right) \right) \leq \left( 1+r_{t,s}\right) m$}
+
+\begin{eqnarray*}
+c_{t}^{\ast } &=&\frac{1}{2+r_{t,s}}\left[ \left( 1+r_{t,s}\right) m-\frac{1%
+}{A}\ln \left( \beta _{t,s}\left( 1+r_{t,s}\right) \right) \right] , \\
+c_{t+s}^{\ast } &=&\frac{1+r_{t,s}}{2+r_{t,s}}\left[ m+\frac{1}{A}\ln \left(
+\beta _{t,s}\left( 1+r_{t,s}\right) \right) \right] \text{.}
+\end{eqnarray*}
+
+\subparagraph{Case 2: $\frac{1}{A}\ln \left( \protect\beta _{t,s}\left(
+1+r_{t,s}\right) \right) <-m$}
+
+\[
+c_{t}^{\ast }=m\text{ \ and \ }c_{t+s}^{\ast }=0\text{.} 
+\]
+
+\subparagraph{Case 3: $\frac{1}{A}\ln \left( \protect\beta _{t,s}\left(
+1+r_{t,s}\right) \right) >\left( 1+r_{t,s}\right) m$}
+
+\[
+c_{t}^{\ast }=0\text{ \ and \ }c_{t+s}^{\ast }=\left( 1+r_{t,s}\right) m%
+\text{.} 
+\]
+
+\subsection{Power utility function}
+
+The utility function $u$ is assumed to be represented by the power utility
+function:%
+\[
+u\left( c|\omega \right) =\frac{\left( c-\omega \right) ^{1-\rho }}{1-\rho }%
+\text{,} 
+\]%
+where $\rho $ represents a relative risk aversion coefficient. Note that the
+optimal demand depends on the basline consumption level in this case and
+also that, for $\omega \leq 0$, the optimality of demands can not generate
+corner solutions, widely observed in the experimental data. Thus, we assume
+that $\omega >0$.
+
+\subparagraph{Case 1: $0<c_{t}^{\ast }<m$ and $0<c_{t+s}^{\ast }<\left(
+1+r_{t,s}\right) m$}
+
+\begin{eqnarray*}
+c_{t}^{\ast } &=&\frac{1}{\left( 1+r_{t,s}\right) +K}\left[ \left(
+1+r_{t,s}\right) m+\left( K-1\right) \omega \right] , \\
+c_{t+s}^{\ast } &=&\frac{K}{\left( 1+r_{t,s}\right) +K}\left[ \left(
+1+r_{t,s}\right) m+\left( K-1\right) \omega \right] -\left( K-1\right)
+\omega \text{,}
+\end{eqnarray*}%
+where%
+\[
+K=\left[ \beta _{t,s}\left( 1+r_{t,s}\right) \right] ^{1/\rho }\text{.} 
+\]
+
+\subparagraph{Case 2 \& 3:}
+
+\begin{eqnarray*}
+c_{t}^{\ast } &=&m\text{ \ and \ }c_{t+s}^{\ast }=0, \\
+&&\text{or} \\
+c_{t}^{\ast } &=&0\text{ \ and \ }c_{t+s}^{\ast }=\left( 1+r_{t,s}\right) m%
+\text{.}
+\end{eqnarray*}
+
+\section{Estimation}
+
+We estimate $\theta =$ $\left( A,\beta _{t,s}\right) $ or $\left( \rho
+,\beta _{t,s}\right) $ using the individual-level experimental data. Each
+treatment consists of 50 decision problems for each individual, denoted by $%
+\left\{ \left( c_{t}^{p},c_{t+s}^{p},m^{p},r_{t,s}^{p}\right) \right\}
+_{p=1}^{50}$. Our econometric method is to minmize the distance between
+observed demands and optimal demands:%
+\[
+D\left( \theta \right) =\sum_{p=1}^{50}\left[ \left( c_{t}^{p}-c_{t}^{p\ast
+}\left( \theta \right) \right) ^{2}+\left( c_{t+s}^{p}-c_{t+s}^{p\ast
+}\left( \theta \right) \right) ^{2}\right] \text{.} 
+\]
+
+\end{document}
