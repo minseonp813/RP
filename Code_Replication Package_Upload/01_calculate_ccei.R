@@ -193,6 +193,8 @@ write_dta(
   panel_final,
   "data/panel_final.dta"
 )
+
+
 ############################################################
 # Final checks
 ############################################################
@@ -252,6 +254,7 @@ source("programs/garp.R")
 source("programs/ccei_fgarp.R")
 source("programs/fgarp.R")
 source("programs/warshall.R")
+source("programs/ex_cross.R")
 
 base_raw <- read_dta("data/base_raw.dta")
 end_raw <- read_dta("data/end_raw.dta")
@@ -293,7 +296,7 @@ panel_final <- panel_final %>%
   )
 
 old_generated_vars <- grep(
-  "^(ccei_|I_hg_|I_lg_|RA_|high_|f_ccei_|f_I_|f_high_|max_mpi_|rev_max_mpi_|I_rev_max_mpi_|I_max_mpi_)",
+  "^(ccei_|I_hg_|I_lg_|Ihat_|c_Ng_|RA_|high_|f_ccei_|f_I_|f_high_|max_mpi_|rev_max_mpi_|I_rev_max_mpi_|I_max_mpi_)",
   names(panel_final),
   value = TRUE
 )
@@ -437,6 +440,9 @@ compute_ccei_wave_measures <- function(raw, panel, suffix, id_mover_col, id_nonm
   high_col <- paste0("high_", suffix)
   I_hg_col <- paste0("I_hg_", suffix)
   I_lg_col <- paste0("I_lg_", suffix)
+  Ihat_hg_col <- paste0("Ihat_hg_", suffix)
+  Ihat_lg_col <- paste0("Ihat_lg_", suffix)
+  c_Ng_col <- paste0("c_Ng_", suffix)
   RA_g_col <- paste0("RA_g_", suffix)
   RA_1_col <- paste0("RA_1_", suffix)
   RA_2_col <- paste0("RA_2_", suffix)
@@ -649,6 +655,82 @@ compute_ccei_wave_measures <- function(raw, panel, suffix, id_mover_col, id_nonm
   
   panel[[I_hg_col]] <- row_mean_na(cbind(Ihg1, Ihg2))
   panel[[I_lg_col]] <- row_mean_na(cbind(Ilg1, Ilg2))
+
+  ############################################################
+  # Cross-partition RP index
+  #
+  # The individual/group subsets above are reused so that Ihat
+  # is created in the same baseline/endline pass as the original I.
+  ############################################################
+
+  panel[[Ihat_hg_col]] <- NA_real_
+  panel[[Ihat_lg_col]] <- NA_real_
+  panel[[c_Ng_col]] <- NA_real_
+
+  for (i in seq_len(nrow(panel))) {
+    g <- panel$group_id[i]
+
+    group_side <- data_group[
+      data_group$group_id == g,
+    ]
+
+    high_indiv <- data_high[
+      data_high$group_id == g &
+        data_high$round_number >= 1 &
+        data_high$round_number <= 18,
+    ]
+
+    low_indiv <- data_low[
+      data_low$group_id == g &
+        data_low$round_number >= 1 &
+        data_low$round_number <= 18,
+    ]
+
+    both_indiv <- data_indiv[
+      data_indiv$group_id == g,
+    ]
+
+    ex_h <- compute_ex_from_subsets(high_indiv, group_side)
+    ex_l <- compute_ex_from_subsets(low_indiv, group_side)
+    ex_hl <- compute_ex_from_subsets(both_indiv, group_side)
+
+    panel[[Ihat_hg_col]][i] <- ihat_from_ex(ex_h, ex_l, ex_hl)
+    panel[[Ihat_lg_col]][i] <- ihat_from_ex(ex_l, ex_h, ex_hl)
+    panel[[c_Ng_col]][i] <- cNg_from_ex(ex_hl)
+  }
+
+  ihat_defined <- !is.na(panel[[Ihat_hg_col]]) &
+    !is.na(panel[[Ihat_lg_col]])
+
+  if (any(ihat_defined)) {
+    ihat_max_sum_error <- max(
+      abs(
+        panel[[Ihat_hg_col]][ihat_defined] +
+          panel[[Ihat_lg_col]][ihat_defined] - 1
+      )
+    )
+
+    ihat_in_range <- all(
+      panel[[Ihat_hg_col]][ihat_defined] >= -1e-8 &
+        panel[[Ihat_hg_col]][ihat_defined] <= 1 + 1e-8 &
+        panel[[Ihat_lg_col]][ihat_defined] >= -1e-8 &
+        panel[[Ihat_lg_col]][ihat_defined] <= 1 + 1e-8
+    )
+
+    if (ihat_max_sum_error > 1e-8 || !ihat_in_range) {
+      stop(suffix, ": cross-partition index validation failed.")
+    }
+  }
+
+  cat(
+    "\n",
+    suffix,
+    ": cross-partition index defined for",
+    sum(ihat_defined),
+    "of",
+    nrow(panel),
+    "groups.\n"
+  )
   
   df_group_RA <- raw %>%
     filter(round_number >= 19, round_number <= 36) %>%
@@ -1218,6 +1300,9 @@ panel_final %>%
     ccei_hlg_base,
     I_hg_base,
     I_lg_base,
+    Ihat_hg_base,
+    Ihat_lg_base,
+    c_Ng_base,
     RA_g_base,
     RA_1_base,
     RA_2_base,
@@ -1259,6 +1344,9 @@ panel_final %>%
     ccei_hlg_end,
     I_hg_end,
     I_lg_end,
+    Ihat_hg_end,
+    Ihat_lg_end,
+    c_Ng_end,
     RA_g_end,
     RA_1_end,
     RA_2_end,

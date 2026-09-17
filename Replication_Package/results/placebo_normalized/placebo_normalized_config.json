@@ -1,0 +1,14 @@
+{
+  "data_dir": "C:\\Users\\hahn0\\RP\\Replication_Package\\data",
+  "output_dir": "C:\\Users\\hahn0\\RP\\Replication_Package\\results\\placebo_normalized",
+  "n_jobs": 1,
+  "backend": "threading",
+  "target_chunk_size": 8,
+  "max_target_pairwaves": null,
+  "max_donors_per_wave": null,
+  "overwrite_chunks": false,
+  "cross_tol": 1e-06,
+  "n_pairwaves_available": 1304,
+  "n_pairwaves_requested": 1304,
+  "started_at": "2026-09-11 14:10:29"
+}

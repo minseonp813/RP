@@ -10,10 +10,10 @@ suppressPackageStartupMessages({
   library(xml2)
 })
 
-rp_dir <- "/Users/minseonp/Library/CloudStorage/Dropbox/RP/Replication Package_Upload"
-ra_dir <- "/Users/minseonp/Dropbox/RP/RA_Byunghun"
-out_tex <- "tables_2025/table_attrition_balance.tex"
-out_diag <- "tables_2025/table_attrition_balance_diagnostics.csv"
+rp_dir <- "C:/Users/minseonp/Dropbox/RP/Code_Replication Package_Upload"
+ra_dir <- "C:/Users/minseonp/Dropbox/RP/Code"
+out_tex <- "C:/Users/minseonp/Dropbox/OverleafGit/Group Decision/tables_2025/table_attrition_balance.tex"
+out_diag <- "C:/Users/minseonp/Dropbox/OverleafGit/Group Decision/tables_2025/table_attrition_balance_diagnostics.csv"
 
 id_as_char <- function(x) {
   x <- as.character(x)
@@ -229,7 +229,10 @@ joint_suest_wald <- function(data, specs) {
   
   Ainv <- block_diag(bread_blocks)
   scores <- do.call(cbind, score_blocks)
-  V <- Ainv %*% crossprod(scores) %*% Ainv
+  cluster_scores <- do.call(rbind, lapply(split(seq_len(nrow(data)), data$class_fe), function(rows) {
+    colSums(scores[rows, , drop = FALSE])
+  }))
+  V <- Ainv %*% crossprod(cluster_scores) %*% Ainv
   
   b <- coefs[tested_idx]
   Vb <- V[tested_idx, tested_idx]
@@ -399,13 +402,15 @@ vars <- tibble(
     "ccei", "risk_aversion",
     "male", "height", "math_score",
     "inclass_n_friends", "inclass_popularity",
-    "outgoing", "agreeable", "conscientious", "emotional_stability", "openness"
+    "agreeable", "conscientious", "emotional_stability",
+    "outgoing", "openness"
   ),
   label = c(
     "Individual CCEI", "Risk aversion",
     "Male", "Height", "Math score",
-    "In-class friends", "In-class popularity",
-    "Outgoingness", "Agreeableness", "Conscientiousness", "Emotional stability", "Openness"
+    "Out-degree", "In-degree",
+    "Agreeableness", "Conscientiousness", "Emotional stability",
+    "Outgoingness", "Openness"
   ),
   panel = c(
     rep("experimental", 2),
@@ -423,11 +428,15 @@ randomization_specs <- vars %>%
 summarise_randomization_var <- function(var, y, x) {
   fit <- lm(as.formula(paste(y, "~", x, "+ class_fe")), data = randomization_df)
   co <- summary(fit)$coefficients[x, ]
+  cluster_vcov <- sandwich::vcovCL(fit, cluster = randomization_df$class_fe, type = "HC1")
+  cluster_se <- sqrt(cluster_vcov[x, x])
+  cluster_t <- co[["Estimate"]] / cluster_se
+  cluster_df <- nlevels(droplevels(randomization_df$class_fe)) - 1
   
   tibble(
     var = var,
     `Randomization beta` = fmt(co[["Estimate"]]),
-    `Randomization p-value` = fmt(co[["Pr(>|t|)"]]),
+    `Randomization p-value` = fmt(2 * pt(-abs(cluster_t), df = cluster_df)),
     `Randomization N` = nobs(fit)
   )
 }
@@ -494,14 +503,8 @@ make_rows <- function(df) {
 }
 
 tex_lines <- c(
-  "\\begin{table}[!ht]",
-  "\\centering",
-  "\\caption{Sample Attrition and Randomization Test}",
-  "\\label{tab:attrition_balance}",
-  "\\begin{tabular}{lcccccc}",
-  "\\toprule",
   "& (1) & (2) & (3) & (4) & (5) & (6) \\\\",
-  "& \\multicolumn{4}{c}{Attrition} & \\multicolumn{2}{c}{Randomization Test} \\\\",
+  "& \\multicolumn{4}{c}{Sample Attrition} & \\multicolumn{2}{c}{Randomization Test} \\\\",
   "\\cmidrule(lr){2-5}\\cmidrule(lr){6-7}",
   "& \\multicolumn{2}{c}{Sample} & & & & \\\\ \\cmidrule(lr){2-3}",
   "& Baseline & Analysis & Diff. & $p$-value & $\\beta$ & $p$-value \\\\ \\midrule",
@@ -513,24 +516,7 @@ tex_lines <- c(
   "\\midrule",
   paste0("Joint test: & \\multicolumn{4}{l}{\\textit{", joint_text, "}} & \\multicolumn{2}{l}{\\textit{", randomization_joint_text, "}} \\\\"),
   paste0("N & ", n_distinct(all_baseline$id), " & ", n_distinct(balanced$id), " & & & \\multicolumn{2}{c}{652} \\\\"),
-  "\\bottomrule",
-  "\\end{tabular}",
-  "\\medskip",
-  "\\begin{minipage}{\\textwidth}",
-  paste0(
-    "{\\emph{Notes}: The baseline column reports means for all students who participated in the baseline decision-making experiment; ",
-    "the analysis-sample column reports means for students in the analysis sample. ",
-    "Differences equal analysis-sample mean minus baseline mean. ",
-    "Attrition $p$-values come from two-sample $t$-tests. ",
-    "For math score and Big Five personality measures, means and attrition $p$-values are computed among students with nonmissing valid values (", valid_value_note, "); all other rows use the full available samples reported in the $N$ row. ",
-    "The same valid-value restriction is used for the corresponding randomization-test regressions. ",
-    "The attrition joint test regresses an indicator for inclusion in the analysis sample on all listed characteristics and tests that all coefficients are jointly zero. ",
-    "The randomization-test columns report the coefficient and $p$-value from regressions of one randomly selected pair member's baseline characteristic on the partner's corresponding baseline characteristic, controlling for class fixed effects. ",
-    "The random member is selected using the fixed random draw stored in the finalized pair-level panel. ",
-    "The randomization-test joint statistic is a Wald test that all twelve partner-characteristic coefficients are jointly zero.}"
-  ),
-  "\\end{minipage}",
-  "\\end{table}"
+  "\\bottomrule"
 )
 
 dir.create(dirname(out_tex), showWarnings = FALSE, recursive = TRUE)

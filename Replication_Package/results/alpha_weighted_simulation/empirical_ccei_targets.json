@@ -1,0 +1,13 @@
+{
+  "legacy_high_ccei_threshold": 0.9,
+  "individual_low": 0.872342586517334,
+  "individual_median": 0.980659008026123,
+  "individual_high": 1.0,
+  "group_low": 0.9045834541320801,
+  "group_median": 0.9945955276489258,
+  "group_high": 1.0,
+  "individual_overall_mean": 0.9162182237473002,
+  "group_overall_mean": 0.9239932320600638,
+  "n_individual": 2608,
+  "n_group": 1304
+}

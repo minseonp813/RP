@@ -43,7 +43,7 @@ validation_responses <- read_dta(validation_responses_path) %>%
 df <- panel_individual %>%
   mutate(id = as.character(id)) %>%
   left_join(validation_responses, by = c("id", "post")) %>%
-  filter(!is.na(new2_I_ig))
+  filter(post == 1, !is.na(new2_I_ig))
 
 df <- df %>%
   mutate(RA_dif = abs(RA_i - RA_j))
@@ -276,7 +276,7 @@ rp_bar_plot <- ggplot(rp_distance_stats, aes(x = ccei_group, y = mean, fill = cc
     "Lower CCEI" = "Lower\nCCEI",
     "Higher CCEI" = "Higher\nCCEI"
   )) +
-  labs(x = NULL, y = expression("Mean revealed preference distance (" * I[ig] * ")")) +
+  labs(x = NULL, y = expression("Mean Revealed Preference Distance (" * I[ig] * ")")) +
   scale_y_continuous(
     limits = c(0, 0.95),
     breaks = seq(0, 0.9, by = 0.1),
@@ -499,7 +499,7 @@ bar_plot <- ggplot(bar_stats, aes(x = pair_ccei_group, y = mean, fill = pair_cce
     "(Low, High)" = "Low\nHigh",
     "(High, High)" = "High\nHigh"
   )) +
-  labs(x = NULL, y = "Mean collective CCEI") +
+  labs(x = NULL, y = "Mean Collective CCEI") +
   scale_y_continuous(
     breaks = seq(0.85, 1.00, by = 0.05),
     labels = scales::label_number(accuracy = 0.01),

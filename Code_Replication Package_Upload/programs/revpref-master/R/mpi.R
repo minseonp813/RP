@@ -1,0 +1,84 @@
+#' Computes the minimum and maximum money pump index
+#'
+#' The nonparametric GARP test is "sharp" in nature. This means that the test will only tell us whether the observed data
+#' set is consistent with GARP. However, when the data set fails, it is often useful to know how close the observed behavior is to
+#' satisfying the rationality restrictions (see Varian (1990) for an extensive motivation). Over the years, several measures (called
+#' goodness-of-fit indices) have been introduced to evaluate the degree to which the observed data set is consistent with the
+#' rationality axiom. Echenique et al. (2011) proposed the money pump index (MPI) as a measure of the severity of a GARP violation.
+#' The MPI is defined as the amount of money that an arbitrageur can pump from the consumer. The higher is
+#' the MPI value, the more severe is the violation of rationality. While the MPI measure is conceptually appealing, it may
+#' be computationally challenging to determine this index for data sets with a large number of observations. In particular,
+#' Smeulders et al. (2013) showed that computing the mean and median MPI is an NP-hard problem. As easy-to-apply
+#' alternatives, they proposed the minimum and maximum MPI which can be computed efficiently (in polynomial time).
+#' This function implements the algorithm provided by these authors to measure the minimum and maximum MPI values for the
+#' given data set.
+#'
+#' @param p A \eqn{T X N} matrix of observed prices where each row corresponds to an observation and each column
+#' corresponds to a consumption category. \eqn{T} is the number of observations and \eqn{N} is the number of consumption
+#' categories.
+#'
+#' @param q A \eqn{T X N} matrix of observed quantities where each row corresponds to an observation and each column
+#' corresponds to a consumption category.\eqn{T} is the number of observations and \eqn{N} is the number of consumption
+#' categories.
+#'
+#' @return The function returns two elements. The first element (\code{minimum_MPI}) is the minimum MPI and the second
+#' element (\code{maximum_MPI}) is the maximum MPI.
+#'
+#' @section References:
+#' \itemize{
+#' \item Echenique, Federico, Sangmok Lee, and Matthew Shum. "The money pump as a measure of revealed preference
+#' violations." Journal of Political Economy 119, no. 6 (2011): 1201-1223.
+#' \item Smeulders, Bart, Laurens Cherchye, Frits CR Spieksma, and Bram De Rock. "The money pump as a measure of
+#' revealed preference violations: A comment." Journal of Political Economy 121, no. 6 (2013): 1248-1258.
+#' \item Varian, Hal R. "Goodness-of-fit in optimizing models." Journal of Econometrics 46, no. 1-2 (1990): 125-140.
+#' }
+#'
+#' @examples
+#' # define a price matrix
+#' p = matrix(c(4,4,4,1,9,3,2,8,3,1,
+#' 8,4,3,1,9,3,2,8,8,4,
+#' 1,4,1,8,9,3,1,8,3,2),
+#' nrow = 10, ncol = 3, byrow = TRUE)
+#'
+#' # define a quantity matrix
+#' q = matrix(c( 1.81,0.19,10.51,17.28,2.26,4.13,12.33,2.05,2.99,6.06,
+#' 5.19,0.62,11.34,10.33,0.63,4.33,8.08,2.61,4.36,1.34,
+#' 9.76,1.37,36.35, 1.02,3.21,4.97,6.20,0.32,8.53,10.92),
+#' nrow = 10, ncol = 3, byrow = TRUE)
+#'
+#'
+#' # compute the minimum and maximum MPI
+#' mpi(p,q)
+#'
+#' @seealso \code{\link{ccei}} for the critical cost efficiency index.
+#'
+#' @export
+#'
+mpi <- function(p,q)
+{
+  if (nrow(p)!=nrow(q)) stop("Number of observations must be the same for both price and quanity matrices")
+  if (ncol(p)!=ncol(q)) stop("Number of consumption categories must be the same for both price and quanity matrices")
+
+  if((dim(p)[1] != dim(q)[1]) || (dim(p)[2] != dim(q)[2])){
+    print("Dimensions of price and quantity matrix do not match")
+  }
+  else{
+    p_new = c()
+    q_new = c()
+    for(k in 1:dim(p)[1]){
+      if(sum(q[k,]) !=0){
+        p_new = rbind(p_new,p[k,])
+        q_new = rbind(q_new,q[k,])
+      }
+    }
+
+    d <- graph_list(p_new,q_new,-1)                          ## d stores the graph corresponding to the consumption data
+    if(cycle_detection_topo(d)== 0){return(c(0,0))}          ## if graph is acyclic, then there is no GARP violation
+    minimum_MPI <- minimum_cost_time(d,-100000000,100000000)
+
+    d <- graph_list(p_new,q_new,1)
+    maximum_MPI <- -1* minimum_cost_time(d,-100000000,100000000)
+
+    return(round(c(minimum_MPI,maximum_MPI),10))
+  }
+}

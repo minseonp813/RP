@@ -1,0 +1,128 @@
+\documentclass[11pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[letterpaper,margin=0.68in]{geometry}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{threeparttable}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{microtype}
+
+\captionsetup{font=small,labelfont=bf,justification=centering}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+
+\begin{document}
+
+\begin{center}
+  {\Large\bfseries CEI and CCEI Results}\par
+  \vspace{2pt}
+  {\small Pooled baseline and endline sample}
+\end{center}
+
+\vspace{4pt}
+
+\begin{table}[H]
+\centering
+\caption{Group CCEI and Group CEI}
+\label{tab:cei-ccei-separate}
+\begin{threeparttable}
+\footnotesize
+\renewcommand{\arraystretch}{0.86}
+\setlength{\tabcolsep}{7.5pt}
+\begin{tabular}{lcccc}
+\toprule
+\input{results/tables/temp_cei_min_table_cei_ccei_models.tex}
+\end{tabular}
+\begin{tablenotes}[flushleft]
+\scriptsize
+\item \textit{Notes:} Each observation is a pair-wave. Panels A and B report OLS coefficients. Panels C and D report average partial effects (APEs). Columns (1)--(3) of Panels C and D use fractional logit. Column (4) uses the strictly exogenous correlated-random-effects fractional probit QMLE of Papke and Wooldridge (2008), with full controls, pair means of wave-varying covariates, a wave intercept, and class fixed effects. Columns (1)--(3) absorb class fixed effects; Column (4) of Panels A and B instead absorbs pair fixed effects. Standard errors are clustered by class. $+\ p<0.10$, $*\ p<0.05$, $**\ p<0.01$.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\clearpage
+
+\begin{table}[H]
+\centering
+\caption{Joint Group CEI and Group CCEI Classification}
+\label{tab:cei-ccei-joint}
+\begin{threeparttable}
+\small
+\renewcommand{\arraystretch}{0.91}
+\setlength{\tabcolsep}{7.5pt}
+\begin{tabular}{lcccc}
+\toprule
+\input{results/tables/temp_cei_min_table_joint_mlogit.tex}
+\end{tabular}
+\begin{tablenotes}[flushleft]
+\scriptsize
+\item \textit{Notes:} Multinomial-logit coefficients are reported relative to the Pareto-inefficient category, defined as group CEI $<1$. Stable-weight denotes CEI $=1$ and CCEI $=1$; varying-weight denotes CEI $=1$ and CCEI $<1$. CCEI coefficients correspond to a 0.1 increase. Columns (1)--(3) absorb class fixed effects and sequentially add the controls used in Table 1. Column (4) uses conditional pair fixed effects and therefore retains 417 pairs whose category changes across waves. Its pseudo $R^2$ is based on the conditional likelihood and is not directly comparable to Columns (1)--(3). Standard errors are clustered by class. $+\ p<0.10$, $*\ p<0.05$, $**\ p<0.01$.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\vspace{3pt}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.96\textwidth]{results/figures/temp_cei_min_group_cei_by_member_ccei_category.png}
+\caption{Group CEI by Members' Individual CCEI Category}
+\label{fig:group-cei-member-ccei}
+\begin{minipage}{0.96\textwidth}
+\scriptsize
+\textit{Notes:} Individual categories use the pooled median individual CCEI, with baseline and endline observations pooled. Bars report mean group CEI and 95\% confidence intervals. Difference labels report two-sample Welch tests. The category sample sizes are 348, 608, and 348 for Low-Low, Low-High, and High-High, respectively. $+\ p<0.10$, $*\ p<0.05$, $**\ p<0.01$.
+\end{minipage}
+\end{figure}
+
+\clearpage
+
+\begin{center}
+  {\large\bfseries Alternative CCEI Parameterization}
+\end{center}
+
+\begin{table}[H]
+\centering
+\caption{Group CCEI and Group CEI - CCEI Maximum and Distance}
+\label{tab:cei-ccei-separate-dist}
+\begin{threeparttable}
+\footnotesize
+\renewcommand{\arraystretch}{0.86}
+\setlength{\tabcolsep}{7.5pt}
+\begin{tabular}{lcccc}
+\toprule
+\input{results/tables/temp_cei_min_table_cei_ccei_models_dist.tex}
+\end{tabular}
+\begin{tablenotes}[flushleft]
+\scriptsize
+\item \textit{Notes:} CCEI distance equals CCEI maximum minus CCEI minimum; larger values indicate greater within-pair disparity. The maximum coefficient therefore holds distance fixed. This is an exact reparameterization of Table 1, so fitted values, predictions, sample sizes, and fit statistics are unchanged. Panels A and B report OLS coefficients. Panels C and D report APEs. Columns (1)--(3) of Panels C and D use fractional logit. Column (4) uses the strictly exogenous correlated-random-effects fractional probit QMLE of Papke and Wooldridge (2008), with full controls, pair means of wave-varying covariates, a wave intercept, and class fixed effects. Columns (1)--(3) absorb class fixed effects; Column (4) of Panels A and B instead absorbs pair fixed effects. Standard errors are clustered by class. $+\ p<0.10$, $*\ p<0.05$, $**\ p<0.01$.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\clearpage
+
+\begin{table}[H]
+\centering
+\caption{Joint Group CEI and Group CCEI Classification - CCEI Maximum and Distance}
+\label{tab:cei-ccei-joint-dist}
+\begin{threeparttable}
+\footnotesize
+\renewcommand{\arraystretch}{0.95}
+\setlength{\tabcolsep}{9pt}
+\begin{tabular}{lcccc}
+\toprule
+\input{results/tables/temp_cei_min_table_joint_mlogit_dist.tex}
+\end{tabular}
+\begin{tablenotes}[flushleft]
+\scriptsize
+\item \textit{Notes:} CCEI distance equals CCEI maximum minus CCEI minimum; larger values indicate greater within-pair disparity. The maximum coefficient therefore holds distance fixed. This is an exact reparameterization of Table 2, so fitted values, predictions, sample sizes, and fit statistics are unchanged. Multinomial-logit coefficients are relative to the Pareto-inefficient category, defined as group CEI $<1$. Stable-weight denotes CEI $=1$ and CCEI $=1$; varying-weight denotes CEI $=1$ and CCEI $<1$. CCEI coefficients correspond to a 0.1 increase. Columns (1)--(3) absorb class fixed effects and sequentially add the controls used in Table 1. Column (4) uses conditional pair fixed effects and retains 417 pairs whose category changes across waves. Its pseudo $R^2$ is based on the conditional likelihood and is not directly comparable to Columns (1)--(3). Standard errors are clustered by class. $+\ p<0.10$, $*\ p<0.05$, $**\ p<0.01$.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\end{document}

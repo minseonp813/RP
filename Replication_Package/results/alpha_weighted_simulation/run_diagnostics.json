@@ -1,0 +1,9 @@
+{
+  "elapsed_seconds": 10.94881796836853,
+  "n_raw_simulation_rows": 29700,
+  "overall_undefined_count": 1050,
+  "overall_undefined_pct": 3.535353535353535,
+  "mean_simulated_ccei_i": 0.9587304101460566,
+  "mean_simulated_ccei_j": 0.9150604910266477,
+  "mean_simulated_ccei_g": 0.954428793660354
+}

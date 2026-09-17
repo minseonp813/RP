@@ -1,0 +1,54 @@
+A. Known-answer test (paper Appendix example)
+   CCEI(D_ig) = 1.000000  (expected 1)
+   CCEI(D_jg) = 0.875000  (expected 7/8 = 0.875000)
+   CCEI(D_Ng) = 0.875000  (expected 7/8)
+   |A_i|=1, |A_j|=1, join cost = 1.3500 > 1  ->  e_t = 1.0000
+   PASS
+
+B. Hand-built violation
+   p_i.x_g = 0.8733, p_j.x_g = 0.8444  (both <= 1: both object)
+   join = [1.6 1.8], cost at p_g = 0.8500
+   e_t = 0.8500 (expected 0.85); binding (s, s') = (0, 0)
+   PASS
+
+C. Cross-checks on random data (150 synthetic pair-waves, K = 18)
+   150 pair-waves checked; max |exact CCEI - bisection CCEI| = 1.06e-09
+   vectorized join == loop join; tempered e_t >= untempered e_t; empty objector set -> e_t = 1
+   PASS
+
+D. Protocol lineup, CRRA members rho_i = 0.5, rho_j = 3.0, 200 replications
+                 pass_coll  e_coll  pass_unitary  ccei_g
+protocol                                                
+dict_i                 1.0     1.0         1.000   1.000
+dict_j                 1.0     1.0         1.000   1.000
+compromise             1.0     1.0         1.000   1.000
+random_dictator        1.0     1.0         0.555   0.983
+alternate              1.0     1.0         0.520   0.983
+   All protocols pass Test 1 (e_coll = 1); varying-weight protocols fail unitary GARP.  PASS
+
+D'. Same lineup with noisy members (budget-share noise sd = 0.10): tempered vs untempered pass rates
+                      pass_coll  e_coll  ccei_i  ccei_j
+protocol  spec                                         
+alternate tempered        0.975   0.999   0.998   0.947
+          untempered      0.950   0.999   0.998   0.947
+dict_i    tempered        0.995   1.000   0.998   0.947
+          untempered      0.990   1.000   0.998   0.947
+
+E. Power against random behaviour (rational CRRA members, 60 pair-waves x 40 draws)
+           actual_e_coll  random_e_coll  random_pass
+benchmark                                           
+bootstrap            1.0          0.975        0.691
+bronars              1.0          0.804        0.115
+   Random-behaviour pass rate by |rho_i - rho_j| (pass rate of random behaviour RISES with disagreement: power falls as the Pareto interval widens):
+benchmark  gap_bin   
+bootstrap  (0.0, 0.5]    0.643
+           (0.5, 1.5]    0.655
+           (1.5, 4.0]    0.775
+bronars    (0.0, 0.5]    0.089
+           (0.5, 1.5]    0.092
+           (1.5, 4.0]    0.165
+
+F. Vacuity check (Lemma 1): corner 'members' u_i = x_r, u_j = x_b never object jointly
+   random group choices, corner members: e_coll = 1.0000, unitary CCEI = 0.8989
+   (joins of corner objectors cost >= 1 by construction, so no violation is possible)
+   PASS

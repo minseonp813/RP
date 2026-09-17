@@ -24,32 +24,27 @@ panel_path <- "data/panel_individual.dta"
 panel_outputs <- tibble::tribble(
   ~panel, ~output_path, ~height,
   "A. Demographics and skills", "ML/Figures/Figure_clan_selected_boosting_demographics.pdf", 3.2,
-  "B. Friendship network", "ML/Figures/Figure_clan_selected_boosting_network.pdf", 2.9,
-  "C. Classroom environment", "ML/Figures/Figure_clan_selected_boosting_classroom.pdf", 4.3
+  "B. Friendship network", "ML/Figures/Figure_clan_selected_boosting_network.pdf", 3.2,
+  "C. Classroom environment", "ML/Figures/Figure_clan_selected_boosting_classroom.pdf", 3.2
 )
 
 selection <- tibble::tribble(
   ~variable, ~panel, ~label, ~order,
-  "mathscore_diff", "A. Demographics and skills", "Math-score difference", 1,
-  "outgoing_diff", "A. Demographics and skills", "Outgoingness difference", 2,
-  "height_diff", "A. Demographics and skills", "Height difference", 3,
-  "malepair_01", "A. Demographics and skills", "Female with male partner", 4,
-  "malepair_10", "A. Demographics and skills", "Male with female partner", 5,
-  "malepair_11", "A. Demographics and skills", "Male-male pair", 6,
-  "inclass_n_friends_i", "B. Friendship network", "Number of in-class friends", 1,
-  "inclass_n_diff", "B. Friendship network", "In-class friends difference", 2,
-  "inclass_popularity_i", "B. Friendship network", "In-class popularity", 3,
-  "inclass_popularity_diff", "B. Friendship network", "In-class popularity difference", 4,
-  "friendship_mutual", "B. Friendship network", "Mutual friendship", 5,
-  "post", "C. Classroom environment", "Endline", 1,
-  "pblclass_horizontal_i", "C. Classroom environment", "Horizontal PBL", 2,
-  "pblclass_horizontal_diff", "C. Classroom environment", "Horizontal PBL difference", 3,
-  "teacher_induce_i", "C. Classroom environment", "Teacher induces participation", 4,
-  "teacher_induce_diff", "C. Classroom environment", "Teacher induction difference", 5,
-  "peer_fair_i", "C. Classroom environment", "Peer-rated fairness", 6,
-  "peer_fair_diff", "C. Classroom environment", "Peer-rated fairness difference", 7,
-  "class_outcast_i", "C. Classroom environment", "Class outcast", 8,
-  "class_outcast_diff", "C. Classroom environment", "Class outcast difference", 9
+  "mathscore_i", "A. Demographics and skills", "Math~score[i]", 1,
+  "height_i", "A. Demographics and skills", "Height[i]", 2,
+  "malepair_01", "A. Demographics and skills", "Female[i]~\",\"~Male[j]", 3,
+  "malepair_11", "A. Demographics and skills", "Male[i]~\",\"~Male[j]", 4,
+  "outgoing_i", "A. Demographics and skills", "Outgoing[i]", 5,
+  "inclass_popularity_i", "B. Friendship network", "\"In-degree\"[i]", 1,
+  "inclass_popularity_diff", "B. Friendship network", "\"In-degree\"[diff]", 2,
+  "inclass_n_friends_i", "B. Friendship network", "\"Out-degree\"[i]", 3,
+  "inclass_n_diff", "B. Friendship network", "\"Out-degree\"[diff]", 4,
+  "friendship_mutual", "B. Friendship network", "Mutual~friend[ij]", 5,
+  "post", "C. Classroom environment", "Second~wave", 1,
+  "pblclass_horizontal_i", "C. Classroom environment", "Horizontal~pedagogy[i]", 2,
+  "teacher_induce_i", "C. Classroom environment", "Participation~encouraged[i]", 3,
+  "peer_reciprocal_i", "C. Classroom environment", "Reciprocal~classmates[i]", 4,
+  "class_outcast_i", "C. Classroom environment", "Excluded~classmates[i]", 5
 )
 
 split_tex_row <- function(line) {
@@ -112,17 +107,10 @@ plot_data <- estimates |>
   left_join(selection, by = "variable") |>
   mutate(
     full_sample_sd = full_sample_sd[match(variable, selection$variable)],
-    # Table 5 reports top-score minus bottom-score. Since lower effects on I_ig
-    # imply a larger bargaining-power premium, reverse the comparison here.
-    estimate = -difference_table / full_sample_sd,
-    conf_low = -ci_high_table / full_sample_sd,
-    conf_high = -ci_low_table / full_sample_sd,
-    p_text = if_else(
-      p_adjusted < 0.001,
-      "p < 0.001",
-      paste0("p = ", sprintf("%.3f", p_adjusted))
-    ),
-    plot_label = paste0(label, "  (", p_text, ")"),
+    estimate = difference_table / full_sample_sd,
+    conf_low = ci_low_table / full_sample_sd,
+    conf_high = ci_high_table / full_sample_sd,
+    plot_label = label,
     panel = factor(panel, levels = unique(selection$panel))
   ) |>
   arrange(panel, order)
@@ -156,26 +144,41 @@ make_panel_plot <- function(panel_name) {
       colour = "grey35"
     ) +
     geom_point(
-      aes(fill = p_adjusted < 0.05),
-      shape = 21,
-      size = 2.6,
+      aes(
+        fill = p_adjusted < 0.05,
+        shape = p_adjusted < 0.05
+      ),
+      size = 4,
       stroke = 0.6,
       colour = "black"
     ) +
-    scale_x_continuous(breaks = common_breaks, limits = common_limits) +
+    scale_x_continuous(
+      breaks = if (panel_name %in% c("A. Demographics and skills", "B. Friendship network")) {
+        seq(-1.0, 0.5, by = 0.5)
+      } else {
+        common_breaks
+      },
+      limits = if (panel_name %in% c("A. Demographics and skills", "B. Friendship network")) {
+        c(-1.0, 0.5)
+      } else {
+        common_limits
+      }
+    ) +
     scale_fill_manual(values = c(`TRUE` = "#2166AC", `FALSE` = "white"), guide = "none") +
+    scale_shape_manual(values = c(`TRUE` = 24, `FALSE` = 21), guide = "none") +
     labs(
-      x = "Standardized difference: larger minus smaller rationality premium",
+      x = NULL,
       y = NULL
     ) +
-    theme_minimal(base_size = 10) +
+    theme_minimal(base_size = 18) +
     theme(
       panel.grid.major.y = element_blank(),
       panel.grid.minor = element_blank(),
       axis.text.y = element_text(colour = "black"),
       axis.title.x = element_text(margin = margin(t = 8)),
-      plot.margin = margin(8, 12, 6, 6)
-    )
+      plot.margin = margin(0, 0, 0, 0)
+    ) +
+    scale_y_discrete(labels = function(labels) parse(text = labels))
 }
 
 dir.create("ML/Figures", recursive = TRUE, showWarnings = FALSE)

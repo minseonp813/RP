@@ -1,0 +1,133 @@
+#' Computes the critical cost efficiency index
+#'
+#' The nonparametric tests of rationality axioms (\code{\link{garp}, \link{sarp}}, and \code{\link{warp}}) are "sharp" in nature.
+#' This means that the tests will only tell us whether the observed data set passed the rationality axioms.
+#' However, when the data set fails, it is often useful to know how close the observed behavior is to
+#' satisfying the rationality restrictions (see Varian (1990) for an extensive motivation). Over the years, several
+#' measures (called goodness-of-fit indices) have been introduced to evaluate the degree to which the data set is consistent
+#' with the rationality axiom(s). The most popular goodness-of-fit index is the Critical Cost Efficiency Index;
+#' CCEI (also known as the Afriat Efficiency Index; AEI) proposed by Afriat (1973). The CCEI is defined as the maximal value of
+#' the efficiency level \eqn{e} such that the data set is consistent with GARP. Intuitively, this measure indicates the degree
+#' to which the set of demand observations is consistent with GARP. This function computes the CCEI following the binary
+#' search algorithm described in Varian (1990). Optionally, the user can specify the axiom (WARP, SARP, or GARP) for which
+#' the CCEI needs to be computed. When no axiom is specified, the function takes the default option as GARP.
+#'
+#'
+#' @param p A \eqn{T X N} matrix of observed prices where each row corresponds to an observation
+#' and each column corresponds to a consumption category. \eqn{T} is the number of observations
+#' and \eqn{N} is the number of consumption categories.
+#'
+#' @param q A \eqn{T X N} matrix of observed quantities where each row corresponds to an observation
+#' and each column corresponds to a consumption category.\eqn{T} is the number of observations
+#' and \eqn{N} is the number of consumption categories.
+#'
+#' @param model Specifies which axiom (GARP, SARP, or WARP) should be used to compute the CCEI. The default value
+#' is "GARP" which computes the usual CCEI (also known as the Afriat efficiency index, AEI) proposed by Afriat (1973).
+#'
+#' @return The function returns \eqn{e^*} which is the highest efficiency level at which the data satisfy the
+#' given axiom. For instance, if the given model is "GARP", the function returns the maximal value of the efficiency
+#' level \eqn{e} such that the data satisfy \eqn{e}GARP.
+#'
+#' @section References:
+#' \itemize{
+#' \item Afriat, Sydney N. "On a system of inequalities in demand analysis: an extension of the classical method."
+#'  International economic review (1973): 460-472.
+#' \item Varian, Hal R. "Goodness-of-fit in optimizing models." Journal of Econometrics 46, no. 1-2 (1990): 125-140.
+#' }
+#'
+#' @examples
+#' # define a price matrix
+#' p = matrix(c(4,4,4,1,9,3,2,8,3,1,
+#' 8,4,3,1,9,3,2,8,8,4,
+#' 1,4,1,8,9,3,1,8,3,2),
+#' nrow = 10, ncol = 3, byrow = TRUE)
+#'
+#' # define a quantity matrix
+#' q = matrix(c( 1.81,0.19,10.51,17.28,2.26,4.13,12.33,2.05,2.99,6.06,
+#' 5.19,0.62,11.34,10.33,0.63,4.33,8.08,2.61,4.36,1.34,
+#' 9.76,1.37,36.35, 1.02,3.21,4.97,6.20,0.32,8.53,10.92),
+#' nrow = 10, ncol = 3, byrow = TRUE)
+#'
+#' # compute ccei for GARP
+#' ccei(p,q, model = "GARP")
+#'
+#' # compute ccei for SARP
+#' ccei(p,q, model = "SARP")
+#'
+#' @seealso \code{\link{mpi}} for the money pump index.
+#'
+#' @export
+#'
+ccei <- function(p,q,model="GARP"){
+
+  if (nrow(p)!=nrow(q)) stop("Number of observations must be the same for both price and quanity matrices")
+  if (ncol(p)!=ncol(q)) stop("Number of consumption categories must be the same for both price and quanity matrices")
+
+  if (model == "GARP"){
+
+    if(garp(p,q)[1] == 1){
+      e <- 1
+    }
+    else{
+      eupper <- 1
+      elower <- 0
+
+      while ((eupper-elower)/elower >= 0.0000000000001){
+        eevaluate = 0.5*(eupper+elower)
+        passevaluate = garp(p,q,eevaluate)[1]
+        if(passevaluate == 1){
+          elower = eevaluate
+        }
+        else{
+          eupper = eevaluate
+        }
+      }
+      e = eevaluate
+    }
+  } else if (model == "SARP"){
+
+    if(sarp(p,q)[1] == 1){
+      e <- 1
+    }
+    else{
+      eupper <- 1
+      elower <- 0
+
+      while ((eupper-elower)/elower >= 0.0000000000001){
+        eevaluate = 0.5*(eupper+elower)
+        passevaluate = sarp(p,q,eevaluate)[1]
+        if(passevaluate == 1){
+          elower = eevaluate
+        }
+        else{
+          eupper = eevaluate
+        }
+      }
+      e = eevaluate
+    }
+  } else if (model == "WARP"){
+
+    if(warp(p,q)[1] == 1){
+      e <- 1
+    }
+    else{
+      eupper <- 1
+      elower <- 0
+
+      while ((eupper-elower)/elower >= 0.0000000000001){
+        eevaluate = 0.5*(eupper+elower)
+        passevaluate = warp(p,q,eevaluate)[1]
+        if(passevaluate == 1){
+          elower = eevaluate
+        }
+        else{
+          eupper = eevaluate
+        }
+      }
+      e = eevaluate
+    }
+  }
+
+
+  return(e)
+}
