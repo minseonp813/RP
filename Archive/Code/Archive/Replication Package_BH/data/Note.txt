@@ -1,0 +1,21 @@
+Raw Data
+
+1. Risk_0907.xlsx : Baseline Raw Data
+
+Dropbox/대구 PBL 연구사업 2016/Data/Raw Data
+
+2. risk_preference_solo_pair.csv : Endline Raw Data
+
+Dropbox/대구 PBL 연구사업 2016/Data/Raw Data_Post
+
+3. Cognitive_Raw_Base.csv
+
+대구 PBL 연구사업 2016/Data/Raw Data_Post/Raw Data_Post/Cognitive.csv
+
+4. Cognitive_Raw_Post.csv 
+
+대구 PBL 연구사업 2016/Data/Raw Data/Cognitive/Cognitive_Raw.csv
+
+
+
+

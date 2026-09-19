@@ -1,0 +1,102 @@
+\documentclass[11pt]{article}
+\usepackage[letterpaper,margin=0.7in]{geometry}
+\usepackage{booktabs,graphicx,amsmath,array}
+\usepackage[T1]{fontenc}
+\newcommand{\sym}[1]{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{8pt}
+\begin{document}
+\begin{center}
+{\Large\bfseries Table 3: Alternative Choice-Pattern Controls}\\[5pt]
+Exploratory comparison --- 18 September 2026
+\end{center}
+The three alternatives remove both $RA_i$ and $RA_i-RA_j$. All other controls, fixed effects, the dependent variable $I_{ig}$, the treatment of tied CCEIs, and the estimation sample follow the current Table 3. The draft and its tables have not been modified.
+
+\textbf{Coefficient comparison.} Removing the RA controls makes the coefficients more negative. Changing the buffer has little further effect. All estimates below are significant at the 1\% level.
+
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+& \multicolumn{2}{c}{Higher-CCEI indicator} & \multicolumn{2}{c}{CCEI difference}\\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+& Class FE & Individual FE & Class FE & Individual FE\\
+Current Table 3 column & (2) & (3) & (5) & (6)\\
+\midrule
+Current table (RA included) & $-0.221^{**}$ & $-0.217^{**}$ & $-0.712^{**}$ & $-0.686^{**}$ \\
+ & $(0.015)$ & $(0.021)$ & $(0.039)$ & $(0.063)$ \\
+No buffer, no RA & $-0.243^{**}$ & $-0.233^{**}$ & $-0.794^{**}$ & $-0.751^{**}$ \\
+ & $(0.015)$ & $(0.022)$ & $(0.037)$ & $(0.057)$ \\
+2.5-point buffer, no RA & $-0.246^{**}$ & $-0.236^{**}$ & $-0.801^{**}$ & $-0.755^{**}$ \\
+ & $(0.015)$ & $(0.022)$ & $(0.038)$ & $(0.058)$ \\
+5-point buffer, no RA & $-0.246^{**}$ & $-0.235^{**}$ & $-0.804^{**}$ & $-0.752^{**}$ \\
+ & $(0.015)$ & $(0.022)$ & $(0.038)$ & $(0.057)$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+{\footnotesize Standard errors in parentheses, clustered by class (64 clusters). All models use the same 2,512 student-wave observations: 1,256 students in 628 pairs. All four columns include the other individual and friendship controls. The unadjusted coefficients, corresponding to current Table 3 Columns (1) and (4), remain $-0.250$ and $-0.802$.}
+
+\textbf{Buffer definitions.} Let $q=x/(x+y)$ be the payoff share. With buffer $b$, a corner choice satisfies $q\leq b$ or $q\geq 1-b$, and an equal-allocation choice satisfies $|q-0.5|\leq b$. Each control is the fraction of a member's 18 choices meeting the definition. As in the current table, regressions include the member's share and its signed difference from the partner's share, separately for corners and equal allocations.
+
+\begin{center}
+\small
+\begin{tabular}{lccrr}
+\toprule
+Definition & Corner bands & Equal-allocation band & Corner share & Equal share\\
+\midrule
+Exact & 0 or 100\% & 50\% & 26.96\% & 0.61\% \\
+2.5 points & $\leq2.5\%$ or $\geq97.5\%$ & 47.5--52.5\% & 30.75\% & 26.50\% \\
+5 points & $\leq5\%$ or $\geq95\%$ & 45--55\% & 32.22\% & 32.71\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+{\footnotesize Shares are calculated from 45,216 individual choices in the fixed analysis sample. Bounds are inclusive. Integer-coordinate inequalities avoid floating-point exclusions at the boundaries. Equal allocation refers to equal payoffs, not the geometric midpoint of a budget line.}
+
+Exact equality is very restrictive: only 0.61\% of choices satisfy $x=y$, compared with 26.50\% within the 2.5-point band. Despite this substantial change in classification, the CCEI coefficients remain stable across the three alternatives.
+
+\clearpage\begin{center}{\large\bfseries No buffer; RA controls removed}\end{center}
+Corner: $x=0$ or $y=0$. Equal allocation: $x=y$.
+\begin{center}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lcccccc}
+\toprule
+& \multicolumn{3}{c}{Higher-CCEI indicator} & \multicolumn{3}{c}{CCEI difference}\\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+Dependent variable: $I_{ig}$ & (1) & (2) & (3) & (4) & (5) & (6)\\
+\midrule
+\input{table3_no_buffer.tex}
+\end{tabular}}
+\end{center}
+{\footnotesize\textit{Notes:} All six columns use the same balanced sample as the current Table 3. Columns (1)--(3) use the higher-CCEI indicator, assigning both members a value of one when their CCEIs are tied; Columns (4)--(6) use $CCEI_i-CCEI_j$. Columns (1), (2), (4), and (5) include class fixed effects; Columns (3) and (6) include individual fixed effects. Columns (2), (3), (5), and (6) include individual characteristics, friendship characteristics, the existing missing-value indicators, and the four choice-share controls shown above. Gender-composition controls enter Columns (2) and (5) and are absorbed by individual fixed effects in Columns (3) and (6). Neither $RA_i$ nor $RA_i-RA_j$ enters any column. Blank control indicators mean that the controls are excluded. Other individual and friendship coefficients follow the reporting convention of the current Table 3; the four choice-share coefficients are additionally displayed for review. Standard errors are clustered at the class level and reported in parentheses. +, *, and ** denote significance at 10\%, 5\%, and 1\%, respectively.}
+
+\clearpage\begin{center}{\large\bfseries Small buffer: 2.5 percentage points}\end{center}
+Corner: $q\leq0.025$ or $q\geq0.975$. Equal allocation: $0.475\leq q\leq0.525$.
+\begin{center}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lcccccc}
+\toprule
+& \multicolumn{3}{c}{Higher-CCEI indicator} & \multicolumn{3}{c}{CCEI difference}\\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+Dependent variable: $I_{ig}$ & (1) & (2) & (3) & (4) & (5) & (6)\\
+\midrule
+\input{table3_small_buffer.tex}
+\end{tabular}}
+\end{center}
+{\footnotesize\textit{Notes:} All six columns use the same balanced sample as the current Table 3. Columns (1)--(3) use the higher-CCEI indicator, assigning both members a value of one when their CCEIs are tied; Columns (4)--(6) use $CCEI_i-CCEI_j$. Columns (1), (2), (4), and (5) include class fixed effects; Columns (3) and (6) include individual fixed effects. Columns (2), (3), (5), and (6) include individual characteristics, friendship characteristics, the existing missing-value indicators, and the four choice-share controls shown above. Gender-composition controls enter Columns (2) and (5) and are absorbed by individual fixed effects in Columns (3) and (6). Neither $RA_i$ nor $RA_i-RA_j$ enters any column. Blank control indicators mean that the controls are excluded. Other individual and friendship coefficients follow the reporting convention of the current Table 3; the four choice-share coefficients are additionally displayed for review. Standard errors are clustered at the class level and reported in parentheses. +, *, and ** denote significance at 10\%, 5\%, and 1\%, respectively.}
+
+\clearpage\begin{center}{\large\bfseries Generous buffer: 5 percentage points}\end{center}
+Corner: $q\leq0.05$ or $q\geq0.95$. Equal allocation: $0.45\leq q\leq0.55$.
+\begin{center}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lcccccc}
+\toprule
+& \multicolumn{3}{c}{Higher-CCEI indicator} & \multicolumn{3}{c}{CCEI difference}\\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+Dependent variable: $I_{ig}$ & (1) & (2) & (3) & (4) & (5) & (6)\\
+\midrule
+\input{table3_generous_buffer.tex}
+\end{tabular}}
+\end{center}
+{\footnotesize\textit{Notes:} All six columns use the same balanced sample as the current Table 3. Columns (1)--(3) use the higher-CCEI indicator, assigning both members a value of one when their CCEIs are tied; Columns (4)--(6) use $CCEI_i-CCEI_j$. Columns (1), (2), (4), and (5) include class fixed effects; Columns (3) and (6) include individual fixed effects. Columns (2), (3), (5), and (6) include individual characteristics, friendship characteristics, the existing missing-value indicators, and the four choice-share controls shown above. Gender-composition controls enter Columns (2) and (5) and are absorbed by individual fixed effects in Columns (3) and (6). Neither $RA_i$ nor $RA_i-RA_j$ enters any column. Blank control indicators mean that the controls are excluded. Other individual and friendship coefficients follow the reporting convention of the current Table 3; the four choice-share coefficients are additionally displayed for review. Standard errors are clustered at the class level and reported in parentheses. +, *, and ** denote significance at 10\%, 5\%, and 1\%, respectively.}
+
+\end{document}

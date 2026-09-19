@@ -1,0 +1,28 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{booktabs,amsmath,array,float,setspace,hyperref}
+\newcommand{\sym}[1]{\ensuremath{^{#1}}}
+\setlength{\parindent}{0pt}
+\begin{document}
+\begin{table}[H]
+\centering
+\singlespacing
+\caption{Individual Characteristics and Changes in CCEI}
+\label{tab:individual_ccei_change}
+\small
+\renewcommand{\arraystretch}{1.05}
+\begin{tabular*}{0.9\textwidth}{@{\extracolsep{\fill}}lcc}
+\toprule
+Dependent variable: $\Delta CCEI_i$ & (1) & (2) \\
+ & Baseline characteristics & Baseline and changes \\
+\midrule
+\input{../tables/table_individual_ccei_change}
+\end{tabular*}
+\par\smallskip
+\begin{minipage}{\textwidth}
+\footnotesize
+\emph{Notes}: The dependent variable is the change in individual CCEI from baseline to endline. Each column reports an individual-level OLS regression using the 1,256 students in the balanced sample of Table~3, with one observation per student. Column (1) includes baseline gender, height, math score, the five personality measures, and friendship-network out-degree and in-degree. Column (2) additionally includes endline-minus-baseline changes in math score, out-degree, and in-degree. Neither specification includes class fixed effects, partner characteristics, within-pair differences, risk aversion, or choice-pattern shares. Missing baseline math and personality values are set to zero, with corresponding missing-value indicators included; their coefficients and the constant are omitted from the display. Standard errors are clustered across 64 classes and reported in parentheses. +, *, and ** denote significance at the 10\%, 5\%, and 1\% levels, respectively.
+\end{minipage}
+\end{table}
+
+\end{document}
