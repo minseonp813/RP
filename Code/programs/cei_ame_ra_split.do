@@ -1,8 +1,10 @@
 * Run immediately after 99_1_Tables_Main.do; reuse its pair-wave sample/controls.
-* Argument: output CSV path. The split pools both waves and assigns ties low.
-args outfile
+* Optional arguments: efficiency indicator, supplied split variable, estimates directory.
+* Without a supplied split, pool both waves and assign median ties low.
+args outfile efficiency splitvar estimates_dir
+if "`efficiency'" == "" local efficiency cei_full
 isid group_id post
-assert !missing(RA_dist, ccei_max_01, ccei_min_01, cei_full, ccei_full)
+assert !missing(RA_dist, ccei_max_01, ccei_min_01, `efficiency', ccei_full)
 assert abs(RA_dist - abs(RA_i - RA_j)) < 1e-7
 
 quietly summarize RA_dist, detail
@@ -10,8 +12,10 @@ local median = r(p50)
 quietly count if RA_dist == `median'
 di as result "Pooled RA-difference median: " %12.9f `median' "; ties: " r(N)
 tempvar ra_high outcome pair_tag class_tag
-gen byte `ra_high' = RA_dist > `median'
-gen byte `outcome' = 1 + ccei_full + 2 * cei_full
+if "`splitvar'" == "" gen byte `ra_high' = RA_dist > `median'
+else gen byte `ra_high' = `splitvar'
+assert inlist(`ra_high', 0, 1)
+gen byte `outcome' = 1 + ccei_full + 2 * `efficiency'
 tabulate `ra_high' `outcome'
 bysort group_id (post): gen byte `pair_tag' = _n == 1
 quietly count if `pair_tag' & `ra_high' != `ra_high'[_n+1]
@@ -26,11 +30,17 @@ forvalues split = 0/1 {
     * Equivalent outcome normalizations avoid singular covariance calculations
     * in the sparse subgroup fits. Fitted probabilities and AMEs are invariant.
     local base = cond(`split' == 0, 1, 3)
+    local optimizer "difficult iterate(100)"
+    if "`splitvar'" != "" {
+        local base = cond(`split' == 0, 1, 4)
+        if `split' == 0 local optimizer "technique(bfgs 20 nr 20) difficult iterate(150)"
+    }
     mlogit `outcome' c.ccei_max_01 c.ccei_min_01 ///
         $t5_group $t5_friend $t5_share i.class_fe ///
         if `ra_high' == `split', baseoutcome(`base') vce(cluster class_fe) ///
-        difficult iterate(100)
+        `optimizer'
     assert e(converged) == 1
+    if "`estimates_dir'" != "" estimates save "`estimates_dir'/figure6_split_`split'.ster", replace
     local n = e(N)
     local clusters = e(N_clust)
     quietly count if `ra_high' == `split'

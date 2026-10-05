@@ -1,0 +1,126 @@
+* Adopt I controlling for M for the manuscript; leave prior review comparisons intact.
+* Run from Code. Uses the validated review sample and its full 651-donor CCEI benchmark.
+clear all
+set more off
+set matsize 8000
+local out "IminusM_review/outputs"
+capture mkdir "`out'/adopted"
+log using "`out'/logs/adopted_specification.log", text replace
+use "`out'/data/ccei_ra_candidate_analysis.dta", clear
+isid id post
+assert n_ccei_donors == 651
+label var HighCCEI_both_high "\$Higher\ CCEI_i\$"
+label var ccei_gap_ij "\$CCEI_i-CCEI_j\$"
+label var M_ccei "\$M_{ig}\$"
+label var mathscore_i "\$Math\ score_i\$"
+label var mathscore_diff "\$Math\ score_{diff}\$"
+label var inclass_popularity_i "\$In\text{-}degree_i\$"
+label var inclass_pop_diff "\$In\text{-}degree_{diff}\$"
+label var female_i_male_j "\$(Female_i, Male_j)\$"
+label var male_i_female_j "\$(Male_i, Female_j)\$"
+label var mover "\$Mover_i\$"
+label var higher_mover "\$Higher\ CCEI_i\times Mover_i\$"
+label var gap_mover "\$(CCEI_i-CCEI_j)\times Mover_i\$"
+
+capture program drop adopted_fit
+program define adopted_fit
+    syntax varlist, SPEC(integer) [SHARES(string)]
+    if "`shares'" == "" local shares "corner_share_i corner_share_diff mid_share_i mid_share_diff"
+    local controls ""
+    local fe class
+    local fe_label Class
+    local checks ""
+    if `spec' >= 2 {
+        local controls "mathscore_i mathscore_diff height_i height_diff outgoing_i outgoing_diff opened_i opened_diff agreeable_i agreeable_diff conscientious_i conscientious_diff stable_i stable_diff inclass_n_friends_i inclass_n_diff inclass_popularity_i inclass_pop_diff mathscore_diff_missing outgoing_diff_missing opened_diff_missing agreeable_diff_missing conscientious_diff_missing stable_diff_missing `shares'"
+        local checks "\checkmark"
+    }
+    if `spec' == 2 local controls "`controls' female_i_male_j male_i_female_j"
+    if `spec' == 3 {
+        local fe id_fe
+        local fe_label Individual
+    }
+    quietly reghdfe I_ccei `varlist' M_ccei `controls' if sample_ccei, absorb(`fe') vce(cluster class)
+    assert e(N) == 2512 & e(N_clust) == 64
+    estadd local fixed_effects "`fe_label'"
+    estadd local characteristics "`checks'"
+    estadd local choice_shares "`checks'"
+end
+
+local selected "mathscore_i mathscore_diff female_i_male_j male_i_female_j inclass_popularity_i inclass_pop_diff"
+local col = 0
+foreach focal in HighCCEI_both_high ccei_gap_ij {
+    forvalues spec = 1/3 {
+        local ++col
+        adopted_fit `focal', spec(`spec')
+        estimates store main`col'
+        estimates save "`out'/adopted/main`col'.ster", replace
+    }
+}
+esttab main1 main2 main3 main4 main5 main6 using "`out'/adopted/table_bargainingCCEI_M.tex", replace ///
+    b(3) se(3) star(+ 0.1 * 0.05 ** 0.01) label nogap compress noomitted substitute(\_ _) ///
+    keep(HighCCEI_both_high ccei_gap_ij M_ccei `selected') ///
+    order(HighCCEI_both_high ccei_gap_ij M_ccei `selected') ///
+    stats(N r2 fixed_effects characteristics choice_shares, fmt(0 3) ///
+        labels("N" "R-squared" "Fixed effects" "Individual and friendship controls" "Corner/midpoint share controls")) ///
+    fragment nomtitles nonumbers nolines prefoot("\midrule") postfoot("\bottomrule")
+
+* Buffer definitions and their components come from the existing review dataset.
+local panel = 0
+foreach suffix in 0 025 05 {
+    local ++panel
+    capture drop candidate_corner_i candidate_corner_diff candidate_mid_i candidate_mid_diff
+    gen double candidate_corner_i = corner_`suffix'_i
+    gen double candidate_corner_diff = corner_`suffix'_i - corner_`suffix'_j
+    gen double candidate_mid_i = mid_`suffix'_i
+    gen double candidate_mid_diff = mid_`suffix'_i - mid_`suffix'_j
+    local col = 0
+    foreach focal in HighCCEI_both_high ccei_gap_ij {
+        forvalues spec = 2/3 {
+            local ++col
+            adopted_fit `focal', spec(`spec') shares("candidate_corner_i candidate_corner_diff candidate_mid_i candidate_mid_diff")
+            estimates store buffer`col'
+        }
+    }
+    local title "Panel A: No buffer"
+    local mode replace
+    if `panel' == 2 local title "Panel B: 2.5-percentage-point buffer"
+    if `panel' == 3 local title "Panel C: 5-percentage-point buffer"
+    if `panel' > 1 local mode append
+    esttab buffer1 buffer2 buffer3 buffer4 using "`out'/adopted/table_bargainingCCEI_buffers_M.tex", `mode' ///
+        b(3) se(3) star(+ 0.1 * 0.05 ** 0.01) label nogap compress noomitted substitute(\_ _) ///
+        keep(HighCCEI_both_high ccei_gap_ij M_ccei) order(HighCCEI_both_high ccei_gap_ij M_ccei) ///
+        fragment nomtitles nonumbers nolines noobs ///
+        prehead("\multicolumn{5}{l}{\emph{`title'}} \\") prefoot("") postfoot("\addlinespace")
+}
+
+local col = 0
+foreach focal in HighCCEI_both_high ccei_gap_ij {
+    local interaction higher_mover
+    if "`focal'" == "ccei_gap_ij" local interaction gap_mover
+    forvalues spec = 1/3 {
+        local ++col
+        adopted_fit `focal' mover `interaction', spec(`spec')
+        estimates store mover`col'
+    }
+}
+esttab mover1 mover2 mover3 mover4 mover5 mover6 using "`out'/adopted/table_bargainingCCEI_mover_M.tex", replace ///
+    b(3) se(3) star(+ 0.1 * 0.05 ** 0.01) label nogap compress noomitted substitute(\_ _) ///
+    keep(HighCCEI_both_high ccei_gap_ij mover higher_mover gap_mover M_ccei `selected') ///
+    order(HighCCEI_both_high ccei_gap_ij mover higher_mover gap_mover M_ccei `selected') ///
+    stats(N r2 fixed_effects characteristics choice_shares, fmt(0 3) ///
+        labels("N" "R-squared" "Fixed effects" "Individual and friendship controls" "Corner/midpoint share controls")) ///
+    fragment nomtitles nonumbers nolines prefoot("\midrule") postfoot("\bottomrule")
+
+label var HighCCEI_both_low "\$Higher\ CCEI_i\$"
+forvalues spec = 1/3 {
+    adopted_fit HighCCEI_both_low, spec(`spec')
+    estimates store low`spec'
+}
+esttab low1 low2 low3 using "`out'/adopted/table_bargainingCCEI_bothlow_M.tex", replace ///
+    b(3) se(3) star(+ 0.1 * 0.05 ** 0.01) label nogap compress noomitted substitute(\_ _) ///
+    keep(HighCCEI_both_low M_ccei) order(HighCCEI_both_low M_ccei) ///
+    stats(N r2 fixed_effects characteristics choice_shares, fmt(0 3) ///
+        labels("N" "R-squared" "Fixed effects" "Individual and friendship controls" "Corner/midpoint share controls")) ///
+    fragment nomtitles nonumbers nolines prefoot("\midrule") postfoot("\bottomrule")
+di as result "SUCCESS: main, buffer, mover, and ties-low regressions all use I controlling for M; N=2512, clusters=64."
+log close
