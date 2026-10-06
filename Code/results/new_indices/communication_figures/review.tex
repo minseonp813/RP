@@ -1,0 +1,203 @@
+\documentclass[11pt]{article}
+\usepackage[letterpaper,landscape,margin=0.65in]{geometry}
+\usepackage{booktabs,graphicx,xcolor}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\begin{document}
+\begin{center}\Large\textbf{Figure 6 by communication-proxy subgroups}\end{center}
+\textbf{What is plotted.} Average marginal effects from Figure 6's four-category multinomial logit,
+re-estimated separately in each subgroup. Both maximum and minimum individual CCEI enter together.
+Points measure the probability change, in percentage points, per 0.1 increase in individual CCEI;
+bars are 95\% class-clustered confidence intervals. All panels use the same axis, from $-40$ to $40$ points.
+
+\textbf{Main comparison.} The weaker minimum-CCEI association among friendship and higher-math groups
+largely carries over to the probability of full group consistency. The wave comparison does not:
+the minimum-CCEI marginal effect on reaching group CCEI equal to one is larger at endline.
+These endpoint outcomes differ from the continuous group-index regressions previously reported.
+
+\begin{center}\small
+\begin{tabular}{lrrrr}\toprule
+& \multicolumn{2}{c}{Probability of CCEI $=1$} & \multicolumn{2}{c}{Probability of CEIV $=1$}\\
+Split & Lower proxy & Higher proxy & Lower proxy & Higher proxy\\\midrule
+Baseline / endline & 3.83 & 5.95 & 0.37 & 0.21\\
+No / any friendship nomination & 7.39 & -1.08 & 0.77 & -3.01\\
+Pair math: below / at-or-above wave median & 5.72 & 3.46 & 1.88 & -2.38\\
+Less-rational math: below / at-or-above wave median & 5.17 & 2.93 & -1.20 & -2.17\\
+\bottomrule\end{tabular}\end{center}
+\small
+The table sums the minimum-CCEI marginal effects across the relevant categories. It reports point estimates,
+not formal tests of differences across subgroups. Comparing which confidence intervals contain zero is not a test
+of heterogeneity. Subgroup distributions and room for improvement also differ.
+
+\textbf{Same controls as Figure 6.} Student/personality, friendship/network, and corner/midpoint-share controls,
+plus class fixed effects and class-clustered standard errors. No risk-aversion controls or risk-gap restriction.
+The primary non-wave splits pool baseline and endline, as in the preceding heterogeneity analysis.
+CCEI and CEIV equal one when their computed value is at least $1-10^{-9}$; CEIV lower and upper bounds agree
+on this classification. All requested separate fits retain their entire eligible subgroup.
+
+\textbf{Small-subgroup limitation.} The mutual-friendship sample has 167 observations and 54 classes.
+Its separate full-control model approaches perfect prediction (log likelihood $\simeq -0.0003$).
+Although the optimizer reports convergence, its essentially zero local marginal effects are uninformative.
+The final page therefore shows an explicitly labelled alternative: estimate all friendship categories jointly,
+interacting both CCEIs with friendship, while sharing the other controls and class effects.
+
+\textbf{Interpretation.} The splits are descriptive communication proxies. Group CCEI measures internal
+consistency; it does not identify constant aggregation weights. CEIV does not identify turn-taking.
+Experience, friendship, and math scores do not directly measure the content of communication.
+\clearpage
+\begin{center}\Large\textbf{Baseline}\end{center}
+\small The same 652 pairs are observed in each wave. Endline may capture experience as well as other changes between waves.
+Separate-subgroup fit: 652 pair-waves, 652 distinct pairs, 64 class clusters.
+\begin{center}\begin{minipage}{0.48\textwidth}\centering
+\includegraphics[width=\linewidth]{figure6_a_wave_0_ame_maximum.png}
+\textbf{(a) More rational member: maximum CCEI}\end{minipage}\hfill\begin{minipage}{0.48\textwidth}\centering
+\includegraphics[width=\linewidth]{figure6_a_wave_0_ame_minimum.png}
+\textbf{(b) Less rational member: minimum CCEI}\end{minipage}\end{center}
+\begin{center}\begin{tabular}{lrrrr}\toprule
+Outcome & CCEI $<1$, CEIV $<1$ & CCEI $=1$, CEIV $<1$ & CCEI $<1$, CEIV $=1$ & CCEI $=1$, CEIV $=1$\\\midrule
+Observed pair-waves & 232 & 67 & 165 & 188\\
+Share & 35.6\% & 10.3\% & 25.3\% & 28.8\%\\\bottomrule\end{tabular}\end{center}
+\footnotesize\textit{Notes:} Effects are percentage points per 0.1 increase in individual CCEI, holding the other member's CCEI and controls fixed locally, then averaging over this subgroup. Four-category effects sum to zero for each member. Intervals use class-clustered standard errors. The class effects, coefficients, and outcome distributions can differ across separate fits; visual comparisons are descriptive.
+\clearpage
+\begin{center}\Large\textbf{Endline}\end{center}
+\small The same 652 pairs are observed in each wave. Endline may capture experience as well as other changes between waves.
+Separate-subgroup fit: 652 pair-waves, 652 distinct pairs, 64 class clusters.
+\begin{center}\begin{minipage}{0.48\textwidth}\centering
+\includegraphics[width=\linewidth]{figure6_a_wave_1_ame_maximum.png}
+\textbf{(a) More rational member: maximum CCEI}\end{minipage}\hfill\begin{minipage}{0.48\textwidth}\centering
+\includegraphics[width=\linewidth]{figure6_a_wave_1_ame_minimum.png}
+\textbf{(b) Less rational member: minimum CCEI}\end{minipage}\end{center}
+\begin{center}\begin{tabular}{lrrrr}\toprule
+Outcome & CCEI $<1$, CEIV $<1$ & CCEI $=1$, CEIV $<1$ & CCEI $<1$, CEIV $=1$ & CCEI $=1$, CEIV $=1$\\\midrule
+Observed pair-waves & 183 & 50 & 135 & 284\\
+Share & 28.1\% & 7.7\% & 20.7\% & 43.6\%\\\bottomrule\end{tabular}\end{center}
+\footnotesize\textit{Notes:} Effects are percentage points per 0.1 increase in individual CCEI, holding the other member's CCEI and controls fixed locally, then averaging over this subgroup. Four-category effects sum to zero for each member. Intervals use class-clustered standard errors. The class effects, coefficients, and outcome distributions can differ across separate fits; visual comparisons are descriptive.
+\clearpage
+\begin{center}\Large\textbf{No friendship nomination}\end{center}
+\small Friendship means at least one directed nomination. It is contemporaneous: 167 pairs change the three-category friendship classification between waves.
+Separate-subgroup fit: 912 pair-waves, 518 distinct pairs, 64 class clusters.
+\begin{center}\begin{minipage}{0.48\textwidth}\centering
+\includegraphics[width=\linewidth]{figure6_a_friend_any_0_ame_maximum.png}
+\textbf{(a) More rational member: maximum CCEI}\end{minipage}\hfill\begin{minipage}{0.48\textwidth}\centering
+\includegraphics[width=\linewidth]{figure6_a_friend_any_0_ame_minimum.png}
+\textbf{(b) Less rational member: minimum CCEI}\end{minipage}\end{center}
+\begin{center}\begin{tabular}{lrrrr}\toprule
+Outcome & CCEI $<1$, CEIV $<1$ & CCEI $=1$, CEIV $<1$ & CCEI $<1$, CEIV $=1$ & CCEI $=1$, CEIV $=1$\\\midrule
+Observed pair-waves & 306 & 80 & 206 & 320\\
+Share & 33.6\% & 8.8\% & 22.6\% & 35.1\%\\\bottomrule\end{tabular}\end{center}
+\footnotesize\textit{Notes:} Effects are percentage points per 0.1 increase in individual CCEI, holding the other member's CCEI and controls fixed locally, then averaging over this subgroup. Four-category effects sum to zero for each member. Intervals use class-clustered standard errors. The class effects, coefficients, and outcome distributions can differ across separate fits; visual comparisons are descriptive.
+\clearpage
+\begin{center}\Large\textbf{At least one friendship nomination}\end{center}
+\small Friendship means at least one directed nomination. It is contemporaneous: 167 pairs change the three-category friendship classification between waves.
+Separate-subgroup fit: 392 pair-waves, 258 distinct pairs, 62 class clusters.
+\begin{center}\begin{minipage}{0.48\textwidth}\centering
+\includegraphics[width=\linewidth]{figure6_a_friend_any_1_ame_maximum.png}
+\textbf{(a) More rational member: maximum CCEI}\end{minipage}\hfill\begin{minipage}{0.48\textwidth}\centering
+\includegraphics[width=\linewidth]{figure6_a_friend_any_1_ame_minimum.png}
+\textbf{(b) Less rational member: minimum CCEI}\end{minipage}\end{center}
+\begin{center}\begin{tabular}{lrrrr}\toprule
+Outcome & CCEI $<1$, CEIV $<1$ & CCEI $=1$, CEIV $<1$ & CCEI $<1$, CEIV $=1$ & CCEI $=1$, CEIV $=1$\\\midrule
+Observed pair-waves & 109 & 37 & 94 & 152\\
+Share & 27.8\% & 9.4\% & 24.0\% & 38.8\%\\\bottomrule\end{tabular}\end{center}
+\footnotesize\textit{Notes:} Effects are percentage points per 0.1 increase in individual CCEI, holding the other member's CCEI and controls fixed locally, then averaging over this subgroup. Four-category effects sum to zero for each member. Intervals use class-clustered standard errors. The class effects, coefficients, and outcome distributions can differ across separate fits; visual comparisons are descriptive.
+\clearpage
+\begin{center}\Large\textbf{Pair-average math: below wave median}\end{center}
+\small Average both observed math scores (0--5); exclude 13 pair-waves with a missing score. Wave medians are 2.5 at baseline and 3 at endline. Median ties enter the higher bin; eligible low/high counts are 530/761.
+Separate-subgroup fit: 530 pair-waves, 369 distinct pairs, 62 class clusters.
+\begin{center}\begin{minipage}{0.48\textwidth}\centering
+\includegraphics[width=\linewidth]{figure6_a_math_pair_0_ame_maximum.png}
+\textbf{(a) More rational member: maximum CCEI}\end{minipage}\hfill\begin{minipage}{0.48\textwidth}\centering
+\includegraphics[width=\linewidth]{figure6_a_math_pair_0_ame_minimum.png}
+\textbf{(b) Less rational member: minimum CCEI}\end{minipage}\end{center}
+\begin{center}\begin{tabular}{lrrrr}\toprule
+Outcome & CCEI $<1$, CEIV $<1$ & CCEI $=1$, CEIV $<1$ & CCEI $<1$, CEIV $=1$ & CCEI $=1$, CEIV $=1$\\\midrule
+Observed pair-waves & 175 & 43 & 123 & 189\\
+Share & 33.0\% & 8.1\% & 23.2\% & 35.7\%\\\bottomrule\end{tabular}\end{center}
+\footnotesize\textit{Notes:} Effects are percentage points per 0.1 increase in individual CCEI, holding the other member's CCEI and controls fixed locally, then averaging over this subgroup. Four-category effects sum to zero for each member. Intervals use class-clustered standard errors. The class effects, coefficients, and outcome distributions can differ across separate fits; visual comparisons are descriptive.
+\clearpage
+\begin{center}\Large\textbf{Pair-average math: at or above wave median}\end{center}
+\small Average both observed math scores (0--5); exclude 13 pair-waves with a missing score. Wave medians are 2.5 at baseline and 3 at endline. Median ties enter the higher bin; eligible low/high counts are 530/761.
+Separate-subgroup fit: 761 pair-waves, 487 distinct pairs, 64 class clusters.
+\begin{center}\begin{minipage}{0.48\textwidth}\centering
+\includegraphics[width=\linewidth]{figure6_a_math_pair_1_ame_maximum.png}
+\textbf{(a) More rational member: maximum CCEI}\end{minipage}\hfill\begin{minipage}{0.48\textwidth}\centering
+\includegraphics[width=\linewidth]{figure6_a_math_pair_1_ame_minimum.png}
+\textbf{(b) Less rational member: minimum CCEI}\end{minipage}\end{center}
+\begin{center}\begin{tabular}{lrrrr}\toprule
+Outcome & CCEI $<1$, CEIV $<1$ & CCEI $=1$, CEIV $<1$ & CCEI $<1$, CEIV $=1$ & CCEI $=1$, CEIV $=1$\\\midrule
+Observed pair-waves & 237 & 71 & 172 & 281\\
+Share & 31.1\% & 9.3\% & 22.6\% & 36.9\%\\\bottomrule\end{tabular}\end{center}
+\footnotesize\textit{Notes:} Effects are percentage points per 0.1 increase in individual CCEI, holding the other member's CCEI and controls fixed locally, then averaging over this subgroup. Four-category effects sum to zero for each member. Intervals use class-clustered standard errors. The class effects, coefficients, and outcome distributions can differ across separate fits; visual comparisons are descriptive.
+\clearpage
+\begin{center}\Large\textbf{Less rational member's math: below wave median}\end{center}
+\small Select the member with strictly lower individual CCEI in each wave. Exclude 199 CCEI-tied pair-waves and 11 additional pair-waves with missing selected-member math. The median is 3 in both waves; ties enter the higher bin. Eligible low/high counts are 522/572. The selected member can change across waves.
+Separate-subgroup fit: 522 pair-waves, 385 distinct pairs, 63 class clusters.
+\begin{center}\begin{minipage}{0.48\textwidth}\centering
+\includegraphics[width=\linewidth]{figure6_a_math_less_0_ame_maximum.png}
+\textbf{(a) More rational member: maximum CCEI}\end{minipage}\hfill\begin{minipage}{0.48\textwidth}\centering
+\includegraphics[width=\linewidth]{figure6_a_math_less_0_ame_minimum.png}
+\textbf{(b) Less rational member: minimum CCEI}\end{minipage}\end{center}
+\begin{center}\begin{tabular}{lrrrr}\toprule
+Outcome & CCEI $<1$, CEIV $<1$ & CCEI $=1$, CEIV $<1$ & CCEI $<1$, CEIV $=1$ & CCEI $=1$, CEIV $=1$\\\midrule
+Observed pair-waves & 187 & 47 & 128 & 160\\
+Share & 35.8\% & 9.0\% & 24.5\% & 30.7\%\\\bottomrule\end{tabular}\end{center}
+\footnotesize\textit{Notes:} Effects are percentage points per 0.1 increase in individual CCEI, holding the other member's CCEI and controls fixed locally, then averaging over this subgroup. Four-category effects sum to zero for each member. Intervals use class-clustered standard errors. The class effects, coefficients, and outcome distributions can differ across separate fits; visual comparisons are descriptive.
+\clearpage
+\begin{center}\Large\textbf{Less rational member's math: at or above wave median}\end{center}
+\small Select the member with strictly lower individual CCEI in each wave. Exclude 199 CCEI-tied pair-waves and 11 additional pair-waves with missing selected-member math. The median is 3 in both waves; ties enter the higher bin. Eligible low/high counts are 522/572. The selected member can change across waves.
+Separate-subgroup fit: 572 pair-waves, 417 distinct pairs, 64 class clusters.
+\begin{center}\begin{minipage}{0.48\textwidth}\centering
+\includegraphics[width=\linewidth]{figure6_a_math_less_1_ame_maximum.png}
+\textbf{(a) More rational member: maximum CCEI}\end{minipage}\hfill\begin{minipage}{0.48\textwidth}\centering
+\includegraphics[width=\linewidth]{figure6_a_math_less_1_ame_minimum.png}
+\textbf{(b) Less rational member: minimum CCEI}\end{minipage}\end{center}
+\begin{center}\begin{tabular}{lrrrr}\toprule
+Outcome & CCEI $<1$, CEIV $<1$ & CCEI $=1$, CEIV $<1$ & CCEI $<1$, CEIV $=1$ & CCEI $=1$, CEIV $=1$\\\midrule
+Observed pair-waves & 189 & 51 & 136 & 196\\
+Share & 33.0\% & 8.9\% & 23.8\% & 34.3\%\\\bottomrule\end{tabular}\end{center}
+\footnotesize\textit{Notes:} Effects are percentage points per 0.1 increase in individual CCEI, holding the other member's CCEI and controls fixed locally, then averaging over this subgroup. Four-category effects sum to zero for each member. Intervals use class-clustered standard errors. The class effects, coefficients, and outcome distributions can differ across separate fits; visual comparisons are descriptive.
+\clearpage
+\begin{center}\Large\textbf{No friendship nomination: three-category reference}\end{center}
+\small Directed friendship nominations distinguish none, one-sided, and mutual. Eligible counts are 912/225/167 pair-waves. The no-nomination figure duplicates the corresponding binary-friendship reference.
+Separate-subgroup fit: 912 pair-waves, 518 distinct pairs, 64 class clusters.
+\begin{center}\begin{minipage}{0.48\textwidth}\centering
+\includegraphics[width=\linewidth]{figure6_a_friend_0_ame_maximum.png}
+\textbf{(a) More rational member: maximum CCEI}\end{minipage}\hfill\begin{minipage}{0.48\textwidth}\centering
+\includegraphics[width=\linewidth]{figure6_a_friend_0_ame_minimum.png}
+\textbf{(b) Less rational member: minimum CCEI}\end{minipage}\end{center}
+\begin{center}\begin{tabular}{lrrrr}\toprule
+Outcome & CCEI $<1$, CEIV $<1$ & CCEI $=1$, CEIV $<1$ & CCEI $<1$, CEIV $=1$ & CCEI $=1$, CEIV $=1$\\\midrule
+Observed pair-waves & 306 & 80 & 206 & 320\\
+Share & 33.6\% & 8.8\% & 22.6\% & 35.1\%\\\bottomrule\end{tabular}\end{center}
+\footnotesize\textit{Notes:} Effects are percentage points per 0.1 increase in individual CCEI, holding the other member's CCEI and controls fixed locally, then averaging over this subgroup. Four-category effects sum to zero for each member. Intervals use class-clustered standard errors. The class effects, coefficients, and outcome distributions can differ across separate fits; visual comparisons are descriptive.
+\clearpage
+\begin{center}\Large\textbf{One-sided friendship nomination}\end{center}
+\small Directed friendship nominations distinguish none, one-sided, and mutual. Eligible counts are 912/225/167 pair-waves. The no-nomination figure duplicates the corresponding binary-friendship reference.
+Separate-subgroup fit: 225 pair-waves, 185 distinct pairs, 58 class clusters.
+\begin{center}\begin{minipage}{0.48\textwidth}\centering
+\includegraphics[width=\linewidth]{figure6_a_friend_1_ame_maximum.png}
+\textbf{(a) More rational member: maximum CCEI}\end{minipage}\hfill\begin{minipage}{0.48\textwidth}\centering
+\includegraphics[width=\linewidth]{figure6_a_friend_1_ame_minimum.png}
+\textbf{(b) Less rational member: minimum CCEI}\end{minipage}\end{center}
+\begin{center}\begin{tabular}{lrrrr}\toprule
+Outcome & CCEI $<1$, CEIV $<1$ & CCEI $=1$, CEIV $<1$ & CCEI $<1$, CEIV $=1$ & CCEI $=1$, CEIV $=1$\\\midrule
+Observed pair-waves & 60 & 17 & 49 & 99\\
+Share & 26.7\% & 7.6\% & 21.8\% & 44.0\%\\\bottomrule\end{tabular}\end{center}
+\footnotesize\textit{Notes:} Effects are percentage points per 0.1 increase in individual CCEI, holding the other member's CCEI and controls fixed locally, then averaging over this subgroup. Four-category effects sum to zero for each member. Intervals use class-clustered standard errors. The class effects, coefficients, and outcome distributions can differ across separate fits; visual comparisons are descriptive.
+\clearpage
+\begin{center}\Large\textbf{Mutual friendship nomination}\end{center}
+\textcolor{red!65!black}{\textbf{Shared-controls alternative; not an exact separate-subgroup replication.}}
+\small Directed friendship nominations distinguish none, one-sided, and mutual. Eligible counts are 912/225/167 pair-waves. The no-nomination figure duplicates the corresponding binary-friendship reference.
+The model fits all 1,304 pair-waves (64 class clusters), allowing friendship-specific slopes for both individual CCEIs. Marginal effects are averaged over the 167 mutual-friendship observations only. Other controls and class effects are shared across friendship categories.
+\begin{center}\begin{minipage}{0.48\textwidth}\centering
+\includegraphics[width=\linewidth]{figure6_a_friend_pool_2_ame_maximum.png}
+\textbf{(a) More rational member: maximum CCEI}\end{minipage}\hfill\begin{minipage}{0.48\textwidth}\centering
+\includegraphics[width=\linewidth]{figure6_a_friend_pool_2_ame_minimum.png}
+\textbf{(b) Less rational member: minimum CCEI}\end{minipage}\end{center}
+\begin{center}\begin{tabular}{lrrrr}\toprule
+Outcome & CCEI $<1$, CEIV $<1$ & CCEI $=1$, CEIV $<1$ & CCEI $<1$, CEIV $=1$ & CCEI $=1$, CEIV $=1$\\\midrule
+Observed pair-waves & 49 & 20 & 45 & 53\\
+Share & 29.3\% & 12.0\% & 26.9\% & 31.7\%\\\bottomrule\end{tabular}\end{center}
+\footnotesize\textit{Notes:} Effects are percentage points per 0.1 increase in individual CCEI, holding the other member's CCEI and controls fixed locally, then averaging over this subgroup. Four-category effects sum to zero for each member. Intervals use class-clustered standard errors. The class effects, coefficients, and outcome distributions can differ across separate fits; visual comparisons are descriptive.
+The exact separate mutual-friendship fit is retained in the exported estimates for diagnostics, but not plotted here: near-perfect prediction makes those local derivatives unreliable. The shared-controls results depend on the pooling restriction and serve as a sensitivity check.
+\end{document}
