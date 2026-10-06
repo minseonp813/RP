@@ -1,5 +1,23 @@
-# Merge the clean modules.
+# 03_build_panel.R
+# Latest update: 2026-10-06
+# Purpose: Add cleaned survey, demographic and friendship information to the
+#          wide pair panel, retaining the indices and M benchmarks from 01.
+# Inputs: data/panel_final.dta from 01; cleaned survey modules from 02;
+#         data/network_survey.dta and, when available, data/height.dta.
+# Outputs: Updated data/panel_final.dta (one pair per row, both waves in columns)
+#          and data/network_panel_clean.dta.
+# Sections:
+#   1. Set up packages, paths and merge/network helpers.
+#   2. Load clean modules and carry baseline-only responses into endline.
+#   3. Load the index panel and validate member identifiers and class.
+#   4. Merge survey, sex and optional height/weight data for each member.
+#   5. Build and merge network degree and pair friendship variables.
+#   6. Derive pair controls and member index rankings; validate the panel.
+#   7. Save the enriched wide panel.
 
+# ----------------------------------------------------------------------------
+# 1. Setup and merge/network helpers
+# ----------------------------------------------------------------------------
 rm(list = ls())
 
 library(tidyverse)
@@ -163,6 +181,9 @@ load_clean_module <- function(path) {
     mutate(id = id_as_char(id))
 }
 
+# ----------------------------------------------------------------------------
+# 2. Load clean modules and carry baseline-only responses forward
+# ----------------------------------------------------------------------------
 noncog_pre_clean <- load_clean_module("data/noncog_pre_clean.dta")
 male_clean <- load_clean_module("data/male_clean.dta")
 noncog_post_clean <- load_clean_module("data/noncog_post_clean.dta")
@@ -195,6 +216,9 @@ names(noncog_baseline_for_end) <- str_replace(
   "_end"
 )
 
+# ----------------------------------------------------------------------------
+# 3. Load the index panel and validate identifiers and class
+# ----------------------------------------------------------------------------
 panel_final <- read_dta("data/panel_final.dta")
 
 required_ihat_cols <- c(
@@ -260,6 +284,9 @@ if (nrow(bad_class_rows) > 0) {
 cat("\nClass variable created in panel_final from the first five digits of id_mover_base.\n")
 cat("Number of classes:", n_distinct(panel_final$class), "\n")
 
+# ----------------------------------------------------------------------------
+# 4. Merge survey, sex and optional height/weight data
+# ----------------------------------------------------------------------------
 height_clean <- NULL
 if (file.exists("data/height.dta")) {
   height_clean <- read_dta("data/height.dta") %>%
@@ -423,6 +450,9 @@ for (spec in module_specs) {
 }
 
 
+# ----------------------------------------------------------------------------
+# 5. Build and merge network and pair friendship variables
+# ----------------------------------------------------------------------------
 degree_base <- make_network_degree(
   network_all = network_all,
   network_edges = network_edges,
@@ -646,6 +676,9 @@ if (nrow(panel_final) != n_before) {
 }
 
 
+# ----------------------------------------------------------------------------
+# 6. Pair controls, member index rankings and validation
+# ----------------------------------------------------------------------------
 if (all(c("height_1_base", "height_2_base") %in% names(panel_final))) {
   panel_final <- panel_final %>%
     mutate(
@@ -750,4 +783,7 @@ for (suffix in c("base", "end")) {
   }
 }
 
+# ----------------------------------------------------------------------------
+# 7. Save the enriched wide panel
+# ----------------------------------------------------------------------------
 write_dta(panel_final, "data/panel_final.dta")

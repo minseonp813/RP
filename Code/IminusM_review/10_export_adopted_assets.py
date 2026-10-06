@@ -19,7 +19,10 @@ def row(label, values):
     return label + ' & ' + ' & '.join(values) + r' \\' + '\n'
 
 for file in (out/'adopted').glob('*.tex'):
-    shutil.copyfile(file, tables/file.name)
+    if file.name != 'table_bargainingCCEI_buffers_M.tex':
+        shutil.copyfile(file, tables/file.name)
+buffer_table = root / 'Code/results/tables/table_bargainingCCEI_buffers_M.tex'
+shutil.copyfile(buffer_table, tables/buffer_table.name)
 for suffix in ['bar','cdf']:
     name=f'ccei_IminusM_by_higher_ccei_{suffix}.png'
     shutil.copyfile(out/'figures'/name, figures/name)

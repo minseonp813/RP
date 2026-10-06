@@ -1,5 +1,23 @@
-# Clean survey data.
+# 02_clean_survey.R
+# Latest update: 2026-10-06
+# Purpose: Clean participant-level survey modules for the panel merge in 03.
+# Inputs: Raw pre/post noncognitive, cognitive, risk-survey and RAT workbooks;
+#         data/network_survey.dta and data/male.dta.
+# Outputs: data/*_pre_clean.dta, data/*_post_clean.dta and data/male_clean.dta.
+# Sections:
+#   1. Set up packages, paths and cleaning helpers.
+#   2. Load the raw survey, network and sex data.
+#   3. Clean baseline noncognitive responses and sex.
+#   4. Clean endline noncognitive responses; identify baseline-only variables.
+#   5. Score the cognitive tests in both waves.
+#   6. Clean the risk-survey responses in both waves.
+#   7. Score the Remote Associates Tests (RAT).
+#   8. Build directed friendship edges and network degree measures.
+#   9. Save the cleaned modules and report their dimensions.
 
+# ----------------------------------------------------------------------------
+# 1. Setup and cleaning helpers
+# ----------------------------------------------------------------------------
 rm(list = ls())
 
 library(readxl)
@@ -189,6 +207,9 @@ value_or_na <- function(df, nm) {
 }
 
 
+# ----------------------------------------------------------------------------
+# 2. Load raw inputs
+# ----------------------------------------------------------------------------
 noncog_pre_raw <- read_excel("data/NonCognitive_raw_pre.xlsx")
 noncog_post_raw <- read_excel("data/NonCognitive_raw_post.xlsx")
 cog_pre_raw <- read_excel("data/Cognitive_raw_pre_full.xlsx")
@@ -201,6 +222,9 @@ network_raw <- read_dta("data/network_survey.dta")
 male_raw <- read_dta("data/male.dta")
 
 
+# ----------------------------------------------------------------------------
+# 3. Baseline noncognitive responses and sex
+# ----------------------------------------------------------------------------
 noncog_pre_clean <- noncog_pre_raw %>%
   mutate(
     id = id_as_char(.data[["id_new"]]),
@@ -386,6 +410,9 @@ male_clean <- male_raw %>%
   filter(!is.na(id), id != "") %>%
   dedupe_id("male_clean")
 
+# ----------------------------------------------------------------------------
+# 4. Endline noncognitive responses and baseline-only variables
+# ----------------------------------------------------------------------------
 noncog_post_clean <- noncog_post_raw %>%
   mutate(
     id = convert_participant_label(.data[["participant.label"]]),
@@ -536,6 +563,9 @@ if (!all(baseline_only_noncog_cols %in% names(noncog_pre_clean))) {
 }
 
 
+# ----------------------------------------------------------------------------
+# 5. Cognitive test scores
+# ----------------------------------------------------------------------------
 cog_pre_clean <- cog_pre_raw %>%
   mutate(
     id = convert_participant_label(.data[["label"]]),
@@ -593,6 +623,9 @@ cog_post_clean <- cog_post_raw %>%
   select(id, mathscore_end)
 
 
+# ----------------------------------------------------------------------------
+# 6. Risk-survey responses
+# ----------------------------------------------------------------------------
 risksurvey_pre_clean <- risksurvey_pre_raw %>%
   mutate(
     id = convert_participant_label(.data[["label"]]),
@@ -636,6 +669,9 @@ risksurvey_post_clean <- risksurvey_post_raw %>%
   select(id, risk_cooperation_end, risk_similar_end, risk_whose_end)
 
 
+# ----------------------------------------------------------------------------
+# 7. Remote Associates Test scores
+# ----------------------------------------------------------------------------
 score_rat_clean <- function(df, answers, suffix, module_name) {
   id_col <- first_existing(
     df,
@@ -722,6 +758,9 @@ rat_post_clean <- score_rat_clean(
 )
 
 
+# ----------------------------------------------------------------------------
+# 8. Friendship edges and network degree measures
+# ----------------------------------------------------------------------------
 make_network_all <- function(network_raw) {
   network_raw %>%
     transmute(
@@ -829,6 +868,9 @@ network_post_clean <- make_network_degree(
 )
 
 
+# ----------------------------------------------------------------------------
+# 9. Save cleaned modules and report dimensions
+# ----------------------------------------------------------------------------
 save_clean(noncog_pre_clean, "data/noncog_pre_clean.dta", "noncog_pre_clean")
 save_clean(male_clean, "data/male_clean.dta", "male_clean")
 save_clean(noncog_post_clean, "data/noncog_post_clean.dta", "noncog_post_clean")

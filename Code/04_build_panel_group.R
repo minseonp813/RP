@@ -1,5 +1,20 @@
-# Build the group panel.
+# 04_build_panel_group.R
+# Latest update: 2026-10-06
+# Purpose: Reshape the enriched wide pair panel into one row per pair and wave.
+#          Retain each wave's member indices, M benchmarks and survey controls.
+# Inputs: data/panel_final.dta after the merge in 03_build_panel.R.
+# Outputs: data/panel_group.dta.
+# Sections:
+#   1. Set up packages and paths.
+#   2. Load the wide panel and check required index columns and class.
+#   3. Define the wave reshape and member index rankings.
+#   4. Combine both waves and classify joint collective outcomes.
+#   5. Validate baseline-only controls, collective outcomes and member rankings.
+#   6. Report dimensions and save the group-wave panel.
 
+# ----------------------------------------------------------------------------
+# 1. Setup
+# ----------------------------------------------------------------------------
 rm(list = ls())
 
 library(tidyverse)
@@ -28,6 +43,9 @@ script_args <- commandArgs(trailingOnly = FALSE)
 script_file <- sub("^--file=", "", grep("^--file=", script_args, value = TRUE))
 if (length(script_file) == 1) setwd(dirname(normalizePath(script_file)))
 
+# ----------------------------------------------------------------------------
+# 2. Load the wide panel and validate required columns
+# ----------------------------------------------------------------------------
 panel_final <- read_dta("data/panel_final.dta")
 
 required_ihat_cols <- c(
@@ -66,6 +84,9 @@ panel_final <- panel_final %>%
     class = as.character(class)
   )
 
+# ----------------------------------------------------------------------------
+# 3. Define the wave reshape and member index rankings
+# ----------------------------------------------------------------------------
 drop_time_suffix_from_names <- function(nms, suffix) {
   str_replace(nms, paste0("_", suffix, "$"), "")
 }
@@ -116,6 +137,9 @@ make_group_rows <- function(df, suffix) {
   out
 }
 
+# ----------------------------------------------------------------------------
+# 4. Combine waves and classify joint collective outcomes
+# ----------------------------------------------------------------------------
 panel_group <- bind_rows(
   make_group_rows(panel_final, "base"),
   make_group_rows(panel_final, "end")
@@ -136,6 +160,9 @@ panel_group <- bind_rows(
     cei_type_d = as.numeric(cei_type == 4)
   )
 
+# ----------------------------------------------------------------------------
+# 5. Validate controls, collective outcomes and member rankings
+# ----------------------------------------------------------------------------
 baseline_only_noncog_stems <- c(
   "class_study", "class_dislike", "class_lonely",
   paste0("selfesteem_", 1:10), "selfesteem",
@@ -197,6 +224,9 @@ for (measure in c("maxmpi", "hm")) {
   )
 }
 
+# ----------------------------------------------------------------------------
+# 6. Report dimensions and save the group-wave panel
+# ----------------------------------------------------------------------------
 cat("\nCreated panel_group with one class variable.\n")
 cat("Rows:", nrow(panel_group), " Columns:", ncol(panel_group), "\n")
 cat("Number of classes:", n_distinct(panel_group$class), "\n")

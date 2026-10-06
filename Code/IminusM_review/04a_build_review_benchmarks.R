@@ -1,5 +1,13 @@
+# Latest update: 2026-10-06
+# Purpose: reproduce sampled review benchmarks with the shared production builder.
+# Inputs: the balanced wide panel_final.dta and base/end choice data.
+# Outputs: outputs/benchmarks/{hm_sample50,maxmpi_sample20}. These remain pilot
+# estimates, distinct from full M in 01. Set PLACEBO_REVIEW_BENCHMARK_DIR to a new
+# folder when retaining old caches, which have no input/config identity.
+# Sections: 1 locate/load inputs; 2 specify and build sampled review benchmarks.
 rm(list = ls())
 
+# 1. Locate the shared builder and load the upstream choice/index data.
 args <- commandArgs(trailingOnly = FALSE)
 script_arg <- grep("^--file=", args, value = TRUE)
 review_dir <- if (length(script_arg)) {
@@ -9,27 +17,25 @@ review_dir <- if (length(script_arg)) {
 }
 code_dir <- dirname(review_dir)
 setwd(code_dir)
-source(file.path(review_dir, "build_placebo_donor_matrices_parallel.R"))
+source(file.path(code_dir, "programs", "build_placebo_donor_matrices.R"))
+source(file.path(code_dir, "programs", "calculate_rp_indices.R"))
+pairs <- haven::read_dta(file.path(code_dir, "data", "panel_final.dta"))
+base <- rp_load_wave(file.path(code_dir, "data", "base_raw.dta"))
+end <- rp_load_wave(file.path(code_dir, "data", "end_raw.dta"))
+benchmark_dir <- Sys.getenv("PLACEBO_REVIEW_BENCHMARK_DIR", file.path(review_dir, "outputs", "benchmarks"))
 
-# HM and some exact MaxMPI cross-cost problems are computationally intensive.
-# For the review stage, estimate both donor means from 50 reproducibly sampled
-# non-own pairs per target. Exact full builds remain available through
-# 04_build_full_rp_benchmarks.R if the adjusted outcome is adopted.
+# 2. Preserve the historical 50-donor HM and 20-donor MaxMPI specifications.
 specs <- list(
-  list(measure = "hm", folder = "hm_sample50", max_donors = "50"),
-  list(measure = "maxmpi", folder = "maxmpi_sample20", max_donors = "20")
+  list(measure = "hm", folder = "hm_sample50", max_donors = 50L),
+  list(measure = "maxmpi", folder = "maxmpi_sample20", max_donors = 20L)
 )
 
 for (spec in specs) {
-  output_dir <- file.path(review_dir, "outputs", "benchmarks", spec$folder)
-  dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
-  Sys.setenv(
-    PLACEBO_OUTPUT_DIR = output_dir,
-    PLACEBO_TARGET_CHUNK_SIZE = "8",
-    PLACEBO_CORES = Sys.getenv("PLACEBO_CORES", "8"),
-    PLACEBO_MAX_TARGETS = "0",
-    PLACEBO_MAX_DONORS = spec$max_donors,
-    PLACEBO_COST_TIMEOUT = if (spec$measure == "maxmpi") "2" else "0"
+  build_placebo_donor_matrix(
+    spec$measure, code_dir, pairs, base, end,
+    output_dir = file.path(benchmark_dir, spec$folder),
+    chunk_size = 8L, cores = as.integer(Sys.getenv("PLACEBO_CORES", "8")),
+    max_targets = 0L, max_donors = spec$max_donors,
+    cost_timeout = if (spec$measure == "maxmpi") 2 else 0
   )
-  build_placebo_donor_matrix(spec$measure, code_dir)
 }

@@ -10,7 +10,33 @@ definitions without changing the manuscript or its current tables and figures:
 All generated files are written under `outputs/`. The scripts read the existing
 replication data and benchmark files but do not overwrite them.
 
-## Order of execution
+## Benchmark calculation after integration (2026-10-06)
+
+The production entry point is now `../01_calculate_indices.R`, section 7. It
+calls the single shared `../programs/build_placebo_donor_matrices.R` for CCEI,
+HM, MaxMPI and risk aversion, using the balanced pair roster, actual indices
+and choice data from 01. New full outputs go to `../results/benchmarks/` and
+the benchmark columns are carried through scripts 03–05. Section 7 can resume
+from the actual-index checkpoint without recalculating the preceding indices.
+
+The pre-integration scripts and panel files are preserved locally in
+`../Archive/M_before_integration_2026-10-06/`. Existing benchmark outputs and
+manuscript results remain in their original locations for comparison. The
+review analyses below still consume those retained inputs; switching their
+tables and figures to the new full benchmarks is a subsequent step.
+
+The revised `01_build_ra_benchmark.R` launcher writes comparison results to
+`outputs/benchmarks/ra/`; `02_ccei_ra_analysis.do` still reads the retained
+`outputs/data/ra_placebo_member_wave.dta`. The revised 04/04a launchers also use
+the shared builder. Their old caches have no input/config identity and cannot
+be resumed by the new builder: set `PLACEBO_REVIEW_BENCHMARK_DIR` to a new
+folder for a comparison run. No full calculation was run during integration.
+
+## Historical review execution order
+
+This sequence documents the original review results. The original benchmark
+builders are in the dated archive; the current launchers follow the paths
+described above.
 
 1. `01_build_ra_benchmark.R`
 2. `02_ccei_ra_analysis.do`

@@ -1,4 +1,28 @@
-# Build the individual panel.
+# 05_build_panel_individual.R
+# Latest update: 2026-10-06
+# Purpose: Reshape the enriched pair panel into one row per member and wave,
+#          carrying own/partner indices, M benchmarks and individual controls.
+# Inputs: data/panel_final.dta from 03_build_panel.R, data/panel_group.dta from
+#         04_build_panel_group.R and data/network_panel_clean.dta from 03.
+# Outputs: data/panel_individual.dta and
+#          data/checks/panel_individual_selected_missing_imputation_summary.csv.
+# Sections:
+#   1. Set up packages, paths and identifier/value helpers.
+#   2. Load panels and validate required index columns.
+#   3. Map member/wave rows, own/partner variables and own M diagnostics.
+#   4. Validate collective outcome categories and member class identifiers.
+#   5. Fill time-invariant controls across waves by participant ID.
+#   6. Derive member differences/interactions and validate index rankings.
+#   7. Prepare friendship/network controls.
+#   8. Add missing indicators and zero-impute selected regression controls.
+#   9. Validate member-distance adding-up, save the panel and report dimensions.
+# M values calculated by 01 retain their canonical analysis names (M_ccei,
+# M_hm, M_maxmpi, M_ra); they are carried forward without control imputation.
+# Before running the revised 01, existing panels have no M columns to carry.
+
+# ----------------------------------------------------------------------------
+# 1. Setup and value helpers
+# ----------------------------------------------------------------------------
 
 rm(list = ls())
 
@@ -64,6 +88,9 @@ value_or_na <- function(df, nm) {
   }
 }
 
+# ----------------------------------------------------------------------------
+# 2. Load panels and validate indices
+# ----------------------------------------------------------------------------
 panel_final <- read_dta("data/panel_final.dta")
 panel_group <- read_dta("data/panel_group.dta")
 network_panel_clean <- read_dta("data/network_panel_clean.dta")
@@ -95,6 +122,9 @@ if (length(missing_ihat_cols) > 0) {
   stop("Missing Ihat columns: ", paste(missing_ihat_cols, collapse = ", "))
 }
 
+# ----------------------------------------------------------------------------
+# 3. Map member-wave rows, controls and benchmarks
+# ----------------------------------------------------------------------------
 make_individual_core <- function(df, suffix, person_num) {
   endline_value <- ifelse(suffix == "end", 1L, 0L)
   id1_col <- paste0("id_mover_", suffix)
@@ -198,6 +228,7 @@ make_individual_core <- function(df, suffix, person_num) {
       df,
       paste0("cei_n_viol_untempered_", suffix)
     ),
+    Ihat_ra_ig = value_or_na(df, paste0("Ihat_ra_", my_num, "g_", suffix)),
     RA_i = value_or_na(df, paste0("RA_", my_num, "_", suffix)),
     RA_j = value_or_na(df, paste0("RA_", partner_num, "_", suffix)),
     RA_g = value_or_na(df, paste0("RA_g_", suffix)),
@@ -276,8 +307,13 @@ make_person_var_long <- function(df, suffix, person_num) {
   for (v in time_common) {
     my_col <- paste0(v, "_", my_num, "_", suffix)
     partner_col <- paste0(v, "_", partner_num, "_", suffix)
-    out[[paste0(v, "_i")]] <- df[[my_col]]
-    out[[paste0(v, "_j")]] <- df[[partner_col]]
+    if (str_detect(v, "^(M|n|nvalid|degfrac)_(ccei|hm|maxmpi|ra)($|_)")) {
+      # Benchmarks and donor diagnostics refer to the member in this row.
+      out[[v]] <- df[[my_col]]
+    } else {
+      out[[paste0(v, "_i")]] <- df[[my_col]]
+      out[[paste0(v, "_j")]] <- df[[partner_col]]
+    }
   }
   
   return(out)
@@ -318,6 +354,9 @@ panel_individual <- panel_individual_core %>%
     cei_type_d = as.numeric(cei_type == 4)
   )
 
+# ----------------------------------------------------------------------------
+# 4. Validate collective outcomes and class identifiers
+# ----------------------------------------------------------------------------
 stopifnot(
   all(panel_individual$cei_g > 0 & panel_individual$cei_g <= 1),
   all(panel_individual$cei_g_untempered > 0 & panel_individual$cei_g_untempered <= 1),
@@ -346,7 +385,9 @@ if (nrow(class_check) > 0) {
 cat("\nClass variable carried into panel_individual.\n")
 cat("Number of classes:", n_distinct(panel_individual$class), "\n")
 
-# Fill time-invariant variables.
+# ----------------------------------------------------------------------------
+# 5. Fill time-invariant controls
+# ----------------------------------------------------------------------------
 
 fill_time_invariant_across_periods <- function(df, stems) {
   
@@ -434,6 +475,9 @@ panel_individual %>%
   ) %>%
   print(width = Inf)
 
+# ----------------------------------------------------------------------------
+# 6. Member differences, interactions and index ranking checks
+# ----------------------------------------------------------------------------
 i_vars <- names(panel_individual)[str_ends(names(panel_individual), "_i")]
 
 for (iv in i_vars) {
@@ -520,6 +564,9 @@ for (measure in c("maxmpi", "hm")) {
   )
 }
 
+# ----------------------------------------------------------------------------
+# 7. Friendship and network controls
+# ----------------------------------------------------------------------------
 if ("inclass_friends_i" %in% names(panel_individual)) {
   panel_individual <- panel_individual %>%
     mutate(
@@ -539,7 +586,9 @@ if ("inclass_popularity_i" %in% names(panel_individual)) {
 }
 
 
-# Impute selected controls.
+# ----------------------------------------------------------------------------
+# 8. Missing indicators and control imputation
+# ----------------------------------------------------------------------------
 
 selected_imputation_vars <- c(
   # Skills.
@@ -711,6 +760,9 @@ write_csv(
   "data/checks/panel_individual_selected_missing_imputation_summary.csv"
 )
 
+# ----------------------------------------------------------------------------
+# 9. Validate member distances, save the panel and report dimensions
+# ----------------------------------------------------------------------------
 for (index_var in c("Ihat_ig", "Ihat_maxmpi_ig", "Ihat_hm_ig")) {
   ihat_individual_check <- panel_individual %>%
     group_by(group_id, endline) %>%

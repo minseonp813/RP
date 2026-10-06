@@ -1,4 +1,4 @@
-Section 6.3 review packet: three figures and a three-column appendix table.
+Section 6.3 pipeline: three figures and a three-column appendix table.
 
 Run from Code to refresh the underlying estimates when needed:
   /Applications/StataNow/StataMP.app/Contents/MacOS/stata-mp -b do 11_collective_quality.do
@@ -28,18 +28,28 @@ also supports the saved CEI/CEIC classifications and subgroup review plots.
 Running the entire 07 script
 still requires updating its earlier replication-folder path and legacy I_ig/HighCCEI inputs.
 
-Then build the review packet from the saved figures and results:
-  python3 programs/build_collective_rationality_summary.py
+Run 08_Tables_Appendix.do from Code to export the three-column appendix table:
+  /Applications/StataNow/StataMP.app/Contents/MacOS/stata-mp -b do 08_Tables_Appendix.do
 
-Compile collective_rationality_summary.tex from this result directory with pdflatex.
-The final PDF uses five portrait US-letter pages:
+Its final Section 6.3 section can also be run independently from Code. It reads
+table5_coefficients.csv and table5_diagnostics.csv from this directory, validates
+the six categorical models and their contrasts, and writes
+Code/results/tables/collective_ccei_ceiv_categories.tex. It copies that table to
+Overleaf/tables_2025/collective_ccei_ceiv_categories.tex for the draft. Run
+11_collective_quality.do first whenever the underlying estimates need refreshing.
+The table export uses saved estimates and does not re-estimate these models.
+
+The separate Python review-packet builder has been retired. The saved
+collective_rationality_summary.tex/PDF and the table copy in this directory remain
+historical review outputs; the active pipeline does not refresh them.
+The saved PDF uses five portrait US-letter pages:
   1. Revised Section 6.3 outline and appendix placement.
   2. Figure 1: mean bars and CDFs for group CCEI and CEIV.
   3. Figure 2: four quadrants of joint group CCEI/CEIV status, with counts and shares.
   4. Figure 3: maximum/minimum individual CCEI average marginal effects.
   5. Appendix Table A1: only columns (1)-(3) of the supplied Table 5 expansion.
 Figure and table numbers are local to this review packet.
-The checked final PDF is copied to output/pdf/collective_rationality_summary.pdf.
+The historical delivery copy is output/pdf/collective_rationality_summary.pdf.
 
 CEIV is used consistently. All displayed analyses use 1,304 pair-waves from
 652 pairs in 64 classes. Each pair contributes observations from two waves.
@@ -71,7 +81,7 @@ the six categorical models appear in the appendix. The estimation dofile retains
 merge, sample, and endpoint checks and verifies all eight multinomial AMEs against
 finite differences of predicted probabilities. The plotting sections check category
 assignments and joint-outcome shares against the saved estimates.
-All five final pages were rendered and visually checked. The figures, categorical
-appendix table, definitions, and linked result descriptions are synchronized
-with the current draft. The builder also exports collective_ccei_ceiv_categories.tex
-for the draft's three-column appendix table.
+The saved review packet's five pages were rendered and visually checked when it
+was produced. The current figures, categorical appendix table, and definitions
+remain consistent with the draft. The Stata table export was checked byte-for-byte
+against the existing draft table when it replaced the Python builder.
