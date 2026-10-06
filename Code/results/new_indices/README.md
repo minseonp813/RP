@@ -2,7 +2,7 @@
 > The CCEI-CEIV exploration dofiles numbered 99_23 through 99_34, their exploration-only .do helpers,
 > and associated logs were removed on October 6, 2026. Their saved results remain below as historical outputs;
 > reproduction commands in this historical record refer to removed exploratory scripts.
-> The retained 99_35_collective_rationality_summary.do now imports and validates the workbook directly.
+> The retained 11_collective_quality.do now imports and validates the workbook directly.
 
 # CEIV and CEIC review results
 
@@ -41,7 +41,7 @@ Enriched versions preserve the original panels and are saved as:
 
 ## Specifications and checks
 
-The sample/control preparation was extracted unchanged from `99_1_Tables_Main.do`
+The sample/control preparation was extracted unchanged from `06_Tables_Main.do`
 into `programs/prepare_collective_sample.do`, used by both the original and new analysis.
 Original Table 5 panels are copied directly from the synced draft, without re-estimation.
 New OLS panels jointly include maximum and minimum individual CCEI, class FE in (1)-(3),
@@ -79,11 +79,19 @@ From `Code`:
 
 ```sh
 /Applications/StataNow/StataMP.app/Contents/MacOS/stata-mp -b do 99_23_new_indices.do
-Rscript programs/plot_cei_ame.R results/new_indices/figure6_a_ame.csv results/new_indices a
-Rscript programs/plot_cei_ame.R results/new_indices/figure6_b_ame.csv results/new_indices b
+# AME panels: use plot_cei_ame() from 07_Figures_Main.R (see below).
 python3 programs/build_new_indices_review.py
 cd results/new_indices
 pdflatex -interaction=nonstopmode -halt-on-error review.tex
+```
+
+To redraw the saved AME panels, load the `plot_cei_ame()` function from the
+Figure 8 section of `07_Figures_Main.R`, then run in R from `Code`:
+
+```r
+library(ggplot2)
+plot_cei_ame("results/new_indices/figure6_a_ame.csv", "results/new_indices", "a")
+plot_cei_ame("results/new_indices/figure6_b_ame.csv", "results/new_indices", "b")
 ```
 
 Check the final SUCCESS message in `analysis.log` (Stata batch exit status alone

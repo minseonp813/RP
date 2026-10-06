@@ -8,6 +8,9 @@ also has a red M term to keep the equation referenced by Section 5 consistent.
 
 ## Updated assets
 
+- Table 1 and Figure A6: I-M summary statistics and higher/lower-CCEI histograms,
+  using all 2,560 student-wave observations with defined actual distance. The
+  wave-specific sample sizes remain 1,288 and 1,272.
 - Figure 2: available I-M mean/CDF figures; means -0.033722 and 0.044688;
   higher-minus-lower difference -0.078410; 2,560 defined student-wave observations.
 - Table 3: six I-on-rationality regressions controlling for M, with the original
@@ -49,12 +52,16 @@ From Code, after the original review data/results have been generated:
 /Applications/StataNow/StataMP.app/Contents/MacOS/stata-mp -b do IminusM_review/09_export_adopted_specification.do
 python3 IminusM_review/10_export_adopted_assets.py
 Rscript IminusM_review/11_plot_adopted_shapley.R
+/Applications/StataNow/StataMP.app/Contents/MacOS/stata-mp -b do 06_Tables_Main.do
 ```
 
 The Stata SUCCESS marker is in outputs/logs/adopted_specification.log.
 The exporter reads the review CSVs and copies separate adopted assets to Overleaf.
 It does not rewrite manuscript prose. The prior 01-08 review scripts still reproduce
-the comparison analyses; 09-11 reproduce the adopted manuscript assets.
+the comparison analyses; review scripts 09-11 reproduce the adopted manuscript
+assets. `06_Tables_Main.do` generates Table 1 directly from the original panels
+and the saved CCEI benchmark, writes `results/tables/table_ccei_summary_IminusM.tex`,
+and copies it into Overleaf. Review script 11 also reproduces Figure A6.
 
 ## PDF build
 

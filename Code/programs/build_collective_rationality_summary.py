@@ -47,6 +47,12 @@ quadrant_summary = "; ".join(
     for label, row in zip(["both below one", "only CCEI equal to one",
                            "only CEIV equal to one", "both equal to one"], counts)
 )
+comparison_summary = "\n".join(
+    label + ": High--High minus Low--High comparison $p$-values are "
+    + ", ".join(pvalue(diagnostic(outcome, c)["equality_p"]) for c in range(1, 4))
+    + " in columns (1)--(3), respectively."
+    for outcome, label in [("ccei", "Group CCEI"), ("ceiv", "Group CEIV")]
+)
 
 parts = [r"""\documentclass[11pt]{article}
 \usepackage[letterpaper,margin=0.6in]{geometry}
@@ -59,9 +65,9 @@ parts = [r"""\documentclass[11pt]{article}
 \normalsize Revised figure sequence and appendix placement\end{center}
 \begin{enumerate}
 \setlength{\itemsep}{10pt}
-\item \textbf{Bar and CDF panels (Figure 1).} Show group CCEI and CEIV by the members' pooled-median
-individual CCEI categories. Both means rise from Low--Low to Low--High and from Low--High to High--High;
-the unadjusted differences are statistically significant. The CDF panels complement the mean comparisons
+\item \textbf{Bar and CDF panels (Figure 1).} Show group CCEI and CEIV by members' individual CCEI
+categories, using the pooled median across both waves (0.9806594). High means strictly above this median
+and Low otherwise. The CDF panels complement the mean comparisons
 by showing the full distributions, including the mass at one.
 
 \item \textbf{Four joint outcomes (Figure 2).} Place group CCEI status on the horizontal axis and group CEIV
@@ -80,9 +86,7 @@ the plot does not test equality of the two members' effects.
 \textbf{Appendix Table A1.} Retain only columns (1)--(3) of the attached table, with both group CCEI and CEIV
 panels. Column (1) includes class fixed effects; column (2) adds student, friendship, and choice-pattern controls;
 column (3) uses these controls with pair fixed effects. Low--Low is the omitted category.
-The High--High minus Low--High comparison remains significant for group CCEI in all three specifications
-($p<0.001$, $p<0.001$, and $p=0.045$), while it is not significant for CEIV
-($p=0.111$, $p=0.168$, and $p=0.991$).
+""" + comparison_summary + r"""
 
 \textit{Measurement and sample:} CEIV is used throughout. All figures and appendix regressions use
 1,304 pair-waves from 652 pairs in 64 classes. CEIV$=1$ denotes rationalizability under the specified
@@ -131,6 +135,7 @@ Figure 3 and Appendix Table A1 do. +, *, and ** denote $p<0.10$, $p<0.05$, and $
 \end{center}
 \footnotesize
 \textit{Notes:} The horizontal axis classifies group CCEI and the vertical axis classifies group CEIV.
+Diagonal cells are blue and off-diagonal cells are white; stripes and dots distinguish outcomes within each color.
 Each quadrant reports the observed count and percentage of all 1,304 pair-waves from 652 pairs in 64 classes;
 each pair contributes one observation in each of two waves. These are pooled pair-wave frequencies,
 rather than a classification of unique pairs. Percentages sum to 100\% before rounding.
@@ -175,6 +180,9 @@ The effects describe conditional associations.
 \begin{center}\small
 \setlength{\tabcolsep}{14pt}
 \renewcommand{\arraystretch}{1.12}
+"""]
+
+table = [r"""
 \begin{tabular}{lccc}
 \toprule
 & \multicolumn{3}{c}{Individual CCEI category dummies}\\
@@ -185,29 +193,32 @@ The effects describe conditional associations.
 
 terms = [("low_high", "Low--High pair"), ("high_high", "High--High pair")]
 for outcome, panel in [("ccei", "A: Group CCEI"), ("ceiv", "B: Group CEIV")]:
-    parts.append(r"\multicolumn{4}{l}{\textit{Panel " + panel + r"}}\\[3pt]" + "\n")
+    table.append(r"\multicolumn{4}{l}{\textit{Panel " + panel + r"}}\\[3pt]" + "\n")
     for term, label in terms:
         rows = [coefficient(outcome, column, term) for column in range(1, 4)]
-        parts.append(table_row(label, [f"{float(r['estimate']):.3f}" + r"\textsuperscript{"
+        table.append(table_row(label, [f"{float(r['estimate']):.3f}" + r"\textsuperscript{"
                                      + stars(float(r["p"])) + "}" for r in rows]))
-        parts.append(table_row("", [f"({float(r['se']):.3f})" for r in rows]))
-    parts.append(r"\midrule\multicolumn{4}{l}{\textit{Post-estimation comparisons}}\\[2pt]" + "\n")
+        table.append(table_row("", [f"({float(r['se']):.3f})" for r in rows]))
+    table.append(r"\midrule\multicolumn{4}{l}{\textit{Post-estimation comparisons}}\\[2pt]" + "\n")
     contrasts = [coefficient(outcome, column, "hh_minus_lh") for column in range(1, 4)]
-    parts.append(table_row("High--High minus Low--High", [f"{float(r['estimate']):.3f}" for r in contrasts]))
-    parts.append(table_row("Standard error of difference", [f"{float(r['se']):.3f}" for r in contrasts]))
-    parts.append(table_row(r"$p$: High--High = Low--High",
+    table.append(table_row("High--High minus Low--High", [f"{float(r['estimate']):.3f}" for r in contrasts]))
+    table.append(table_row("Standard error of difference", [f"{float(r['se']):.3f}" for r in contrasts]))
+    table.append(table_row(r"$p$: High--High = Low--High",
                            [pvalue(diagnostic(outcome, c)["equality_p"]) for c in range(1, 4)]))
-    parts.append(r"\addlinespace" + "\n")
-    parts.append(table_row("Observations", [f"{int(diagnostic(outcome, c)['n']):,}" for c in range(1, 4)]))
-    parts.append(table_row(r"$R^2$", [f"{float(diagnostic(outcome, c)['r2']):.3f}" for c in range(1, 4)]))
-    parts.append(r"\midrule" + "\n")
+    table.append(r"\addlinespace" + "\n")
+    table.append(table_row("Observations", [f"{int(diagnostic(outcome, c)['n']):,}" for c in range(1, 4)]))
+    table.append(table_row(r"$R^2$", [f"{float(diagnostic(outcome, c)['r2']):.3f}" for c in range(1, 4)]))
+    table.append(r"\midrule" + "\n")
 
-parts.extend([
+table.extend([
     table_row("Fixed effects", ["Class", "Class", "Pair"]),
     table_row("Student and friendship controls", ["", r"$\checkmark$", r"$\checkmark$"]),
     table_row("Corner/midpoint share controls", ["", r"$\checkmark$", r"$\checkmark$"]),
-    r"""\bottomrule
-\end{tabular}\end{center}
+    "\\bottomrule\n\\end{tabular}\n",
+])
+table_tex = "".join(table)
+(out / "collective_ccei_ceiv_categories.tex").write_text(table_tex)
+parts.extend([table_tex, r"""\end{center}
 \footnotesize
 \textit{Notes:} OLS regression coefficients have class-clustered standard errors in parentheses. All columns
 use 1,304 pair-waves from 652 pairs in 64 classes. Low--Low is omitted. High means individual CCEI exceeds

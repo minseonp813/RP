@@ -9,9 +9,9 @@
 \normalsize Revised figure sequence and appendix placement\end{center}
 \begin{enumerate}
 \setlength{\itemsep}{10pt}
-\item \textbf{Bar and CDF panels (Figure 1).} Show group CCEI and CEIV by the members' pooled-median
-individual CCEI categories. Both means rise from Low--Low to Low--High and from Low--High to High--High;
-the unadjusted differences are statistically significant. The CDF panels complement the mean comparisons
+\item \textbf{Bar and CDF panels (Figure 1).} Show group CCEI and CEIV by members' individual CCEI
+categories, using the pooled median across both waves (0.9806594). High means strictly above this median
+and Low otherwise. The CDF panels complement the mean comparisons
 by showing the full distributions, including the mass at one.
 
 \item \textbf{Four joint outcomes (Figure 2).} Place group CCEI status on the horizontal axis and group CEIV
@@ -30,9 +30,8 @@ the plot does not test equality of the two members' effects.
 \textbf{Appendix Table A1.} Retain only columns (1)--(3) of the attached table, with both group CCEI and CEIV
 panels. Column (1) includes class fixed effects; column (2) adds student, friendship, and choice-pattern controls;
 column (3) uses these controls with pair fixed effects. Low--Low is the omitted category.
-The High--High minus Low--High comparison remains significant for group CCEI in all three specifications
-($p<0.001$, $p<0.001$, and $p=0.045$), while it is not significant for CEIV
-($p=0.111$, $p=0.168$, and $p=0.991$).
+Group CCEI: High--High minus Low--High comparison $p$-values are $<0.001$, $<0.001$, 0.045 in columns (1)--(3), respectively.
+Group CEIV: High--High minus Low--High comparison $p$-values are 0.111, 0.168, 0.991 in columns (1)--(3), respectively.
 
 \textit{Measurement and sample:} CEIV is used throughout. All figures and appendix regressions use
 1,304 pair-waves from 652 pairs in 64 classes. CEIV$=1$ denotes rationalizability under the specified
@@ -81,6 +80,7 @@ Figure 3 and Appendix Table A1 do. +, *, and ** denote $p<0.10$, $p<0.05$, and $
 \end{center}
 \footnotesize
 \textit{Notes:} The horizontal axis classifies group CCEI and the vertical axis classifies group CEIV.
+Diagonal cells are blue and off-diagonal cells are white; stripes and dots distinguish outcomes within each color.
 Each quadrant reports the observed count and percentage of all 1,304 pair-waves from 652 pairs in 64 classes;
 each pair contributes one observation in each of two waves. These are pooled pair-wave frequencies,
 rather than a classification of unique pairs. Percentages sum to 100\% before rounding.
@@ -125,6 +125,7 @@ The effects describe conditional associations.
 \begin{center}\small
 \setlength{\tabcolsep}{14pt}
 \renewcommand{\arraystretch}{1.12}
+
 \begin{tabular}{lccc}
 \toprule
 & \multicolumn{3}{c}{Individual CCEI category dummies}\\
@@ -161,7 +162,8 @@ Fixed effects & Class & Class & Pair\\
 Student and friendship controls &  & $\checkmark$ & $\checkmark$\\
 Corner/midpoint share controls &  & $\checkmark$ & $\checkmark$\\
 \bottomrule
-\end{tabular}\end{center}
+\end{tabular}
+\end{center}
 \footnotesize
 \textit{Notes:} OLS regression coefficients have class-clustered standard errors in parentheses. All columns
 use 1,304 pair-waves from 652 pairs in 64 classes. Low--Low is omitted. High means individual CCEI exceeds

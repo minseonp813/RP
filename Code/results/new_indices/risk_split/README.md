@@ -77,10 +77,18 @@ From `Code`:
 
 ```sh
 /Applications/StataNow/StataMP.app/Contents/MacOS/stata-mp -b do 99_25_new_indices_risk_split.do
-Rscript programs/plot_cei_ame.R results/new_indices/risk_split/figure6_ame.csv results/new_indices/risk_split a
+# AME panels: use plot_cei_ame() from 07_Figures_Main.R (see below).
 python3 programs/build_risk_split_review.py
 cd results/new_indices/risk_split
 pdflatex -interaction=nonstopmode -halt-on-error review.tex
+```
+
+To redraw the saved AME panels, load the `plot_cei_ame()` function from the
+Figure 8 section of `07_Figures_Main.R`, then run in R from `Code`:
+
+```r
+library(ggplot2)
+plot_cei_ame("results/new_indices/risk_split/figure6_ame.csv", "results/new_indices/risk_split", "a")
 ```
 
 The enriched `data/panel_group_new_indices.dta` is the previously validated

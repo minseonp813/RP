@@ -1,5 +1,8 @@
 # Communication-proxy heterogeneity
 
+> Historical exploration. The estimation dofile and split-OLS helper have been removed.
+> See [the current Section 6 pipeline](../collective_rationality_summary/README.txt) for reproduction.
+
 Exploratory subgroup regressions for group CCEI and CEIV, matching Table 5 column (3). No manuscript changes or ML estimation.
 
 Run from `Code`:
@@ -12,7 +15,7 @@ python3 programs/build_communication_heterogeneity.py
 
 Compile `review.tex` in this directory with `pdflatex`; final deliverable is `output/pdf/communication_heterogeneity_review.pdf` at the repo root.
 
-Preparation reuses `programs/prepare_collective_sample.do`. The shared `collective_split_ols.ado` fits each split, estimates fully interacted slope differences, and exports tables and diagnostics.
+Preparation reused `programs/prepare_collective_sample.do`. The former `collective_split_ols.ado` fitted each split, estimated fully interacted slope differences, and exported tables and diagnostics.
 
 Four proposed moderators, with an additional binary friendship check:
 

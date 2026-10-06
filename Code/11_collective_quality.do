@@ -5,7 +5,8 @@ adopath ++ "programs"
 local out "results/new_indices/collective_rationality_summary"
 cap mkdir "`out'"
 capture log close
-log using "`out'/analysis.log", text replace
+cap mkdir "Logs"
+log using "Logs/11_collective_quality.log", text replace
 
 * Rebuild the CEIV input directly; no exploratory dofile is needed.
 local data_dir "`c(pwd)'/data"
@@ -66,6 +67,7 @@ preserve
     local median = r(p50)
     assert individual_ccei!=`median'
 restore
+sort group_id post
 gen byte max_high = ccei_max>`median'
 gen byte min_high = ccei_min>`median'
 gen byte pair_category = max_high+min_high
@@ -127,7 +129,7 @@ preserve
     export delimited using "`out'/table5_diagnostics.csv", replace
 restore
 
-* Figure 6 extension: four joint CCEI/CEIV outcomes, full controls and class effects.
+* Figure 8 AMEs: four joint outcomes; figure6 filenames are retained from the original analysis.
 collective_multinomial_ame joint_category, controls($t5_group $t5_friend $t5_share) base(1)
 assert r(n)==1304 & r(pairs)==652 & r(clusters)==64
 matrix effects = r(effects)

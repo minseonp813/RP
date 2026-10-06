@@ -2,11 +2,14 @@
 
 Run from `Code`:
 
+For the R plotting step, load ggplot2 and the `plot_cei_ame()` function from
+the Figure 8 section of `07_Figures_Main.R`.
+
 1. Stata: `99_29_communication_figure6.do` (eleven separate four-category multinomial fits).
 2. Stata: `99_29b_friendship_figure6_check.do` (friendship-specific CCEI slopes with shared controls/class effects).
 3. Stata: `99_29c_validate_figure6.do` (independent numerical derivatives of fitted probabilities).
 4. `python3 programs/build_communication_figure6.py` (combine plot inputs and write the PDF source).
-5. `Rscript programs/plot_cei_ame.R results/new_indices/communication_figures/plot_input.csv results/new_indices/communication_figures a` (one shared axis across all models).
+5. `plot_cei_ame("results/new_indices/communication_figures/plot_input.csv", "results/new_indices/communication_figures", "a")` (one shared axis across all models).
 6. Compile `review.tex` with PDFLaTeX from this folder.
 
 The delivered PDF is `output/pdf/figure6_communication_subgroups.pdf`.

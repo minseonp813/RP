@@ -61,7 +61,7 @@ capture drop female_i_male_j male_i_female_j
 gen byte female_i_male_j = (male_i == 0 & male_j == 1)
 gen byte male_i_female_j = (male_i == 1 & male_j == 0)
 
-* Same control lists, sample, and class clustering as 99_1_Tables_Main.do.
+* Same control lists, sample, and class clustering as 06_Tables_Main.do.
 local individual "mathscore_i mathscore_diff height_i height_diff outgoing_i outgoing_diff opened_i opened_diff agreeable_i agreeable_diff conscientious_i conscientious_diff stable_i stable_diff"
 local gender "female_i_male_j male_i_female_j"
 local friendship "inclass_n_friends_i inclass_n_diff inclass_popularity_i inclass_pop_diff"

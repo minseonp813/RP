@@ -1,8 +1,8 @@
 ################################################################################
-# 99_Figures_Appendix.R
-# Appendix figures only. Existing 99_* files are intentionally left unchanged.
+# 09_Figures_Appendix.R
+# Appendix figures.
 #
-# Run 99_Tables_Appendix.do first so the two Shapley CSV inputs exist.
+# Run 08_Tables_Appendix.do first so the two Shapley CSV inputs exist.
 ################################################################################
 
 rm(list = ls())
@@ -368,7 +368,7 @@ make_shapley_plot <- function(
   if (!file.exists(input_file)) {
     warning(
       "Skipping Shapley figure because ", input_file,
-      " does not exist. Allow 999_3_Tables_Appendix.do to finish first."
+      " does not exist. Allow 08_Tables_Appendix.do to finish first."
     )
     return(invisible(FALSE))
   }
@@ -516,4 +516,4 @@ make_shapley_plot(
   )
 )
 
-message("99_4_Figures_Appendix.R completed. Outputs: ", result_dir)
+message("09_Figures_Appendix.R completed. Outputs: ", result_dir)
