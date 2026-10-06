@@ -1,8 +1,8 @@
-# 04_build_panel_group.R
+# 2_2_build_panel_group.R
 # Latest update: 2026-10-06
 # Purpose: Reshape the enriched wide pair panel into one row per pair and wave.
 #          Retain each wave's member indices, M benchmarks and survey controls.
-# Inputs: data/panel_final.dta after the merge in 03_build_panel.R.
+# Inputs: data/panel_final.dta after the merge in 2_1_build_panel.R.
 # Outputs: data/panel_group.dta.
 # Sections:
 #   1. Set up packages and paths.

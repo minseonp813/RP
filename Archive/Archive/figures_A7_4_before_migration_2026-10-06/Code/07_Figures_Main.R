@@ -1,15 +1,19 @@
 ################################################################################
 # 07_Figures_Main.R
-# Latest update: 2026-10-06
-# Purpose: main-paper figures; Figure 4 is a single-donor mean/CDF placebo.
-# Inputs: Code/data panels, retained validated CCEI/M panel and full donor matrix.
-# Outputs: results/figures/figure4_placebo_distance.png and its sampled inputs,
-#          current Figure 3 mean/CDF images, and the other main-paper figures.
+# Main-paper figures.
 #
 # Run from Code, or source this file from RStudio.
 ################################################################################
 
 rm(list = ls())
+
+suppressPackageStartupMessages({
+  library(haven)
+  library(ggplot2)
+  library(dplyr)
+  library(tidyr)
+  library(grid)
+})
 
 args <- commandArgs(trailingOnly = FALSE)
 file_arg <- grep("^--file=", args, value = TRUE)
@@ -22,16 +26,15 @@ if (length(file_arg) == 1) {
   code_dir <- getwd()
 }
 
-.libPaths(c(file.path(code_dir, ".R-library"), .libPaths()))
-suppressPackageStartupMessages({
-  library(haven)
-  library(ggplot2)
-  library(dplyr)
-  library(tidyr)
-  library(grid)
-})
+# Minseon/Dropbox version (kept for reference):
+# replication_dir <- "C:/Users/minseonp/Dropbox/RP/Code_Replication Package_Upload"
 
-data_dir <- file.path(code_dir, "data")
+# Byunghun/current repository:
+replication_dir <- normalizePath(
+  file.path(code_dir, "..", "Code_Replication Package_Upload"),
+  mustWork = TRUE
+)
+data_dir <- file.path(replication_dir, "data")
 result_dir <- file.path(code_dir, "results")
 dir.create(result_dir, recursive = TRUE, showWarnings = FALSE)
 ihat_result_dir <- file.path(result_dir, "ihat")
@@ -175,164 +178,89 @@ make_figure2_pair <- function(outcome_var, output_dir) {
   )
 }
 
-make_figure2_pair("Ihat_ig", result_dir)
+make_figure2_pair("I_ig", result_dir)
 make_figure2_pair("Ihat_ig", ihat_result_dir)
 
 ################################################################################
-# Figures 3 and 4: actual and randomly reassigned group choices, using I - M.
-# The retained validated panel supplies the current Figure 3 benchmark/category.
-# Figure 4 draws one non-own same-wave donor per pair-wave, uniformly with
-# replacement. Both members share its group choices; undefined donor I = 0.5.
-# Its plots use the same defined-actual-distance targets as Figure 3.
-# This section runs independently after loading haven, ggplot2, dplyr and grid,
-# and defining code_dir, result_dir, paper_theme and sig_mark above.
+# Figure 3: Revealed Preference Distance Index By Members' CCEI
 ################################################################################
 
-distance_panel <- read_dta(file.path(code_dir,
-  "IminusM_review/outputs/data/ccei_ra_candidate_analysis.dta"))
-stopifnot(nrow(distance_panel) == 2608, all(distance_panel$n_ccei_donors == 651),
-          !anyDuplicated(distance_panel[c("id", "post")]))
-distance_panel$member <- factor(ifelse(distance_panel$HighCCEI_both_high == 1,
-  "Higher CCEI", "Lower CCEI"), levels = c("Lower CCEI", "Higher CCEI"))
-figure_dir <- file.path(result_dir, "figures")
-dir.create(figure_dir, recursive = TRUE, showWarnings = FALSE)
+rp_data <- panel_individual |>
+  filter(!is.na(I_ig), !is.na(HighCCEI)) |>
+  mutate(
+    ccei_group = factor(
+      if_else(HighCCEI == 1, "Higher CCEI", "Lower CCEI"),
+      levels = c("Lower CCEI", "Higher CCEI")
+    )
+  )
 
-adjusted_distance_plots <- function(data, value, mean_label, distance_label) {
-  stats <- data |>
-    group_by(member) |>
-    summarise(mean = mean(.data[[value]]), sd = sd(.data[[value]]), n = n(),
-              se = sd / sqrt(n), ci = qt(.975, n - 1) * se, .groups = "drop")
-  test <- t.test(data[[value]] ~ data$member)
-  ks <- suppressWarnings(ks.test(data[[value]][data$member == "Lower CCEI"],
-    data[[value]][data$member == "Higher CCEI"], exact = FALSE))
-  difference <- stats$mean[stats$member == "Higher CCEI"] -
-    stats$mean[stats$member == "Lower CCEI"]
-  y_min <- min(0, min(stats$mean - stats$ci) - .02)
-  y_max <- max(0, max(stats$mean + stats$ci) + .04)
-  bar <- ggplot(stats, aes(member, mean, fill = member)) +
-    geom_col(width = .62, colour = "black", linewidth = .3) +
-    geom_errorbar(aes(ymin = mean - ci, ymax = mean + ci), width = .16) +
-    geom_hline(yintercept = 0, colour = "grey45", linewidth = .4) +
-    annotate("text", x = 1.5, y = y_max,
-      label = sprintf("High - low = %.3f%s", difference, sig_mark(test$p.value)), size = 4.4) +
-    scale_fill_manual(values = c("Lower CCEI" = "#D99A99", "Higher CCEI" = "#80ADD0")) +
-    coord_cartesian(ylim = c(y_min, y_max + .015)) +
-    labs(x = NULL, y = mean_label) + paper_theme +
-    theme(legend.position = "none")
-  cdf <- ggplot(data, aes(.data[[value]], colour = member, linetype = member)) +
-    stat_ecdf(geom = "step", linewidth = .85, pad = FALSE) +
-    geom_vline(xintercept = 0, colour = "grey65", linewidth = .4) +
-    scale_colour_manual(values = c("Lower CCEI" = "red", "Higher CCEI" = "blue")) +
-    scale_linetype_manual(values = c("Lower CCEI" = "dashed", "Higher CCEI" = "solid")) +
-    scale_x_continuous(limits = c(-1, 1), breaks = seq(-1, 1, .25), expand = c(0, 0)) +
-    scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, .25), expand = c(0, 0)) +
-    labs(x = distance_label, y = "Cumulative probability", colour = NULL, linetype = NULL) +
-    paper_theme + theme(legend.position = c(.2, .84),
-      legend.background = element_rect(fill = "white", colour = "black"))
-  stats$high_minus_low <- difference
-  stats$ttest_p <- test$p.value
-  stats$ks_p <- ks$p.value
-  list(bar = bar, cdf = cdf, stats = stats)
-}
+rp_stats <- rp_data |>
+  group_by(ccei_group) |>
+  summarise(
+    mean = mean(I_ig),
+    sd = sd(I_ig),
+    n = n(),
+    se = sd / sqrt(n),
+    ci = qt(0.975, n - 1) * se,
+    .groups = "drop"
+  )
 
-actual_distance_data <- filter(distance_panel, !is.na(Istar_ccei))
-stopifnot(nrow(actual_distance_data) == 2560)
-figure3 <- adjusted_distance_plots(actual_distance_data, "Istar_ccei",
-  expression("Mean placebo-adjusted distance " * (I-M)),
-  expression("Placebo-adjusted distance " * (I-M)))
-ggsave(file.path(figure_dir, "ccei_IminusM_by_higher_ccei_bar.png"), figure3$bar,
-       width = 6, height = 5, dpi = 300)
-ggsave(file.path(figure_dir, "ccei_IminusM_by_higher_ccei_cdf.png"), figure3$cdf,
-       width = 6, height = 5, dpi = 300)
+rp_test <- t.test(I_ig ~ ccei_group, data = rp_data)
+rp_difference <- diff(rev(rp_stats$mean))
+rp_label <- sprintf(
+  "Diff. = %.3f%s",
+  rp_difference,
+  sig_mark(rp_test$p.value)
+)
+rp_y <- max(rp_stats$mean + rp_stats$ci) + 0.08
 
-# Reuse the retained full donor matrix; no index calculation or regression.
-donor_file <- file.path(code_dir, "results/placebo_normalized/placebo_donor_matrix.csv")
-donors <- readr::read_csv(donor_file, show_col_types = FALSE, progress = FALSE,
-  col_select = c(target_group_id, post, member1_id, member2_id, donor_group_id,
-                 is_own, Ihat1_donor, Ihat2_donor),
-  col_types = readr::cols(.default = readr::col_character(), post = readr::col_integer(),
-    is_own = readr::col_integer(), Ihat1_donor = readr::col_double(),
-    Ihat2_donor = readr::col_double()))
-roster <- donors |>
-  distinct(target_group_id, post, member1_id, member2_id) |>
-  arrange(post, target_group_id)
-stopifnot(nrow(roster) == 1304, !anyDuplicated(roster[c("target_group_id", "post")]))
-counts <- donors |>
-  filter(is_own == 0) |>
-  count(target_group_id, post)
-stopifnot(nrow(counts) == 1304, all(counts$n == 651))
-matrix_means <- donors |>
-  filter(is_own == 0) |>
-  group_by(target_group_id, post, member1_id, member2_id) |>
-  summarise(M1 = mean(ifelse(is.na(Ihat1_donor), .5, Ihat1_donor)),
-            M2 = mean(ifelse(is.na(Ihat2_donor), .5, Ihat2_donor)), .groups = "drop")
-benchmark_check <- bind_rows(
-  transmute(matrix_means, id = member1_id, post, M = M1),
-  transmute(matrix_means, id = member2_id, post, M = M2)) |>
-  inner_join(select(distance_panel, id, post, M_ccei), by = c("id", "post"))
-stopifnot(nrow(benchmark_check) == 2608,
-          max(abs(benchmark_check$M - benchmark_check$M_ccei)) < 1e-10)
-seed <- 20260812L
-set.seed(seed)
-roster$donor_group_id <- NA_character_
-for (wave in 0:1) {
-  indices <- which(roster$post == wave)
-  pool <- roster$target_group_id[indices]
-  for (i in indices) {
-    other <- pool[pool != roster$target_group_id[i]]
-    roster$donor_group_id[i] <- other[sample.int(length(other), 1L)]
-  }
-}
-stopifnot(all(roster$target_group_id != roster$donor_group_id))
-key <- function(d) paste(d$target_group_id, d$post, d$donor_group_id, sep = "|")
-stopifnot(!anyDuplicated(key(donors)))
-selected <- match(key(roster), key(donors))
-stopifnot(!anyNA(selected), all(donors$is_own[selected] == 0))
-draw <- donors[selected, ]
-placebo_sample <- bind_rows(
-  transmute(draw, group_id = target_group_id, post, id = member1_id, donor_group_id,
-            I_placebo = Ihat1_donor),
-  transmute(draw, group_id = target_group_id, post, id = member2_id, donor_group_id,
-            I_placebo = Ihat2_donor)) |>
-  left_join(select(distance_panel, group_id, post, id, I_ccei, M_ccei,
-                   HighCCEI_both_high, member), by = c("group_id", "post", "id")) |>
-  mutate(donor_undefined = is.na(I_placebo),
-         I_placebo = ifelse(donor_undefined, .5, I_placebo),
-         I_adjusted = I_placebo - M_ccei, included = !is.na(I_ccei), seed = seed) |>
-  arrange(post, group_id, id)
-stopifnot(nrow(placebo_sample) == 2608,
-          !anyDuplicated(placebo_sample[c("id", "post")]),
-          all(is.finite(placebo_sample$I_adjusted)))
-pair_check <- placebo_sample |>
-  group_by(group_id, post) |>
-  summarise(n = n(), n_donors = n_distinct(donor_group_id),
-            adjusted_sum = sum(I_adjusted), .groups = "drop")
-stopifnot(all(pair_check$n == 2), all(pair_check$n_donors == 1),
-          max(abs(pair_check$adjusted_sum)) < 1e-7)
-haven::write_dta(select(placebo_sample, -member),
-  file.path(figure_dir, "figure4_placebo_sample.dta"), version = 14)
-figure4_data <- filter(placebo_sample, included)
-stopifnot(nrow(figure4_data) == nrow(actual_distance_data),
-  setequal(paste(figure4_data$id, figure4_data$post),
-           paste(actual_distance_data$id, actual_distance_data$post)))
-figure4 <- adjusted_distance_plots(figure4_data, "I_adjusted",
-  expression("Mean placebo-adjusted donor distance " * (tilde(I)-M)),
-  expression("Placebo-adjusted donor distance " * (tilde(I)-M)))
-png(file.path(figure_dir, "figure4_placebo_distance.png"),
-    width = 3600, height = 1500, res = 300)
-grid.newpage()
-pushViewport(viewport(layout = grid.layout(1, 2)))
-print(figure4$bar + ggtitle("(a) Mean placebo-adjusted donor distance"),
-      newpage = FALSE, vp = viewport(layout.pos.col = 1))
-print(figure4$cdf + ggtitle("(b) CDFs of placebo-adjusted donor distance"),
-      newpage = FALSE, vp = viewport(layout.pos.col = 2))
-dev.off()
-message("Figure 4: one random donor per pair-wave; seed ", seed,
-  "; ", nrow(figure4_data) / 2, " plotted pair-waves; ", nrow(figure4_data),
-  " student-waves; ", sum(figure4_data$donor_undefined) / 2,
-  " plotted donor matches imputed to 0.5.")
-print(figure3$stats)
-print(figure4$stats)
+rp_bar <- ggplot(rp_stats, aes(ccei_group, mean, fill = ccei_group)) +
+  geom_col(width = 0.62, colour = "black", linewidth = 0.3) +
+  geom_errorbar(
+    aes(ymin = mean - ci, ymax = mean + ci),
+    width = 0.16, linewidth = 0.45
+  ) +
+  annotate("segment", x = 1, xend = 2, y = rp_y, yend = rp_y) +
+  annotate("segment", x = 1, xend = 1, y = rp_y - 0.025, yend = rp_y) +
+  annotate("segment", x = 2, xend = 2, y = rp_y - 0.025, yend = rp_y) +
+  annotate("text", x = 1.5, y = rp_y + 0.04, label = rp_label, size = 5) +
+  scale_fill_manual(values = c("Lower CCEI" = "#D99A99", "Higher CCEI" = "#80ADD0")) +
+  scale_x_discrete(labels = c("Lower\nCCEI", "Higher\nCCEI")) +
+  scale_y_continuous(limits = c(0, rp_y + 0.09), expand = c(0, 0)) +
+  labs(x = NULL, y = expression("Mean revealed preference distance (" * I[ig] * ")")) +
+  paper_theme +
+  theme(legend.position = "none")
+
+rp_cdf <- ggplot(rp_data, aes(I_ig, colour = ccei_group, linetype = ccei_group)) +
+  stat_ecdf(geom = "step", linewidth = 0.9, pad = FALSE) +
+  scale_colour_manual(values = c("Lower CCEI" = "red", "Higher CCEI" = "blue")) +
+  scale_linetype_manual(values = c("Lower CCEI" = "dashed", "Higher CCEI" = "solid")) +
+  scale_x_continuous(
+    limits = c(0, 1), breaks = seq(0, 1, 0.2), expand = c(0, 0)
+  ) +
+  scale_y_continuous(
+    limits = c(0, 1), breaks = seq(0, 1, 0.2), expand = c(0, 0)
+  ) +
+  labs(
+    x = expression("Revealed preference distance (" * I[ig] * ")"),
+    y = "Cumulative probability",
+    colour = NULL,
+    linetype = NULL
+  ) +
+  paper_theme +
+  theme(
+    legend.position = c(0.22, 0.85),
+    legend.background = element_rect(fill = "white", colour = "black")
+  )
+
+ggsave(
+  file.path(result_dir, "bargaining_index_by_ccei_bar.png"),
+  rp_bar, width = 6, height = 5, dpi = 300
+)
+ggsave(
+  file.path(result_dir, "bargaining_index_by_ccei_cdf.png"),
+  rp_cdf, width = 6, height = 5, dpi = 300
+)
 
 ################################################################################
 # Figure 5: Collective CCEI By Members' Individual CCEI Category

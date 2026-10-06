@@ -1,8 +1,9 @@
-# 03_build_panel.R
+# 2_1_build_panel.R
 # Latest update: 2026-10-06
 # Purpose: Add cleaned survey, demographic and friendship information to the
-#          wide pair panel, retaining the indices and M benchmarks from 01.
-# Inputs: data/panel_final.dta from 01; cleaned survey modules from 02;
+#          wide pair panel, retaining the indices and M benchmarks from 1_1_calculate_indices.R.
+# Inputs: data/panel_final.dta from 1_1_calculate_indices.R; cleaned survey modules
+#         from 1_2_clean_survey.R;
 #         data/network_survey.dta and, when available, data/height.dta.
 # Outputs: Updated data/panel_final.dta (one pair per row, both waves in columns)
 #          and data/network_panel_clean.dta.
@@ -241,7 +242,7 @@ missing_ihat_cols <- setdiff(required_ihat_cols, names(panel_final))
 
 if (length(missing_ihat_cols) > 0) {
   stop(
-    "panel_final is missing cross-partition index columns from 01: ",
+    "panel_final is missing cross-partition index columns from 1_1_calculate_indices.R: ",
     paste(missing_ihat_cols, collapse = ", ")
   )
 }
@@ -701,7 +702,7 @@ missing_ihat_after_merge <- setdiff(required_ihat_cols, names(panel_final))
 
 if (length(missing_ihat_after_merge) > 0) {
   stop(
-    "Cross-partition index columns were lost during the 03 merge: ",
+    "Cross-partition index columns were lost during the 2_1_build_panel.R merge: ",
     paste(missing_ihat_after_merge, collapse = ", ")
   )
 }

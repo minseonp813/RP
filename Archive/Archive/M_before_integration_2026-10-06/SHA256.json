@@ -1,0 +1,13 @@
+{
+  "01_calculate_indices.R": "ddfde60cd2d3b5c6db481e1da6e2dac4096a4e74064db01d624ee521f92e78ed",
+  "programs/build_placebo_donor_matrices.R": "fc5f545903470929837543d565f296f97f065a833fb631431d8783fef0b64bb9",
+  "IminusM_review/build_placebo_donor_matrices_parallel.R": "0eb8eaaf119aac8f7bbc4b1f882b1005251f14fbbd24836bc0a0a47d8627cef5",
+  "IminusM_review/01_build_ra_benchmark.R": "557bd21909bc080daef8c806d9b5ade8532a5b570a7d5f99021b69db70f8ea40",
+  "99_5_build_placebo_donor_matrix.py": "fe1498a909422937c6613999db7c1b3e29806df6fd6526438751b5903c09bc9b",
+  "99_5_build_placebo_donor_matrices.R": "1444016764855810db2927ebceb1a6d2a69e29dc9a17029ea2b5530c667d9c88",
+  "IminusM_review/04_build_full_rp_benchmarks.R": "915a776af965b3879b4013ffbc4742815269583ac5ac7553e546202f79f030a3",
+  "IminusM_review/04a_build_review_benchmarks.R": "328fbfe9b92017d26059931ff918bf244c08573c566105b3bd7113d3f4df4f94",
+  "data/panel_final.dta": "b43461becb38f7d9c4d5730f93bc920dd91cd49b94e8183a937b33d2e6c98164",
+  "data/panel_group.dta": "446b1548b89640fafe4b82c47b1f9a9a2bd0d0c21b8431c7f45c1512f0bd1013",
+  "data/panel_individual.dta": "5610db5a0ebb20b51a3da7f49e482109ff277bbd99f28d070f81fc283982e40b"
+}

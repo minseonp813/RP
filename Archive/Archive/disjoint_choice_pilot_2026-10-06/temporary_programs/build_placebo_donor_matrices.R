@@ -1,6 +1,6 @@
 # Latest update: 2026-10-06
-# Purpose: shared CCEI, HM, MaxMPI, and risk-aversion donor benchmarks for 1_1_calculate_indices.R.
-# Inputs: the balanced wide pair panel and loaded base/end choice data from 1_1_calculate_indices.R.
+# Purpose: shared CCEI, HM, MaxMPI, and risk-aversion donor benchmarks for 01.
+# Inputs: the balanced wide pair panel and loaded base/end choice data from 01.
 # Outputs: resumable donor chunks, a donor matrix, and member-wave M summaries.
 # Sections: 1 inputs/roster; 2 cache identity; 3 donor distances; 4 resumable
 # calculation; 5 own-pair validation; 6 non-own donor averages and exports.
@@ -320,7 +320,7 @@ build_placebo_donor_matrix <- function(
   }
   matrix <- do.call(rbind, lapply(chunk_paths, read_output))
 
-  # 5. The own-pair diagonal must reproduce the indices calculated in 1_1_calculate_indices.R.
+  # 5. The own-pair diagonal must reproduce the indices calculated in 01.
   if (save_donor_matrix) {
     validate_diagonal(matrix, roster)
     blocks <- split(matrix, paste(matrix$target_group_id, matrix$post, sep = "|"))

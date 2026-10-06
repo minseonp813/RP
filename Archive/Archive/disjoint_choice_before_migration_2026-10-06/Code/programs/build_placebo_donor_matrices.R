@@ -1,10 +1,9 @@
 # Latest update: 2026-10-06
-# Purpose: shared CCEI, HM, MaxMPI, and risk-aversion donor benchmarks for 1_1_calculate_indices.R.
-# Inputs: the balanced wide pair panel and loaded base/end choice data from 1_1_calculate_indices.R.
+# Purpose: shared CCEI, HM, MaxMPI, and risk-aversion donor benchmarks for 01.
+# Inputs: the balanced wide pair panel and loaded base/end choice data from 01.
 # Outputs: resumable donor chunks, a donor matrix, and member-wave M summaries.
 # Sections: 1 inputs/roster; 2 cache identity; 3 donor distances; 4 resumable
 # calculation; 5 own-pair validation; 6 non-own donor averages and exports.
-# Split-choice callers can use nine choices and retain only member summaries.
 # Full benchmarks use every non-own pair in the same wave, without a time cap.
 # Undefined distances are imputed to 0.5 in M_all_imp; M_all_drop excludes them.
 
@@ -12,7 +11,7 @@ build_placebo_donor_matrix <- function(
     measure, package_dir, pairs, base, end,
     output_dir = file.path(package_dir, "results", "benchmarks", measure),
     chunk_size = 8L, cores = 1L, max_targets = 0L, max_donors = 0L,
-    cost_timeout = 0, choices_per_member = 18L, save_donor_matrix = TRUE) {
+    cost_timeout = 0) {
   # 1. Validate inputs and reconstruct the balanced pair-wave roster.
   stopifnot(measure %in% c("ccei", "hm", "maxmpi", "ra"),
             length(chunk_size) == 1L, is.finite(chunk_size), chunk_size >= 1L,
@@ -23,9 +22,7 @@ build_placebo_donor_matrix <- function(
             max_targets == as.integer(max_targets),
             length(max_donors) == 1L, is.finite(max_donors), max_donors >= 0L,
             max_donors == as.integer(max_donors),
-            length(cost_timeout) == 1L, is.finite(cost_timeout), cost_timeout >= 0,
-            length(choices_per_member) == 1L, choices_per_member %in% c(9L, 18L),
-            length(save_donor_matrix) == 1L, !is.na(save_donor_matrix))
+            length(cost_timeout) == 1L, is.finite(cost_timeout), cost_timeout >= 0)
   numerical_source <- file.path(package_dir, "programs", "calculate_rp_indices.R")
   if (measure != "ra") source(numerical_source, local = TRUE)
   plain <- function(x) trimws(as.character(x))
@@ -107,8 +104,7 @@ build_placebo_donor_matrix <- function(
   }
 
   # 2. Reuse chunks only when the inputs, numerical code, and settings match.
-  manifest <- list(version = 2L, measure = measure, chunk_size = as.integer(chunk_size),
-                   choices_per_member = as.integer(choices_per_member), save_donor_matrix = save_donor_matrix,
+  manifest <- list(version = 1L, measure = measure, chunk_size = as.integer(chunk_size),
                    max_targets = as.integer(max_targets), max_donors = as.integer(max_donors),
                    cost_timeout = as.numeric(cost_timeout), roster = roster_full, choices = raw,
                    numerical_code = if (measure != "ra") unname(tools::md5sum(numerical_source)),
@@ -124,7 +120,7 @@ build_placebo_donor_matrix <- function(
     }
   } else {
     cached <- c(matrix_path, analysis_csv, analysis_dta,
-                list.files(chunk_dir, pattern = "^(donor_matrix|member_wave)_chunk_.*[.]csv$", full.names = TRUE))
+                list.files(chunk_dir, pattern = "^donor_matrix_chunk_.*[.]csv$", full.names = TRUE))
     if (any(file.exists(cached))) {
       stop("Existing benchmark cache has no input/config identity; it cannot be reused safely. ",
            "Keep it for comparison and choose a new output_dir: ", output_dir)
@@ -136,13 +132,13 @@ build_placebo_donor_matrix <- function(
                   "member2_id", "donor_group_id", "donor_class", "id", "partner_id")
   read_output <- function(path) {
     header <- names(read.csv(path, nrows = 0L, check.names = FALSE))
-    classes <- rep("numeric", length(header))
+    classes <- rep(NA_character_, length(header))
     names(classes) <- header
     classes[header %in% id_columns] <- "character"
     classes[header == "post"] <- "integer"
     read.csv(path, stringsAsFactors = FALSE, check.names = FALSE, colClasses = classes)
   }
-  if (all(file.exists(c(if (save_donor_matrix) matrix_path, analysis_csv, analysis_dta)))) {
+  if (all(file.exists(c(matrix_path, analysis_csv, analysis_dta)))) {
     message("[complete] ", measure, " benchmark outputs already exist")
     return(invisible(read_output(analysis_csv)))
   }
@@ -180,7 +176,7 @@ build_placebo_donor_matrix <- function(
     if (measure != "ra") {
       i1 <- individual[[paste(target$target_group_id, target$post, target$member1_id, sep = "|")]]
       i2 <- individual[[paste(target$target_group_id, target$post, target$member2_id, sep = "|")]]
-      if (is.null(i1) || nrow(i1) != choices_per_member || is.null(i2) || nrow(i2) != choices_per_member) {
+      if (is.null(i1) || nrow(i1) != 18L || is.null(i2) || nrow(i2) != 18L) {
         stop("Individual choices are incomplete for target ", target$target_group_id, " / ", target$post)
       }
     }
@@ -204,7 +200,7 @@ build_placebo_donor_matrix <- function(
         ih2 <- if (is.finite(c12) && c12 > 0) c2 / c12 else NA_real_
       } else {
         gg <- groups[[paste(donor$target_group_id, donor$post, sep = "|")]]
-        if (is.null(gg) || nrow(gg) != choices_per_member) stop("Collective choices are incomplete for donor ", donor$target_group_id)
+        if (is.null(gg) || nrow(gg) != 18L) stop("Collective choices are incomplete for donor ", donor$target_group_id)
         c1 <- cross_cost(i1, gg)
         c2 <- cross_cost(i2, gg)
         c12 <- cross_cost(rbind(i1, i2), gg)
@@ -227,6 +223,62 @@ build_placebo_donor_matrix <- function(
     do.call(rbind, rows)
   }
 
+  # 4. Resume complete chunks; parallel workers must all succeed before saving.
+  started <- Sys.time()
+  chunk_starts <- seq.int(1L, nrow(roster), by = chunk_size)
+  chunk_paths <- character(length(chunk_starts))
+  dir.create(chunk_dir, recursive = TRUE, showWarnings = FALSE)
+  for (k in seq_along(chunk_starts)) {
+    indices <- seq.int(chunk_starts[k], min(chunk_starts[k] + chunk_size - 1L, nrow(roster)))
+    chunk_path <- file.path(chunk_dir, sprintf("donor_matrix_chunk_%04d.csv", k - 1L))
+    chunk_paths[k] <- chunk_path
+    n_donors <- vapply(roster$post[indices], function(post) {
+      n_wave <- sum(roster_full$post == post)
+      if (max_donors > 0L) 1L + min(max_donors, n_wave - 1L) else n_wave
+    }, numeric(1))
+    if (file.exists(chunk_path)) {
+      saved <- tryCatch(read_output(chunk_path), error = function(e) NULL)
+      if (!is.null(saved) && nrow(saved) == sum(n_donors) &&
+          all(c("target_group_id", "post", "donor_group_id") %in% names(saved)) &&
+          !anyDuplicated(saved[c("target_group_id", "post", "donor_group_id")]) &&
+          setequal(paste(saved$target_group_id, saved$post),
+                   paste(roster$target_group_id[indices], roster$post[indices]))) {
+        message("[resume] ", basename(chunk_path))
+        next
+      }
+      message("[rebuild] ", basename(chunk_path), " is incomplete")
+    }
+    worker <- function(i) target_rows(roster[i, , drop = FALSE])
+    results <- if (cores > 1L && .Platform$OS.type != "windows") {
+      parallel::mclapply(indices, worker, mc.cores = min(cores, length(indices)), mc.preschedule = TRUE)
+    } else lapply(indices, worker)
+    failed <- which(!vapply(results, is.data.frame, logical(1)))
+    if (length(failed)) stop("Benchmark worker failed: ", paste(results[failed], collapse = "; "))
+    result <- do.call(rbind, results)
+    if (nrow(result) != sum(n_donors)) stop("Benchmark worker returned an incomplete chunk.")
+    temporary <- paste0(chunk_path, ".tmp")
+    write.csv(result, temporary, row.names = FALSE, na = "")
+    if (!file.rename(temporary, chunk_path)) stop("Could not save benchmark chunk: ", chunk_path)
+    message("[saved] ", basename(chunk_path), ": ", format(nrow(result), big.mark = ","), " rows")
+  }
+  matrix <- do.call(rbind, lapply(chunk_paths, read_output))
+
+  # 5. The own-pair diagonal must reproduce the indices calculated in 01.
+  diagonal <- matrix[matrix$is_own == 1L, , drop = FALSE]
+  match_rows <- match(paste(diagonal$target_group_id, diagonal$post),
+                      paste(roster$target_group_id, roster$post))
+  if (nrow(diagonal) != nrow(roster) || anyNA(match_rows) || anyDuplicated(match_rows)) {
+    stop("Expected one own-pair diagonal row per target pair-wave.")
+  }
+  calculated <- c(diagonal$Ihat1_donor, diagonal$Ihat2_donor)
+  stored <- c(roster$actual1[match_rows], roster$actual2[match_rows])
+  if (any(is.na(calculated) != is.na(stored))) stop("Diagonal missing-value patterns do not match the actual indices.")
+  difference <- abs(calculated - stored)
+  max_error <- if (all(is.na(difference))) NA_real_ else max(difference, na.rm = TRUE)
+  if (!is.na(max_error) && max_error > 1e-10) stop("Diagonal does not reproduce the actual indices: max error = ", max_error)
+  message("Diagonal validation passed; max error = ", format(max_error, scientific = TRUE))
+
+  # 6. Average non-own distances for all, same-class, and other-class donor pools.
   pool_summary <- function(x, pool) {
     valid <- !is.na(x)
     values <- c(if (length(x)) mean(replace(x, !valid, 0.5)) else NA_real_,
@@ -236,7 +288,8 @@ build_placebo_donor_matrix <- function(
                             pool, c("_imp", "_drop", "", "", ""))
     values
   }
-  member_summary <- function(block) {
+  blocks <- split(matrix, paste(matrix$target_group_id, matrix$post, sep = "|"))
+  analysis <- do.call(rbind, lapply(blocks, function(block) {
     own <- block[block$is_own == 1L, , drop = FALSE]
     donors <- block[block$is_own == 0L, , drop = FALSE]
     do.call(rbind, lapply(1:2, function(member) {
@@ -257,78 +310,7 @@ build_placebo_donor_matrix <- function(
       row$P_cls <- if (any(donors$same_class == 1L)) mean(own_cost <= costs[donors$same_class == 1L]) else NA_real_
       as.data.frame(row, stringsAsFactors = FALSE)
     }))
-  }
-
-  validate_diagonal <- function(matrix, roster) {
-    diagonal <- matrix[matrix$is_own == 1L, , drop = FALSE]
-    match_rows <- match(paste(diagonal$target_group_id, diagonal$post),
-                        paste(roster$target_group_id, roster$post))
-    if (nrow(diagonal) != nrow(roster) || anyNA(match_rows) || anyDuplicated(match_rows)) {
-      stop("Expected one own-pair diagonal row per target pair-wave.")
-    }
-    calculated <- c(diagonal$Ihat1_donor, diagonal$Ihat2_donor)
-    stored <- c(roster$actual1[match_rows], roster$actual2[match_rows])
-    if (any(is.na(calculated) != is.na(stored))) stop("Diagonal missing-value patterns do not match the actual indices.")
-    difference <- abs(calculated - stored)
-    max_error <- if (all(is.na(difference))) NA_real_ else max(difference, na.rm = TRUE)
-    if (!is.na(max_error) && max_error > 1e-10) stop("Diagonal does not reproduce the actual indices: max error = ", max_error)
-  }
-
-  # 4. Resume complete chunks; parallel workers must all succeed before saving.
-  started <- Sys.time()
-  chunk_starts <- seq.int(1L, nrow(roster), by = chunk_size)
-  chunk_paths <- character(length(chunk_starts))
-  dir.create(chunk_dir, recursive = TRUE, showWarnings = FALSE)
-  for (k in seq_along(chunk_starts)) {
-    indices <- seq.int(chunk_starts[k], min(chunk_starts[k] + chunk_size - 1L, nrow(roster)))
-    chunk_path <- file.path(chunk_dir, sprintf("%s_chunk_%04d.csv", if (save_donor_matrix) "donor_matrix" else "member_wave", k - 1L))
-    chunk_paths[k] <- chunk_path
-    n_donors <- vapply(roster$post[indices], function(post) {
-      n_wave <- sum(roster_full$post == post)
-      if (max_donors > 0L) 1L + min(max_donors, n_wave - 1L) else n_wave
-    }, numeric(1))
-    expected_rows <- if (save_donor_matrix) sum(n_donors) else 2L * length(indices)
-    key_columns <- if (save_donor_matrix) c("target_group_id", "post", "donor_group_id") else c("group_id", "post", "id")
-    target_column <- if (save_donor_matrix) "target_group_id" else "group_id"
-    if (file.exists(chunk_path)) {
-      saved <- tryCatch(read_output(chunk_path), error = function(e) NULL)
-      if (!is.null(saved) && nrow(saved) == expected_rows &&
-          all(key_columns %in% names(saved)) && !anyDuplicated(saved[key_columns]) &&
-          setequal(paste(saved[[target_column]], saved$post),
-                   paste(roster$target_group_id[indices], roster$post[indices]))) {
-        message("[resume] ", basename(chunk_path))
-        next
-      }
-      message("[rebuild] ", basename(chunk_path), " is incomplete")
-    }
-    worker <- function(i) {
-      block <- target_rows(roster[i, , drop = FALSE])
-      validate_diagonal(block, roster[i, , drop = FALSE])
-      if (save_donor_matrix) block else member_summary(block)
-    }
-    results <- if (cores > 1L && .Platform$OS.type != "windows") {
-      parallel::mclapply(indices, worker, mc.cores = min(cores, length(indices)), mc.preschedule = TRUE)
-    } else lapply(indices, worker)
-    failed <- which(!vapply(results, is.data.frame, logical(1)))
-    if (length(failed)) stop("Benchmark worker failed: ", paste(results[failed], collapse = "; "))
-    result <- do.call(rbind, results)
-    if (nrow(result) != expected_rows) stop("Benchmark worker returned an incomplete chunk.")
-    temporary <- paste0(chunk_path, ".tmp")
-    write.csv(result, temporary, row.names = FALSE, na = "")
-    if (!file.rename(temporary, chunk_path)) stop("Could not save benchmark chunk: ", chunk_path)
-    message("[saved] ", basename(chunk_path), ": ", format(nrow(result), big.mark = ","), " rows")
-  }
-  matrix <- do.call(rbind, lapply(chunk_paths, read_output))
-
-  # 5. The own-pair diagonal must reproduce the indices calculated in 1_1_calculate_indices.R.
-  if (save_donor_matrix) {
-    validate_diagonal(matrix, roster)
-    blocks <- split(matrix, paste(matrix$target_group_id, matrix$post, sep = "|"))
-    analysis <- do.call(rbind, lapply(blocks, member_summary))
-  } else analysis <- matrix
-  message("Own-pair diagonal validation passed.")
-
-  # 6. Average non-own distances for all, same-class, and other-class donor pools.
+  }))
   for (pool in c("all", "cls")) {
     key <- paste(analysis$group_id, analysis$post, analysis$id, sep = "|")
     partner_key <- paste(analysis$group_id, analysis$post, analysis$partner_id, sep = "|")
@@ -342,12 +324,11 @@ build_placebo_donor_matrix <- function(
   }
   analysis <- analysis[order(analysis$post, analysis$group_id, analysis$id), , drop = FALSE]
   rownames(analysis) <- NULL
-  if (save_donor_matrix) write.csv(matrix, matrix_path, row.names = FALSE, na = "")
+  write.csv(matrix, matrix_path, row.names = FALSE, na = "")
   write.csv(analysis, analysis_csv, row.names = FALSE, na = "")
   stata <- analysis
   names(stata)[names(stata) == "class"] <- "_class"
   haven::write_dta(stata, analysis_dta, version = 14)
-  if (!save_donor_matrix) unlink(chunk_dir, recursive = TRUE)
   message("Normalized member-wave data saved: ", analysis_dta)
   message("Total elapsed time: ", format(Sys.time() - started))
   invisible(analysis)

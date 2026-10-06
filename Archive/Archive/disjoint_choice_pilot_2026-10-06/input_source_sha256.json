@@ -1,0 +1,11 @@
+{
+  "data/base_raw.dta": "3f10f2d3d64801a3313b99d555e41f8ea2c6413fc15188330c02c143b080a656",
+  "data/end_raw.dta": "06038d5f9a471bdd4a9f0d97abfa2eac75a77af2b670efc18f6bf8376f0a69c0",
+  "data/panel_final.dta": "b43461becb38f7d9c4d5730f93bc920dd91cd49b94e8183a937b33d2e6c98164",
+  "data/panel_individual.dta": "5610db5a0ebb20b51a3da7f49e482109ff277bbd99f28d070f81fc283982e40b",
+  "programs/calculate_indices_disjoint.R": "a0f893cbe184c6b147db90412e98229451300e9c7459038181e37b1c69da370d",
+  "programs/calculate_rp_indices.R": "440241a36134b88d1ea6d897fe0fa4ac7976f5a0e8c6c941a09f87bb2a08e7c8",
+  "programs/build_placebo_donor_matrices.R": "9da1100811e027f25c5c060d800304c799c20be525850fd9f6d1d25a1ed993e0",
+  "08_Tables_Appendix.do": "75dc1bb987aeb6372ea704be8cd42c1fb2010a920a609b4988b84aa48a54680b",
+  "06_Tables_Main.do": "c8d7b115262beee7cdd6cfc4b2b251b4d5dc70e236754022e5d3bbeab565d4fb"
+}

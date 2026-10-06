@@ -1,33 +1,3 @@
-# 01_calculate_indices.R
-# Latest update: 2026-10-06
-# Purpose: Clean choices and calculate individual/group rationality, cross-choice
-#          distances, risk aversion and non-own donor benchmarks M.
-# Inputs: data/riskpreference_pre.dta and data/riskpreference_post.dta;
-#         programs/calculate_rp_indices.R, calculate_cei.py and the shared
-#         programs/build_placebo_donor_matrices.R.
-# Outputs: data/base_raw.dta, data/end_raw.dta and data/panel_final.dta
-#          (one balanced pair per row, members and waves in separate columns);
-#          results/benchmarks/<measure>/ donor matrices, resumable chunks and
-#          member-wave benchmarks for ccei, hm, maxmpi and ra.
-# Sections:
-#   1. Set up packages and load the two choice waves.
-#   2. Identify pairs and retain complete individual/collective choice records.
-#   3. Select the balanced pair roster, apply exclusions and check the sample.
-#   4. Calculate CCEI, HM, MaxMPI, own-pair distances and risk aversion.
-#   5. Validate cross costs, member distances and exact MaxMPI completion.
-#   6. Calculate collective CEIV/CEI and save the actual-index checkpoint.
-#   7. Build all four M benchmarks from choices and map results by member ID.
-#   8. Save the wide index and benchmark panel for 03_build_panel.R.
-# Benchmark section 7 uses every non-own pair in the same wave (651 donors in
-# the current sample), without a solver time cap. It can be costly; completed
-# results/chunks are reused only when inputs and calculation settings match.
-# Pre-integration scripts and panels are preserved locally in
-# Archive/M_before_integration_2026-10-06/. Existing placebo/review outputs stay
-# in their original folders for comparison with results/benchmarks/.
-
-# ----------------------------------------------------------------------------
-# 1. Setup and choice inputs
-# ----------------------------------------------------------------------------
 rm(list = ls())
 library(readxl)
 library(tidyverse)
@@ -58,9 +28,7 @@ base_raw <- base_raw %>%
   select(all_of(keep_cols))
 end_raw <- end_raw %>%
   select(all_of(keep_cols))
-# ----------------------------------------------------------------------------
-# 2. Clean pair identifiers and complete choices
-# ----------------------------------------------------------------------------
+# Create group IDs and keep complete pairs.
 clean_pair_raw <- function(df) {
   df <- df %>%
     mutate(
@@ -176,9 +144,7 @@ write_dta(
   end_raw,
   "data/end_raw.dta"
 )
-# ----------------------------------------------------------------------------
-# 3. Balanced pair roster, exclusions and sample checks
-# ----------------------------------------------------------------------------
+# Build the balanced pair panel.
 base_pair <- base_raw %>%
   filter(round_number == 1, mover == 1) %>%
   select(group_id, id_mover = id, partner_id) %>%
@@ -235,9 +201,7 @@ end_raw %>%
 
 
 
-# ----------------------------------------------------------------------------
-# 4. Individual/group indices, own-pair distances and risk aversion
-# ----------------------------------------------------------------------------
+# Calculate the three rationality measures and Cross indices.
 
 rm(list = ls())
 
@@ -266,7 +230,7 @@ panel_final <- read_dta("data/panel_final.dta") %>%
   )
 
 old_generated_vars <- grep(
-  "^(ccei_|maxmpi_|hm_|cei_|Ihat_|M_|n_(ccei|hm|maxmpi|ra)_|nvalid_(ccei|hm|maxmpi|ra)_|degfrac_(ccei|hm|maxmpi|ra)_|c_Ng_|c_maxmpi_|c_hm_|c_ccei_|RA_|high_|High)",
+  "^(ccei_|maxmpi_|hm_|cei_|Ihat_|c_Ng_|c_maxmpi_|c_hm_|c_ccei_|RA_|high_|High)",
   names(panel_final),
   value = TRUE
 )
@@ -337,9 +301,6 @@ for (measure in names(measure_results)) {
   )
 }
 
-# ----------------------------------------------------------------------------
-# 5. Validate actual cross-choice indices
-# ----------------------------------------------------------------------------
 for (measure in c("ccei", "maxmpi", "hm")) {
   for (wave in c("base", "end")) {
     if (measure == "ccei") {
@@ -371,9 +332,7 @@ if (!all(measure_results$maxmpi$exhausted)) {
   stop("MaxMPI search did not exhaust every branch-and-bound problem.")
 }
 
-# ----------------------------------------------------------------------------
-# 6. Collective CEIV and untempered CEI
-# ----------------------------------------------------------------------------
+# Calculate CEI.
 python_candidates <- unique(c(
   Sys.getenv("CEI_PYTHON", unset = ""),
   unname(Sys.which(c("python", "python3"))),
@@ -439,73 +398,4 @@ if (any(is.na(panel_final$cei_g_base)) || any(is.na(panel_final$cei_g_end))) {
   stop("CEI group matching failed.")
 }
 
-# Save actual indices before the expensive M calculation so section 7 can resume.
-write_dta(panel_final, "data/panel_final.dta")
-
-# ----------------------------------------------------------------------------
-# 7. Non-own donor benchmarks M
-# ----------------------------------------------------------------------------
-# This section can be run separately from Code after the checkpoint above exists.
-source("programs/calculate_rp_indices.R")
-source("programs/build_placebo_donor_matrices.R")
-package_dir <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
-panel_final <- haven::read_dta("data/panel_final.dta")
-base_raw <- rp_load_wave("data/base_raw.dta")
-end_raw <- rp_load_wave("data/end_raw.dta")
-benchmark_cores <- as.integer(Sys.getenv("PLACEBO_CORES", "1"))
-
-for (measure in c("ccei", "hm", "maxmpi", "ra")) {
-  benchmark <- build_placebo_donor_matrix(
-    measure, package_dir, pairs = panel_final, base = base_raw, end = end_raw,
-    output_dir = file.path(package_dir, "results", "benchmarks", measure),
-    chunk_size = 8L, cores = benchmark_cores,
-    max_targets = 0L, max_donors = 0L, cost_timeout = 0
-  )
-  stopifnot(
-    nrow(benchmark) == 4L * nrow(panel_final),
-    !anyDuplicated(benchmark[c("group_id", "post", "id")]),
-    all(benchmark$n_all == nrow(panel_final) - 1L)
-  )
-
-  # Keep the primary benchmark, missing-donor alternative and pool diagnostics.
-  columns <- c(
-    M_all_imp = paste0("M_", measure),
-    M_all_drop = paste0("M_", measure, "_drop"),
-    M_cls_imp = paste0("M_", measure, "_sameclass"),
-    M_cls_drop = paste0("M_", measure, "_sameclass_drop"),
-    M_outclass_imp = paste0("M_", measure, "_outclass"),
-    M_outclass_drop = paste0("M_", measure, "_outclass_drop"),
-    n_all = paste0("n_", measure, "_donors"),
-    nvalid_all = paste0("nvalid_", measure, "_donors"),
-    degfrac_all = paste0("degfrac_", measure)
-  )
-  stopifnot(all(names(columns) %in% names(benchmark)))
-  benchmark_key <- paste(benchmark$group_id, benchmark$post, benchmark$id, sep = "|")
-
-  # Builder order is sorted ID; panel roles are mover/nonmover within each wave.
-  for (wave in c("base", "end")) {
-    post <- as.integer(wave == "end")
-    for (member in 1:2) {
-      role <- if (member == 1L) "mover" else "nonmover"
-      id <- panel_final[[paste0("id_", role, "_", wave)]]
-      rows <- match(paste(panel_final$group_id, post, id, sep = "|"), benchmark_key)
-      stopifnot(!anyNA(rows))
-      for (field in names(columns)) {
-        panel_final[[paste0(columns[[field]], "_", member, "_", wave)]] <-
-          benchmark[[field]][rows]
-      }
-      if (measure == "ra") {
-        panel_final[[paste0("Ihat_ra_", member, "g_", wave)]] <- benchmark$I_actual[rows]
-      }
-    }
-    stopifnot(all(abs(
-      panel_final[[paste0("M_", measure, "_1_", wave)]] +
-        panel_final[[paste0("M_", measure, "_2_", wave)]] - 1
-    ) < 1e-7))
-  }
-}
-
-# ----------------------------------------------------------------------------
-# 8. Save the index and benchmark panel
-# ----------------------------------------------------------------------------
 write_dta(panel_final, "data/panel_final.dta")

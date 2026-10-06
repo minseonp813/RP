@@ -1,6 +1,6 @@
-# 02_clean_survey.R
+# 1_2_clean_survey.R
 # Latest update: 2026-10-06
-# Purpose: Clean participant-level survey modules for the panel merge in 03.
+# Purpose: Clean participant-level survey modules for the panel merge in 2_1_build_panel.R.
 # Inputs: Raw pre/post noncognitive, cognitive, risk-survey and RAT workbooks;
 #         data/network_survey.dta and data/male.dta.
 # Outputs: data/*_pre_clean.dta, data/*_post_clean.dta and data/male_clean.dta.

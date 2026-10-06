@@ -1,0 +1,35 @@
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lcccccc}\toprule
+& \multicolumn{3}{c}{Ties Assigned High} & \multicolumn{3}{c}{CCEI Difference}\\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+Dependent variable: $I_{ig}$ & (1) & (2) & (3) & (4) & (5) & (6)\\\midrule
+$Higher\ CCEI_i$ & -0.031 & -0.027 & -0.032 &  &  & \\
+ & [-0.036, -0.027] & [-0.032, -0.022] & [-0.032, -0.032] &  &  & \\
+$CCEI_i-CCEI_j$ &  &  &  & -0.084 & -0.102 & -0.081\\
+ &  &  &  & [-0.129, -0.039] & [-0.153, -0.052] & [-0.163, 0.001]\\
+$M_{ig}$ & 0.981 & 1.008 & 0.984 & 0.977 & 0.999 & 0.982\\
+ & [0.952, 1.009] & [0.988, 1.029] & [0.970, 0.998] & [0.935, 1.020] & [0.963, 1.036] & [0.953, 1.011]\\
+$Math\ score_i$ &  & 0.001 & 0.004 &  & 0.001 & 0.004\\
+ &  & [0.001, 0.002] & [0.004, 0.004] &  & [0.000, 0.002] & [0.003, 0.004]\\
+$Math\ score_{diff}$ &  & -0.004 & -0.006 &  & -0.004 & -0.006\\
+ &  & [-0.004, -0.004] & [-0.016, 0.003] &  & [-0.004, -0.004] & [-0.015, 0.003]\\
+$(Female_i, Male_j)$ &  & -0.007 &  &  & -0.008 & \\
+ &  & [-0.040, 0.025] &  &  & [-0.041, 0.024] & \\
+$(Male_i, Female_j)$ &  & 0.008 &  &  & 0.008 & \\
+ &  & [-0.024, 0.040] &  &  & [-0.024, 0.041] & \\
+$In\text{-}degree_i$ &  & 0.000 & 0.000 &  & -0.000 & -0.000\\
+ &  & [-0.000, 0.000] & [0.000, 0.000] &  & [-0.000, -0.000] & [-0.000, 0.000]\\
+$In\text{-}degree_{diff}$ &  & -0.002 & 0.001 &  & -0.002 & 0.002\\
+ &  & [-0.003, -0.002] & [-0.004, 0.006] &  & [-0.003, -0.002] & [-0.003, 0.006]\\
+\midrule
+Median N & 1,962 & 1,962 & 1,962 & 1,962 & 1,962 & 1,962\\
+Median R-squared & 0.227 & 0.254 & 0.642 & 0.226 & 0.254 & 0.642\\
+Median class clusters & 64 & 64 & 64 & 64 & 64 & 64\\
+Fixed effects & Class & Class & Individual & Class & Class & Individual\\
+Individual and friendship controls & & $\checkmark$ & $\checkmark$ & & $\checkmark$ & $\checkmark$\\
+Corner/midpoint share controls & & $\checkmark$ & $\checkmark$ & & $\checkmark$ & $\checkmark$\\
+Coefficient estimates per column & 2 & 2 & 2 & 2 & 2 & 2\\
+\bottomrule\end{tabular}}
+\par\vspace{6pt}\begin{minipage}{\textwidth}\footnotesize
+\emph{Notes}: Each member's 18 individual choices and the group's 18 choices are independently split into two sets of nine in each of 1 partitions. In each direction, one set supplies individual CCEIs and exact corner/equal-allocation shares, and the other supplies actual distance and its placebo benchmark. The benchmark uses all 651 non-own same-wave donor pairs, using only their group choices from the outcome set; undefined donor distances receive 0.5. Both directions are pooled, giving 2 coefficient estimates per column. Entries report median coefficients, with the 2.5th and 97.5th percentiles of their split distributions in brackets. These ranges are not confidence intervals obtained by pooling partition observations. Columns match Table 3: ties are assigned high in Columns (1)--(3); Columns (4)--(6) use the signed within-pair CCEI difference. All columns control for the outcome-set benchmark. Columns (2), (3), (5), and (6) include individual, friendship, missing-value, and choice-share controls; risk-aversion controls are excluded. Gender-composition controls enter Columns (2) and (5) and are absorbed by individual fixed effects in Columns (3) and (6). Starting from Table 3's balanced sample, each direction retains students with defined outcome-set distance in both waves, using a common sample for all six fits. Each regression clusters standard errors by class. Median sample sizes, R-squared values, and class-cluster counts are reported.
+\end{minipage}

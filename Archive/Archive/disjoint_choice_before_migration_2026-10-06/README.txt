@@ -1,0 +1,1 @@
+Original disjoint-choice implementations and affected production files, preserved before the 2026-10-06 migration. The old implementations estimated four raw-distance specifications without M. The current manuscript table is hardcoded and is preserved for comparison. No full split-choice simulation was run during migration.

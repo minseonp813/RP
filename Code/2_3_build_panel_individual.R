@@ -1,9 +1,10 @@
-# 05_build_panel_individual.R
+# 2_3_build_panel_individual.R
 # Latest update: 2026-10-06
 # Purpose: Reshape the enriched pair panel into one row per member and wave,
 #          carrying own/partner indices, M benchmarks and individual controls.
-# Inputs: data/panel_final.dta from 03_build_panel.R, data/panel_group.dta from
-#         04_build_panel_group.R and data/network_panel_clean.dta from 03.
+# Inputs: data/panel_final.dta from 2_1_build_panel.R, data/panel_group.dta from
+#         2_2_build_panel_group.R and data/network_panel_clean.dta from
+#         2_1_build_panel.R.
 # Outputs: data/panel_individual.dta and
 #          data/checks/panel_individual_selected_missing_imputation_summary.csv.
 # Sections:
@@ -16,9 +17,9 @@
 #   7. Prepare friendship/network controls.
 #   8. Add missing indicators and zero-impute selected regression controls.
 #   9. Validate member-distance adding-up, save the panel and report dimensions.
-# M values calculated by 01 retain their canonical analysis names (M_ccei,
-# M_hm, M_maxmpi, M_ra); they are carried forward without control imputation.
-# Before running the revised 01, existing panels have no M columns to carry.
+# M values calculated by 1_1_calculate_indices.R retain their canonical analysis
+# names (M_ccei, M_hm, M_maxmpi, M_ra); they are carried forward without control imputation.
+# Before running the revised 1_1_calculate_indices.R, existing panels have no M columns to carry.
 
 # ----------------------------------------------------------------------------
 # 1. Setup and value helpers

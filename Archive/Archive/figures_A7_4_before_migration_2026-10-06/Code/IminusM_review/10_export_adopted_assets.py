@@ -31,14 +31,9 @@ for file in (out/'adopted').glob('*.tex'):
         shutil.copyfile(file, tables/file.name)
 for name in canonical_tables:
     shutil.copyfile(root / 'Code/results/tables' / name, tables/name)
-for name in (
-    'ccei_IminusM_by_higher_ccei_bar.png',
-    'ccei_IminusM_by_higher_ccei_cdf.png',
-    'figure4_placebo_distance.png',
-    'hist_IminusM_ig.png',
-    'shapley_bargaining_index_M.png',
-):
-    shutil.copyfile(root / 'Code/results/figures' / name, figures/name)
+for suffix in ['bar','cdf']:
+    name=f'ccei_IminusM_by_higher_ccei_{suffix}.png'
+    shutil.copyfile(out/'figures'/name, figures/name)
 
 # Existing adjusted HM/MaxMPI/RA review estimates, including benchmark coefficients.
 source=read('alternative_measure_comparison.csv')+read('main_comparison.csv')
@@ -70,4 +65,4 @@ for i,label in enumerate(rows):
     text+=row('$I-M$' if label=='Placebo-adjusted distance' else label,cells)
 text+=r'\bottomrule\end{tabular}'+'\n'
 (tables/'table_correlation_IminusM.tex').write_text(text)
-print('Exported adopted tables and canonical Figures 3, 4, A6, and A7.')
+print('Exported adopted tables and Figure 2 assets.')
