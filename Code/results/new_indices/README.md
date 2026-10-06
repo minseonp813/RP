@@ -1,3 +1,9 @@
+> Current analysis: see [collective_rationality_summary/README.txt](collective_rationality_summary/README.txt).
+> The CCEI-CEIV exploration dofiles numbered 99_23 through 99_34, their exploration-only .do helpers,
+> and associated logs were removed on October 6, 2026. Their saved results remain below as historical outputs;
+> reproduction commands in this historical record refer to removed exploratory scripts.
+> The retained 99_35_collective_rationality_summary.do now imports and validates the workbook directly.
+
 # CEIV and CEIC review results
 
 Overleaf was fast-forwarded from `13f8abd` to `532f7a1fd04dc5adbd5b103f5a7effd8f303a294` before analysis.

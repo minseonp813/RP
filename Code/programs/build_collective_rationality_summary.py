@@ -1,4 +1,4 @@
-"""Assemble the requested category figures, six-column Table 5, and Figure 6."""
+"""Assemble the Section 6.3 figures and three-column appendix table."""
 import csv
 from pathlib import Path
 
@@ -14,11 +14,16 @@ def read(name):
 coefficients = read("table5_coefficients.csv")
 diagnostics = read("table5_diagnostics.csv")
 means = read("group_ccei_category_means.csv")
+counts = read("joint_outcome_counts.csv")
+effects = read("figure6_ame.csv")
+assert sum(int(row["n"]) for row in counts) == 1304
+for row in effects:
+    assert abs(float(row["share"]) - float(counts[int(row["outcome"]) - 1]["share"])) < 1e-12
 
 
 def coefficient(outcome, column, term):
-    return next((r for r in coefficients if r["outcome"] == outcome
-                 and int(r["column"]) == column and r["term"] == term), None)
+    return next(r for r in coefficients if r["outcome"] == outcome
+                and int(r["column"]) == column and r["term"] == term)
 
 
 def diagnostic(outcome, column):
@@ -37,6 +42,12 @@ def table_row(label, values):
     return label + " & " + " & ".join(values) + r"\\" + "\n"
 
 
+quadrant_summary = "; ".join(
+    f"{label}: {int(row['n']):,} ({100 * float(row['share']):.1f}\\%)"
+    for label, row in zip(["both below one", "only CCEI equal to one",
+                           "only CEIV equal to one", "both equal to one"], counts)
+)
+
 parts = [r"""\documentclass[11pt]{article}
 \usepackage[letterpaper,margin=0.6in]{geometry}
 \usepackage{booktabs,graphicx,amsmath,amssymb}
@@ -44,21 +55,43 @@ parts = [r"""\documentclass[11pt]{article}
 \setlength{\parskip}{5pt}
 \pagestyle{plain}
 \begin{document}
-\begin{center}\large\textbf{Section 6 Outline}\end{center}
+\begin{center}\large\textbf{Section 6.3: Individual Rationality and Collective Outcomes}\\[4pt]
+\normalsize Revised figure sequence and appendix placement\end{center}
 \begin{enumerate}
-\setlength{\itemsep}{8pt}
-\item The first set of figures shows that both members' individual CCEIs are associated with group CCEI and CEIV. Mean group CCEI and CEIV are significantly higher for Low--High pairs than for Low--Low pairs, consistent with the importance of the more rational member's rationality. Both means increase significantly again from Low--High to High--High pairs, suggesting that the less rational member's rationality also matters.
+\setlength{\itemsep}{10pt}
+\item \textbf{Bar and CDF panels (Figure 1).} Show group CCEI and CEIV by the members' pooled-median
+individual CCEI categories. Both means rise from Low--Low to Low--High and from Low--High to High--High;
+the unadjusted differences are statistically significant. The CDF panels complement the mean comparisons
+by showing the full distributions, including the mass at one.
 
-\item Columns (1)--(3) of the expanded Table 5 examine whether these patterns persist after controlling for observable characteristics and introducing pair fixed effects in columns (2) and (3), respectively. Panel A confirms that group CCEI increases from Low--Low to Low--High and further from Low--High to High--High. Both comparisons remain statistically significant across all three specifications, supporting the relevance of both members' rationality. For CEIV in Panel B, however, the additional difference between Low--High and High--High is no longer statistically significant. The categorical evidence therefore points more clearly to the contribution of the more rational member.
+\item \textbf{Four joint outcomes (Figure 2).} Place group CCEI status on the horizontal axis and group CEIV
+status on the vertical axis. Each quadrant reports its count and share of the 1,304 pair-wave observations:
+""" + quadrant_summary + r""". These are categorical quadrants, with each index either below one or equal to one.
 
-Moving to columns (4)--(6), the continuous specifications show that the CCEIs of more rational members increase both group CCEI and CEIV. Holding maximum CCEI constant, distance matters as well, especially for CCEI but not for CEIV. Nevertheless, we cannot reject equality of the maximum- and minimum-CCEI coefficients at the 10\% level in any specification.
-
-Appendix Figure XXX complements these continuous-index regressions with a multinomial logit model for the four joint CCEI/CEIV outcomes, reporting average marginal effects. Higher maximum individual CCEI predicts a greater probability that the group satisfies both consistency and efficiency criteria. Higher minimum individual CCEI predicts a greater probability of satisfying the consistency criterion.
-
-\item Overall, both members' CCEIs matter for group CCEI. For CEIV, the more rational member's CCEI matters more, if anything. Thus larger CCEI of more rational member help the group avoid choices that both members would reject.
+\item \textbf{Average marginal effects (Figure 3).} Use the pooled four-outcome multinomial logit with both
+members' individual CCEIs, student, friendship, and choice-pattern controls, and class fixed effects.
+For a 0.1 increase in maximum individual CCEI, the average marginal effect on the probability of both group
+indices equaling one is +19.2 percentage points; the corresponding minimum-CCEI effect is +2.4 percentage
+points. Both are positive with 95\% confidence intervals excluding zero. Minimum individual CCEI also has
+a positive effect on the CCEI$=1$, CEIV$<1$ outcome. These estimates describe conditional associations;
+the plot does not test equality of the two members' effects.
 \end{enumerate}
+
+\textbf{Appendix Table A1.} Retain only columns (1)--(3) of the attached table, with both group CCEI and CEIV
+panels. Column (1) includes class fixed effects; column (2) adds student, friendship, and choice-pattern controls;
+column (3) uses these controls with pair fixed effects. Low--Low is the omitted category.
+The High--High minus Low--High comparison remains significant for group CCEI in all three specifications
+($p<0.001$, $p<0.001$, and $p=0.045$), while it is not significant for CEIV
+($p=0.111$, $p=0.168$, and $p=0.991$).
+
+\textit{Measurement and sample:} CEIV is used throughout. All figures and appendix regressions use
+1,304 pair-waves from 652 pairs in 64 classes. CEIV$=1$ denotes rationalizability under the specified
+individual calibrations and varying weights; it does not identify actual aggregation weights or a communication
+process. Figure and table numbers in this review packet indicate the proposed sequence within Section 6.3.
+
 \clearpage
-\begin{center}\large\textbf{Collective CCEI and CEIV by Members' Individual CCEI Category}\end{center}
+\begin{center}\large\textbf{Figure 1: Collective CCEI and CEIV}\\
+\normalsize By members' individual CCEI category\end{center}
 \begin{center}
 \begin{minipage}{0.485\textwidth}\centering
 \includegraphics[width=\linewidth]{group_ccei_bar.pdf}\\[-2pt]
@@ -80,89 +113,35 @@ Appendix Figure XXX complements these continuous-index regressions with a multin
 \end{minipage}
 \end{center}
 \footnotesize
-\textit{Notes:} The original CCEI figure is extended with the same plots for CEIV. Each member is High if individual
-CCEI exceeds the pooled median across both waves (0.9806594), and Low otherwise; no individual CCEI equals the median.
-The sample contains 1,304 pair-waves from 652 pairs. Low--Low, Low--High, and High--High contain
-""" + ", ".join(r["n"] for r in means) + r""" pair-waves, respectively. Bars show unadjusted means with 95\% Student-$t$ confidence intervals.
-Bracket labels are upper-category minus lower-category means; significance uses Welch two-sample $t$-tests.
-CDFs use all observations, including the mass at one. These descriptive intervals and tests do not adjust for class
-clustering; the regressions on the following pages do. +, *, and ** denote $p<0.10$, $p<0.05$, and $p<0.01$.
+\textit{Notes:} Each member is High if individual CCEI exceeds the pooled median across both waves
+(0.9806594), and Low otherwise; no individual CCEI equals the median. The sample contains 1,304 pair-waves
+from 652 pairs. Low--Low, Low--High, and High--High contain
+""" + ", ".join(r["n"] for r in means) + r""" pair-waves, respectively.
+Bars show unadjusted means with 95\% Student-$t$ confidence intervals. Bracket labels are upper-category
+minus lower-category means; significance uses Welch two-sample $t$-tests. CDFs use all observations,
+including the mass at one. These descriptive intervals and tests do not adjust for class clustering;
+Figure 3 and Appendix Table A1 do. +, *, and ** denote $p<0.10$, $p<0.05$, and $p<0.01$.
 
 \clearpage
 \normalsize
-\setlength{\parskip}{2pt}
-\begin{center}\large\textbf{Table 5 Expansion: Individual Rationality and Collective Outcomes}\end{center}
-\begin{center}\small
-\setlength{\tabcolsep}{8pt}
-\renewcommand{\arraystretch}{1.02}
-\begin{tabular}{lcccccc}
-\toprule
-& \multicolumn{3}{c}{Individual CCEI category dummies} & \multicolumn{3}{c}{Maximum CCEI and CCEI gap}\\
-\cmidrule(lr){2-4}\cmidrule(lr){5-7}
-& (1) & (2) & (3) & (4) & (5) & (6)\\
-\midrule
-"""]
-
-terms = [("low_high", "Low--High pair"), ("high_high", "High--High pair"),
-         ("ccei_max", r"$\mathrm{CCEI}_{\max,gt}$"),
-         ("ccei_dist", r"$\mathrm{CCEI}_{\mathrm{dist},gt}$")]
-for outcome, panel in [("ccei", "A: Group CCEI"), ("ceiv", "B: Group CEIV")]:
-    parts.append(r"\multicolumn{7}{l}{\textit{Panel " + panel + r"}}\\[3pt]" + "\n")
-    for term, label in terms:
-        rows = [coefficient(outcome, column, term) for column in range(1, 7)]
-        values = [f"{float(r['estimate']):.3f}" + r"\textsuperscript{" + stars(float(r["p"])) + "}"
-                  if r else "" for r in rows]
-        errors = [f"({float(r['se']):.3f})" if r else "" for r in rows]
-        parts.append(table_row(label, values))
-        parts.append(table_row("", errors))
-    parts.append(r"\midrule\multicolumn{7}{l}{\textit{Post-estimation comparisons}}\\[2pt]" + "\n")
-    contrasts = [coefficient(outcome, column, "hh_minus_lh") for column in range(1, 4)]
-    parts.append(table_row("High--High minus Low--High",
-                           [f"{float(r['estimate']):.3f}" for r in contrasts] + ["", "", ""]))
-    parts.append(table_row("Standard error of difference",
-                           [f"{float(r['se']):.3f}" for r in contrasts] + ["", "", ""]))
-    parts.append(table_row(r"$p$: High--High = Low--High",
-                           [pvalue(diagnostic(outcome, c)["equality_p"]) for c in range(1, 4)]
-                           + ["", "", ""]))
-    parts.append(table_row(r"$p$: equal member-specific slopes",
-                           ["", "", ""]
-                           + [pvalue(diagnostic(outcome, c)["equality_p"]) for c in range(4, 7)]))
-    parts.append(r"\addlinespace" + "\n")
-    parts.append(table_row("Observations", [diagnostic(outcome, c)["n"] for c in range(1, 7)]))
-    parts.append(table_row(r"$R^2$", [f"{float(diagnostic(outcome, c)['r2']):.3f}" for c in range(1, 7)]))
-    parts.append(r"\midrule" + "\n")
-
-parts.extend([
-    table_row("Fixed effects", ["Class", "Class", "Pair", "Class", "Class", "Pair"]),
-    table_row("Student and friendship controls", ["", r"$\checkmark$", r"$\checkmark$", "", r"$\checkmark$", r"$\checkmark$"]),
-    table_row("Corner/midpoint share controls", ["", r"$\checkmark$", r"$\checkmark$", "", r"$\checkmark$", r"$\checkmark$"]),
-    r"""\bottomrule
-\end{tabular}\end{center}
+\begin{center}\large\textbf{Figure 2: Joint Collective Outcomes}\\
+\normalsize Counts and shares by group CCEI and CEIV status\end{center}
+\begin{center}
+\includegraphics[width=0.95\textwidth]{joint_outcome_quadrants.pdf}
+\end{center}
 \footnotesize
-\textit{Notes:} OLS regression coefficients have class-clustered standard errors in parentheses. All columns use 1,304 pair-waves
-from 652 pairs in 64 classes. Columns (1)--(3) use category indicators, with Low--Low omitted and the preceding
-figure's pooled-median classification. Columns (4)--(6) use maximum individual CCEI and the within-pair gap,
-$\mathrm{CCEI}_{\mathrm{dist}}=\mathrm{CCEI}_{\max}-\mathrm{CCEI}_{\min}$. Following Table 3, each block contains basic class effects, full controls with class effects, and full controls
-with pair effects.
-
-The separate post-estimation section reports the linear contrast $\beta_{HH}-\beta_{LH}$, computed from the
-regression coefficients, and its class-clustered standard error; the contrast is not an additional regressor.
-Its $p$-value tests $H_0:\beta_{HH}=\beta_{LH}$ in Columns (1)--(3).
-In Columns (4)--(6), the member-specific slopes are $\theta_{\max}+\theta_{\mathrm{dist}}$ for the higher-CCEI
-member and $-\theta_{\mathrm{dist}}$ for the lower-CCEI member, holding the partner's CCEI fixed.
-Their equality test is $H_0:\theta_{\max}+2\theta_{\mathrm{dist}}=0$.
-All comparisons are two-sided and use the estimated coefficient covariance.
-
-Holding the gap fixed, the maximum-CCEI coefficient describes a common increase in both members' CCEIs.
-Full controls comprise pair maxima and absolute differences in math score, height,
-Big Five traits, network degree, popularity, and exact corner/equal-allocation shares, with mixed-gender,
-friendship, and missing-value indicators. Risk-aversion controls and wave effects are excluded. Estimates and
-category comparisons describe conditional associations. +, *, and ** denote significance at the 10\%, 5\%, and 1\% levels.
+\textit{Notes:} The horizontal axis classifies group CCEI and the vertical axis classifies group CEIV.
+Each quadrant reports the observed count and percentage of all 1,304 pair-waves from 652 pairs in 64 classes;
+each pair contributes one observation in each of two waves. These are pooled pair-wave frequencies,
+rather than a classification of unique pairs. Percentages sum to 100\% before rounding.
+An index is classified as one at values at least $1-10^{-9}$; all other observations are below one.
+CEIV endpoint classifications agree with both supplied numerical bounds. The axes represent binary status,
+rather than distances between continuous index values. CEIV$=1$ denotes rationalizability under the specified
+individual calibrations and varying weights.
 
 \clearpage
 \normalsize
-\setlength{\parskip}{5pt}
-\begin{center}\large\textbf{Figure 6 Extension: Individual Rationality and Joint Group CCEI/CEIV Outcomes}\end{center}
+\begin{center}\large\textbf{Figure 3: Individual Rationality and Joint Collective Outcomes}\end{center}
 \begin{center}
 \begin{minipage}{0.82\textwidth}\centering
 \includegraphics[width=\linewidth]{figure6_a_ame_maximum.png}\\
@@ -175,22 +154,76 @@ category comparisons describe conditional associations. +, *, and ** denote sign
 (b) $\mathrm{CCEI}_{\min,gt}$
 \end{minipage}
 \end{center}
-\small
-The four outcomes contain 415 pair-waves with both indices below one, 117 with only CCEI equal to one,
-300 with only CEIV equal to one, and 472 with both equal to one.
-
 \footnotesize
-\textit{Notes:} This extension replaces CEI with CEIV in the four-outcome multinomial logit, matching the attached
-Figure 6 variant. Both members' continuous CCEIs enter jointly, with all student, friendship, and corner/midpoint
-share controls and class fixed effects, matching Column (5) of the expanded table. Risk-aversion controls and wave
-fixed effects are excluded. The sample contains 1,304 pair-waves from 652 pairs, with 64 class clusters.
-Dots report average marginal effects in percentage points, scaled to a 0.1 increase in the indicated member's CCEI;
-these are scaled average derivatives, rather than exact finite changes in predicted probabilities.
-Horizontal bars are 95\% normal intervals based on class-clustered standard errors. Effects sum to zero across
-the four outcomes for each member. An index counts as one at values at least $1-10^{-9}$, and CEIV endpoint
-classifications agree with both supplied numerical bounds. CEIV$=1$ indicates rationalizability under the specified
-individual calibrations and varying weights; it does not identify actual aggregation weights or a communication
-process. The effects are descriptive conditional associations.
+\textit{Notes:} Pooled four-category multinomial-logit average marginal effects, expressed in percentage points
+and scaled to a 0.1 increase in the indicated member's individual CCEI. These are scaled average derivatives,
+rather than exact finite changes in predicted probabilities. Both individual CCEIs enter jointly, with student,
+friendship, and corner/midpoint share controls and class fixed effects. The control set matches Appendix
+Table A1, Column (2); risk-aversion controls and wave fixed effects are excluded.
+The sample is 1,304 pair-waves from 652 pairs in 64 classes. Horizontal bars are 95\% normal confidence intervals
+based on class-clustered standard errors. Effects sum to zero across the four outcomes for each member.
+An index is classified as one within a numerical tolerance of $10^{-9}$. The joint-outcome counts and shares
+appear in Figure 2. CEIV$=1$ denotes rationalizability under the specified individual calibrations and varying
+weights; it does not identify actual aggregation weights or a communication process.
+The effects describe conditional associations.
+
+\clearpage
+\normalsize
+\setlength{\parskip}{3pt}
+\begin{center}\large\textbf{Appendix Table A1: Individual Rationality and Collective Outcomes}\\
+\normalsize Columns (1)--(3) of the attached table\end{center}
+\begin{center}\small
+\setlength{\tabcolsep}{14pt}
+\renewcommand{\arraystretch}{1.12}
+\begin{tabular}{lccc}
+\toprule
+& \multicolumn{3}{c}{Individual CCEI category dummies}\\
+\cmidrule(lr){2-4}
+& (1) & (2) & (3)\\
+\midrule
+"""]
+
+terms = [("low_high", "Low--High pair"), ("high_high", "High--High pair")]
+for outcome, panel in [("ccei", "A: Group CCEI"), ("ceiv", "B: Group CEIV")]:
+    parts.append(r"\multicolumn{4}{l}{\textit{Panel " + panel + r"}}\\[3pt]" + "\n")
+    for term, label in terms:
+        rows = [coefficient(outcome, column, term) for column in range(1, 4)]
+        parts.append(table_row(label, [f"{float(r['estimate']):.3f}" + r"\textsuperscript{"
+                                     + stars(float(r["p"])) + "}" for r in rows]))
+        parts.append(table_row("", [f"({float(r['se']):.3f})" for r in rows]))
+    parts.append(r"\midrule\multicolumn{4}{l}{\textit{Post-estimation comparisons}}\\[2pt]" + "\n")
+    contrasts = [coefficient(outcome, column, "hh_minus_lh") for column in range(1, 4)]
+    parts.append(table_row("High--High minus Low--High", [f"{float(r['estimate']):.3f}" for r in contrasts]))
+    parts.append(table_row("Standard error of difference", [f"{float(r['se']):.3f}" for r in contrasts]))
+    parts.append(table_row(r"$p$: High--High = Low--High",
+                           [pvalue(diagnostic(outcome, c)["equality_p"]) for c in range(1, 4)]))
+    parts.append(r"\addlinespace" + "\n")
+    parts.append(table_row("Observations", [f"{int(diagnostic(outcome, c)['n']):,}" for c in range(1, 4)]))
+    parts.append(table_row(r"$R^2$", [f"{float(diagnostic(outcome, c)['r2']):.3f}" for c in range(1, 4)]))
+    parts.append(r"\midrule" + "\n")
+
+parts.extend([
+    table_row("Fixed effects", ["Class", "Class", "Pair"]),
+    table_row("Student and friendship controls", ["", r"$\checkmark$", r"$\checkmark$"]),
+    table_row("Corner/midpoint share controls", ["", r"$\checkmark$", r"$\checkmark$"]),
+    r"""\bottomrule
+\end{tabular}\end{center}
+\footnotesize
+\textit{Notes:} OLS regression coefficients have class-clustered standard errors in parentheses. All columns
+use 1,304 pair-waves from 652 pairs in 64 classes. Low--Low is omitted. High means individual CCEI exceeds
+the pooled median across both waves (0.9806594), and Low otherwise, as in Figure 1. Column (1) includes
+class fixed effects; Column (2) adds full controls with class fixed effects; Column (3) uses full controls
+with pair fixed effects.
+
+The post-estimation section reports the linear contrast $\beta_{HH}-\beta_{LH}$ and its class-clustered
+standard error; the contrast is not an additional regressor. Its two-sided $p$-value tests
+$H_0:\beta_{HH}=\beta_{LH}$ using the estimated coefficient covariance.
+
+Full controls comprise pair maxima and absolute differences in math score, height, Big Five traits,
+network degree, popularity, and exact corner/equal-allocation shares, with mixed-gender, friendship,
+and missing-value indicators. Risk-aversion controls and wave fixed effects are excluded.
+Estimates and category comparisons describe conditional associations. +, *, and ** denote significance
+at the 10\%, 5\%, and 1\% levels.
 \end{document}
 """,
 ])
