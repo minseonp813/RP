@@ -6,7 +6,7 @@
 
 3. TABLE A5: We should use the same number of simulations/iterations as in the main sample beyond 50 or 20 donor benchmarks. Find codes that construct these measures and ultimately the table A5, and update the table. Don't edit text in the draft; edit only the number referenced in the main text.
 
-4. TABLE A7 should be updated to follow the specification of table 3 as it is. So six columns exactly with the same set of controls.
+4. TABLE A7 should be updated to follow the specification of table 3 as it is. So six columns exactly with the same set of controls. **Code updated (2026-10-06): programs/calculate_indices_disjoint.R calculates split-choice inputs and outcome-half M; the Table A7 section of 08_Tables_Appendix.do estimates the six adopted Table 3 specifications directly and exports the table. Full 500-partition calculation and updated numerical results remain pending; the draft retains the old results until the full export exists.**
 
 5. Let's update figure 4, too. instead of running regressions, we will show the parallel version of figure 3. One thing we should decide here is whether to use GxG-1 as the number of observations or G to make it consistent with the main result. I'd prefer latter since the former is reducing the standard error mechanically. So choose one pair randomly for each pair (except for itself) then generate the parallel version of figure 3.   
 
