@@ -2,17 +2,12 @@
 
 All available respondents and a separate lower-CCEI-member section, pooled across both waves, without any RA-gap restriction. No manuscript edits.
 
-Run from `Code`:
+> Historical outputs. The estimation dofile, plotter, and report builder have been removed.
+> See [the current Section 6 pipeline](../collective_rationality_summary/README.txt) for reproduction.
 
-```sh
-/Applications/StataNow/StataMP.app/Contents/MacOS/stata-mp -b do 99_27_risk_survey_joint_categories.do
-Rscript programs/plot_risk_survey_categories.R
-python3 programs/build_risk_survey_categories.py
-```
+Saved report: `output/pdf/risk_survey_by_ccei_ceiv_categories.pdf` at the repo root.
 
-Compile `review.tex` from this directory with `pdflatex`; copy `review.pdf` to `output/pdf/risk_survey_by_ccei_ceiv_categories.pdf` at the repo root.
-
-The shared input is `programs/load_risk_survey_panel.do`, also used by `99_26_risk_survey_review.do`. It merges CEIV into `panel_individual.dta` from `panel_group_new_indices.dta`, verifies pair-wave outcomes, and validates the survey scores.
+The former shared preparation helper merged CEIV into `panel_individual.dta` from `panel_group_new_indices.dta`, verified pair-wave outcomes, and validated the survey scores.
 
 Figure 6 classification uses a `1e-9` endpoint tolerance. CEIV status is identical at both numerical bounds:
 

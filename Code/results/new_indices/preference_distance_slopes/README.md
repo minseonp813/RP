@@ -1,11 +1,7 @@
 # Continuous individual CCEIs and relative preference distance
 
-Run from `Code`:
-
-1. Stata: `99_31_preference_distance_ccei_slopes.do`.
-2. `Rscript programs/plot_preference_distance_slopes.R`.
-3. `python3 programs/build_preference_distance_slopes.py`.
-4. Compile `review.tex` with PDFLaTeX from this folder.
+> Historical outputs. The estimation dofile, plotter, and report builder have been removed.
+> See [the current Section 6 pipeline](../collective_rationality_summary/README.txt) for reproduction.
 
 Final artifact: `output/pdf/preference_distance_ccei_coefficients.pdf`.
 

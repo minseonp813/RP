@@ -1,5 +1,8 @@
 # Group CCEI and CEIV by risk-preference similarity
 
+> Historical outputs. The estimation dofile and report builder have been removed.
+> See [the current Section 6 pipeline](../collective_rationality_summary/README.txt) for reproduction.
+
 Reproduces Table 5 column (3) and the CCEI/CEIV version of Figure 6 separately
 below and above the median risk-preference gap within each wave. The manuscript
 and Overleaf outputs are not edited.
@@ -71,17 +74,7 @@ stable bargaining weights, or eliminate residual risk-preference differences
 within each bin. The RA measure is a summary of risk attitudes, not a complete
 representation of preferences.
 
-## Reproduction
-
-From `Code`:
-
-```sh
-/Applications/StataNow/StataMP.app/Contents/MacOS/stata-mp -b do 99_25_new_indices_risk_split.do
-# AME panels: use plot_cei_ame() from 07_Figures_Main.R (see below).
-python3 programs/build_risk_split_review.py
-cd results/new_indices/risk_split
-pdflatex -interaction=nonstopmode -halt-on-error review.tex
-```
+## Redrawing saved AME panels
 
 To redraw the saved AME panels, load the `plot_cei_ame()` function from the
 Figure 8 section of `07_Figures_Main.R`, then run in R from `Code`:

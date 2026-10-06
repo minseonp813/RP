@@ -2,15 +2,10 @@
 
 Local exploratory extension of Figure 5 to group CCEI and CEIV. No manuscript edits.
 
-Run from `Code`:
+> Historical outputs. The estimation dofile, plotter, and report builder have been removed.
+> See [the current Section 6 pipeline](../collective_rationality_summary/README.txt) for reproduction.
 
-```sh
-/Applications/StataNow/StataMP.app/Contents/MacOS/stata-mp -b do 99_26_risk_survey_review.do
-Rscript programs/plot_risk_survey_review.R
-python3 programs/build_risk_survey_review.py
-```
-
-Compile `review.tex` from this directory with `pdflatex`, then copy `review.pdf` to `output/pdf/new_indices_risk_survey_review.pdf` at the repo root.
+Saved report: `output/pdf/new_indices_risk_survey_review.pdf` at the repo root.
 
 - Data: `panel_individual.dta`, merged by group and wave with `ceiv_g` from `panel_group_new_indices.dta`.
 - Survey coding comes from `02_clean_survey.R`: cooperation = 6 minus Risk_q1 (1–5); similarity = Risk_q2 (1–4); whose suggestions = Risk_q3 (four nominal responses). Original cooperation wording/anchors have not been recovered; plots use coded scores.

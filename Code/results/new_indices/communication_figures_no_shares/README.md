@@ -2,18 +2,8 @@
 
 The analyses retain both individual CCEIs, all student/personality and friendship/network controls, class fixed effects, and class-clustered standard errors. They omit only `corner_share_max`, `corner_share_dist`, `mid_share_max`, and `mid_share_dist`. Samples and subgroup definitions are identical to the original analyses.
 
-Run from `Code`:
-
-For the R plotting step, load ggplot2 and the `plot_cei_ame()` function from
-the Figure 8 section of `07_Figures_Main.R`.
-
-1. Stata: `99_28_communication_heterogeneity.do no_shares`
-2. Stata: `99_29_communication_figure6.do no_shares`
-3. Stata: `99_29b_friendship_figure6_check.do no_shares`
-4. Stata: `99_29c_validate_figure6.do no_shares`
-5. `python3 programs/build_communication_figure6.py no_shares`
-6. `plot_cei_ame("results/new_indices/communication_figures_no_shares/plot_input.csv", "results/new_indices/communication_figures_no_shares", "a")`
-7. Compile `review.tex` using PDFLaTeX from this folder.
+> Historical outputs. The estimation and validation dofiles and report builder have been removed.
+> See [the current Section 6 pipeline](../collective_rationality_summary/README.txt) for reproduction.
 
 The delivered PDF is `output/pdf/figure6_communication_without_choice_shares.pdf`. It includes a comparison of the original and reduced-control continuous regressions, followed by subgroup Figure 6 panels. All panels within this PDF use a common axis, from -30 to +50 percentage points.
 

@@ -1,7 +1,7 @@
 > Current analysis: see [collective_rationality_summary/README.txt](collective_rationality_summary/README.txt).
 > The CCEI-CEIV exploration dofiles numbered 99_23 through 99_34, their exploration-only .do helpers,
-> and associated logs were removed on October 6, 2026. Their saved results remain below as historical outputs;
-> reproduction commands in this historical record refer to removed exploratory scripts.
+> their plotting/report builders, and associated logs were removed on October 6, 2026.
+> Their saved results remain below as historical outputs.
 > The retained 11_collective_quality.do now imports and validates the workbook directly.
 
 # CEIV and CEIC review results
@@ -73,17 +73,7 @@ CEIV classifications are invariant across their supplied interval endpoints.
 The workbook also states that full-sample certificate verification was deferred;
 this analysis validates the merge and supplied data, not the index calculation certificates.
 
-## Reproduction
-
-From `Code`:
-
-```sh
-/Applications/StataNow/StataMP.app/Contents/MacOS/stata-mp -b do 99_23_new_indices.do
-# AME panels: use plot_cei_ame() from 07_Figures_Main.R (see below).
-python3 programs/build_new_indices_review.py
-cd results/new_indices
-pdflatex -interaction=nonstopmode -halt-on-error review.tex
-```
+## Redrawing saved AME panels
 
 To redraw the saved AME panels, load the `plot_cei_ame()` function from the
 Figure 8 section of `07_Figures_Main.R`, then run in R from `Code`:
@@ -99,8 +89,8 @@ is not sufficient). The review PDF was rendered and the new fractional-response 
 
 ## Fractional-response extension
 
-`99_24_new_indices_fractional.do` is runnable separately and called automatically by
-`99_23_new_indices.do`. It writes `table5_fractional.tex`, `fractional.log`, and
+The removed `99_24_new_indices_fractional.do` was called automatically by
+`99_23_new_indices.do`. It wrote `table5_fractional.tex`, `fractional.log`, and
 16 saved average-partial-effect estimates (`table5_fractional_*.ster`).
 The table is included on page 2 of `review.tex` / `review.pdf`.
 All four outcomes (CCEI, CEI, CEIV, CEIC) are shown for comparison.
