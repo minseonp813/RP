@@ -8,21 +8,27 @@ capture log close
 cap mkdir "Logs"
 log using "Logs/11_collective_quality.log", text replace
 
-* Rebuild the CEIV input directly; no exploratory dofile is needed.
+* CEIV is reported to three decimals; endpoint status must use the solver flag.
 local data_dir "`c(pwd)'/data"
-import excel "../CEI_CEIV_CEIC_statistics.xlsx", sheet("Group results") firstrow allstring clear
-keep group_id post member_i_id member_j_id CEI CEIV CEIC ccei_i ccei_j ccei_group CEIC_lower CEIC_upper CEIV_lower CEIV_upper CEIC_status CEIV_status CEIC_precision_met CEIV_precision_met
-rename (ccei_i ccei_j ccei_group CEI CEIV CEIC) (xlsx_ccei_i xlsx_ccei_j xlsx_ccei_g xlsx_cei ceiv_g ceic_g)
-destring post xlsx_* ceiv_g ceic_g CEIC_lower CEIC_upper CEIV_lower CEIV_upper CEIC_precision_met CEIV_precision_met, replace
+import delimited "../TalkFile_ceiv_fresh_3dp.csv", stringcols(_all) case(preserve) clear
+assert regexm(group_wave_id,"^[0-9]+_[01]$")
+gen str20 group_id = substr(group_wave_id,1,strpos(group_wave_id,"_")-1)
+gen byte post = real(substr(group_wave_id,-1,1))
+assert group_wave_id==group_id+"_"+string(post)
+rename (CEIV upper_engine2 seconds flag) (ceiv_g ceiv_upper_engine2 ceiv_seconds ceiv_flag)
+destring ceiv_g ceiv_seconds, replace
+assert inlist(attained_at_1,"TRUE","FALSE")
+gen byte ceiv_at1 = attained_at_1=="TRUE"
+assert ceiv_upper_engine2==cond(ceiv_at1,"NA","unsat")
+assert ceiv_flag==""
+assert ceiv_g==1 if ceiv_at1
+label var ceiv_g "Collective CEIV (reported to three decimals)"
+label var ceiv_at1 "CEIV no-contraction benchmark attained (source flag)"
+drop group_wave_id attained_at_1
 isid group_id post
 assert _N==1304
-assert member_i_id!=member_j_id
-assert !missing(group_id,member_i_id,member_j_id)
-assert !missing(ceiv_g,ceic_g)
-assert inrange(ceiv_g,0,1) & inrange(ceic_g,0,1)
-assert CEIV_precision_met==1
-assert CEIC_lower<=ceic_g & ceic_g<=CEIC_upper
-assert CEIV_lower<=ceiv_g & ceiv_g<=CEIV_upper
+assert !missing(group_id,ceiv_g,ceiv_seconds)
+assert inrange(ceiv_g,0,1) & ceiv_seconds>=0
 tempfile indices
 save `indices'
 
@@ -31,24 +37,32 @@ isid id post
 local original_n = _N
 merge m:1 group_id post using `indices', assert(match) nogen
 assert _N==`original_n'
-assert (id==member_i_id & partner_id==member_j_id) | (id==member_j_id & partner_id==member_i_id)
-assert abs(ccei_i-xlsx_ccei_i)<1e-7 if id==member_i_id
-assert abs(ccei_i-xlsx_ccei_j)<1e-7 if id==member_j_id
-assert abs(ccei_j-xlsx_ccei_j)<1e-7 if partner_id==member_j_id
-assert abs(ccei_j-xlsx_ccei_i)<1e-7 if partner_id==member_i_id
-assert abs(ccei_g-xlsx_ccei_g)<1e-7
-assert abs(cei_g-xlsx_cei)<1e-7
 bysort group_id post: assert _N==2
+save "`data_dir'/panel_individual_new_indices.dta", replace
 
 use "`data_dir'/panel_group.dta", clear
 isid group_id post
 merge 1:1 group_id post using `indices', assert(match) nogen
-assert id_mover==member_i_id & id_nonmover==member_j_id
 save "`data_dir'/panel_group_new_indices.dta", replace
+
+* Refresh the wide CEIV checkpoint from the same source.
+use `indices', clear
+keep group_id post ceiv_g ceiv_at1
+gen str4 wave = cond(post==0,"base","end")
+drop post
+reshape wide ceiv_g ceiv_at1, i(group_id) j(wave) string
+rename (ceiv_gbase ceiv_gend ceiv_at1base ceiv_at1end) ///
+    (ceiv_g_base ceiv_g_end ceiv_at1_base ceiv_at1_end)
+tempfile indices_wide
+save `indices_wide'
+use "`data_dir'/panel_final.dta", clear
+merge 1:1 group_id using `indices_wide', assert(match) nogen
+assert _N==652
+save "`data_dir'/panel_final_new_indices.dta", replace
 
 do "programs/prepare_collective_sample.do" "`c(pwd)'/data"
 merge 1:1 group_id post using "data/panel_group_new_indices.dta", ///
-    keepusing(ceiv_g CEIV_lower CEIV_upper) assert(match) nogen
+    keepusing(ceiv_g ceiv_at1) assert(match) nogen
 gen double ccei_min = ccei_max-ccei_dist
 assert _N==1304
 assert abs(ccei_min-min(ccei_i,ccei_j))<1e-7
@@ -72,13 +86,11 @@ gen byte max_high = ccei_max>`median'
 gen byte min_high = ccei_min>`median'
 gen byte pair_category = max_high+min_high
 assert min_high<=max_high
-gen byte low_high = pair_category==1
+gen byte low_low = pair_category==0
 gen byte high_high = pair_category==2
 gen double ccei_max_01 = 10*ccei_max
 gen double ccei_min_01 = 10*ccei_min
-gen byte joint_category = 1+(ccei_g>=1-1e-9)+2*(ceiv_g>=1-1e-9)
-assert (ceiv_g>=1-1e-9)==(CEIV_lower>=1-1e-9)
-assert (ceiv_g>=1-1e-9)==(CEIV_upper>=1-1e-9)
+gen byte joint_category = 1+(ccei_g>=1-1e-9)+2*ceiv_at1
 gen double pooled_median = `median'
 save "`out'/analysis_sample.dta", replace
 
@@ -91,7 +103,7 @@ postfile `diagnostics' str4 outcome byte column double equality_p double r2 ///
 foreach outcome in ccei ceiv {
     forvalues column=1/6 {
         local specification = mod(`column'-1,3)+1
-        local regressors "low_high high_high"
+        local regressors "low_low high_high"
         if `column'>3 local regressors "ccei_max ccei_dist"
         local controls ""
         if `specification'>1 local controls "$t5_group $t5_friend $t5_share"
@@ -106,13 +118,8 @@ foreach outcome in ccei ceiv {
             post `coefficients' ("`outcome'") (`column') ("`term'") ///
                 (r(estimate)) (r(se)) (r(p))
         }
-        if `column'<=3 {
-            quietly lincom high_high-low_high
-            local comparison_p = r(p)
-            post `coefficients' ("`outcome'") (`column') ("hh_minus_lh") ///
-                (r(estimate)) (r(se)) (r(p))
-        }
-        else {
+        local comparison_p = .
+        if `column'>3 {
             * Preserve the test of equal member-specific slopes under max/gap.
             quietly test ccei_max+2*ccei_dist=0
             local comparison_p = r(p)

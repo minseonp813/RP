@@ -1,5 +1,5 @@
 * Load the full individual panel and prepare Table 3's exact-choice controls.
-* Run from Code. Leaves all student-waves in memory; balanced_t3 marks its sample.
+* Run from Code. Leaves all student-waves in memory; balanced_t3 marks the balanced subsample.
 tempfile baseline_shares choice_shares partner_shares
 foreach wave in base end {
     use "data/`wave'_raw.dta", clear

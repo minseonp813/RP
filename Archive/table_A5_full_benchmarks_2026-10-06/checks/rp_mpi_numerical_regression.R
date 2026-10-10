@@ -1,0 +1,6 @@
+setwd('/Users/minseonp/Library/CloudStorage/Dropbox/RP/Code')
+source('programs/build_placebo_donor_matrices.R')
+d <- readRDS('../Archive/table_A5_full_benchmarks_2026-10-06/checks/maxmpi_numerical_bound_case.rds')
+value <- rp_donor_mpi_exact(d$E,d$side,d$lower)
+stopifnot(abs(value-d$value)<1e-12)
+cat('SUCCESS: the previously failing solver-bound case now proves the optimum with unchanged cycle value:',sprintf('%.17g',value),'\n')

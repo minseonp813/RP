@@ -4,15 +4,109 @@
 # Outputs: resumable donor chunks, a donor matrix, and member-wave M summaries.
 # Sections: 1 inputs/roster; 2 cache identity; 3 donor distances; 4 resumable
 # calculation; 5 own-pair validation; 6 non-own donor averages and exports.
-# Split-choice callers can use nine choices and retain only member summaries.
+# Hold-out callers use one individual choice and 18 group choices, retaining member summaries.
 # Full benchmarks use every non-own pair in the same wave, without a time cap.
 # Undefined distances are imputed to 0.5 in M_all_imp; M_all_drop excludes them.
+# Full HM/MaxMPI donor costs use rp_donor_costs.cpp (Rcpp). Difficult MaxMPI
+# searches finish with an uncapped highs mixed-integer model; no unresolved
+# cost is accepted. calculate_rp_indices.R remains the numerical reference.
+
+# Finish difficult simple cross-cycle searches with an uncapped mixed-integer model.
+# One incoming/outgoing edge per selected vertex plus order constraints gives a
+# single simple cycle. A selected group-side root and an individual-side vertex
+# enforce crossing. Dinkelbach iterations maximize its mean money-pump weight.
+rp_donor_mpi_exact <- function(E, side, lower = 0) {
+  W <- E <= diag(E)
+  diag(W) <- FALSE
+  graph <- igraph::graph_from_adjacency_matrix(W, mode = "directed")
+  membership <- igraph::components(graph, mode = "strong")$membership
+  best <- lower
+  control <- highs::highs_control(log_to_console = FALSE, threads = 1L,
+                                 mip_rel_gap = 0, mip_abs_gap = 0,
+                                 mip_feasibility_tolerance = 1e-10,
+                                 primal_feasibility_tolerance = 1e-10,
+                                 dual_feasibility_tolerance = 1e-10,
+                                 optimality_tolerance = 1e-10)
+  for (ns in split(seq_along(side), membership)) {
+    if (length(ns) < 2L || length(unique(side[ns])) < 2L) next
+    weak <- W[ns, ns, drop = FALSE]
+    weight <- 1 - E[ns, ns, drop = FALSE] / diag(E)[ns]
+    is_group <- side[ns] == "G"
+    edges <- which(weak, arr.ind = TRUE)
+    n <- length(ns); m <- nrow(edges)
+    y <- m + seq_len(n); root <- m + n + seq_len(n)
+    order <- m + 2L * n + seq_len(n); nv <- m + 3L * n
+    rows <- cols <- values <- list(); lhs <- rhs <- numeric()
+    add <- function(columns, coefficients, lo = -Inf, hi = Inf) {
+      k <- length(lhs) + 1L
+      rows[[k]] <<- rep.int(k, length(columns))
+      cols[[k]] <<- columns; values[[k]] <<- coefficients
+      lhs[k] <<- lo; rhs[k] <<- hi
+    }
+    for (v in seq_len(n)) {
+      out <- which(edges[, 1L] == v); inc <- which(edges[, 2L] == v)
+      add(c(out, y[v]), c(rep(1, length(out)), -1), 0, 0)
+      add(c(inc, y[v]), c(rep(1, length(inc)), -1), 0, 0)
+      add(c(root[v], y[v]), c(1, -1), hi = 0)
+      add(c(order[v], root[v]), c(1, n - 1), hi = n - 1)
+      add(c(order[v], y[v]), c(1, -(n - 1)), hi = 0)
+    }
+    add(y[is_group], rep(1, sum(is_group)), lo = 1)
+    add(y[!is_group], rep(1, sum(!is_group)), lo = 1)
+    add(root, rep(1, n), 1, 1)
+    for (k in seq_len(m)) {
+      a <- edges[k, 1L]; b <- edges[k, 2L]
+      add(c(order[a], order[b], k, root[b]), c(1, -1, n, -n), hi = n - 1)
+    }
+    # Choose the first selected group vertex as root to remove equivalent roots.
+    gs <- which(is_group)
+    for (v in gs) for (u in gs[gs < v]) add(c(root[v], y[u]), c(1, 1), hi = 1)
+    A <- Matrix::sparseMatrix(i = unlist(rows), j = unlist(cols),
+                             x = unlist(values), dims = c(length(lhs), nv))
+    upper <- rep(1, nv); upper[order] <- n - 1; upper[root[!is_group]] <- 0
+    types <- rep("I", nv); types[order] <- "C"
+    weights <- weight[edges]
+    # Scaling keeps solver absolute objective tolerances below the index tolerance.
+    objective_scale <- 1e6
+    converged <- FALSE
+    for (iteration in seq_len(200L)) {
+      objective <- numeric(nv); objective[seq_len(m)] <- objective_scale * (best - weights)
+      fit <- highs::highs_solve(L = objective, lower = rep(0, nv), upper = upper,
+                               A = A, lhs = lhs, rhs = rhs, types = types,
+                               control = control)
+      if (fit$status != 7L || !is.finite(fit$info$mip_dual_bound)) {
+        stop("MaxMPI mixed-integer search did not prove optimality: ", fit$status_message)
+      }
+      chosen <- which(fit$primal_solution[seq_len(m)] > 0.5)
+      selected <- edges[chosen, , drop = FALSE]
+      successor <- setNames(selected[, 2L], selected[, 1L])
+      path <- selected[1L, 1L]; v <- successor[as.character(path)]
+      while (v != path[1L]) {
+        if (is.na(v) || v %in% path) stop("Invalid MaxMPI cycle.")
+        path <- c(path, v); v <- successor[as.character(v)]
+      }
+      if (length(path) != length(chosen) || length(unique(is_group[path])) != 2L) {
+        stop("MaxMPI solver returned a subtour or a cycle without both sides.")
+      }
+      value <- mean(weights[chosen])
+      # The dual bound proves no cross-cycle mean can improve by more than 1e-10.
+      if (-fit$info$mip_dual_bound / objective_scale <= 1e-10) {
+        best <- max(best, value); converged <- TRUE; break
+      }
+      if (value <= best + 1e-12) stop("MaxMPI ratio search failed to improve.")
+      best <- value
+    }
+    if (!converged) stop("MaxMPI ratio search did not converge.")
+  }
+  best
+}
 
 build_placebo_donor_matrix <- function(
     measure, package_dir, pairs, base, end,
     output_dir = file.path(package_dir, "results", "benchmarks", measure),
     chunk_size = 8L, cores = 1L, max_targets = 0L, max_donors = 0L,
-    cost_timeout = 0, choices_per_member = 18L, save_donor_matrix = TRUE) {
+    cost_timeout = 0, choices_per_member = 18L, save_donor_matrix = TRUE,
+    group_choices = choices_per_member) {
   # 1. Validate inputs and reconstruct the balanced pair-wave roster.
   stopifnot(measure %in% c("ccei", "hm", "maxmpi", "ra"),
             length(chunk_size) == 1L, is.finite(chunk_size), chunk_size >= 1L,
@@ -24,10 +118,18 @@ build_placebo_donor_matrix <- function(
             length(max_donors) == 1L, is.finite(max_donors), max_donors >= 0L,
             max_donors == as.integer(max_donors),
             length(cost_timeout) == 1L, is.finite(cost_timeout), cost_timeout >= 0,
-            length(choices_per_member) == 1L, choices_per_member %in% c(9L, 18L),
+            length(choices_per_member) == 1L, choices_per_member %in% c(1L, 9L, 18L),
+            length(group_choices) == 1L, group_choices %in% c(9L, 18L),
             length(save_donor_matrix) == 1L, !is.na(save_donor_matrix))
   numerical_source <- file.path(package_dir, "programs", "calculate_rp_indices.R")
   if (measure != "ra") source(numerical_source, local = TRUE)
+  use_native <- measure == "hm" || (measure == "maxmpi" && cost_timeout == 0) ||
+    (measure == "ccei" && choices_per_member == 1L)
+  native_source <- file.path(package_dir, "programs", "rp_donor_costs.cpp")
+  if (use_native) Rcpp::sourceCpp(native_source, env = environment())
+  if (measure == "maxmpi" && cost_timeout == 0 && !requireNamespace("highs", quietly = TRUE)) {
+    stop("Full MaxMPI benchmarks require the highs R package; install.packages(\"highs\").")
+  }
   plain <- function(x) trimws(as.character(x))
   pairs <- as.data.frame(pairs)
   required <- c("group_id", unlist(lapply(c("base", "end"), function(wave) {
@@ -107,11 +209,14 @@ build_placebo_donor_matrix <- function(
   }
 
   # 2. Reuse chunks only when the inputs, numerical code, and settings match.
-  manifest <- list(version = 2L, measure = measure, chunk_size = as.integer(chunk_size),
+  manifest <- list(version = 3L, measure = measure, chunk_size = as.integer(chunk_size),
                    choices_per_member = as.integer(choices_per_member), save_donor_matrix = save_donor_matrix,
+                   group_choices = as.integer(group_choices),
                    max_targets = as.integer(max_targets), max_donors = as.integer(max_donors),
                    cost_timeout = as.numeric(cost_timeout), roster = roster_full, choices = raw,
                    numerical_code = if (measure != "ra") unname(tools::md5sum(numerical_source)),
+                   native_code = if (use_native) unname(tools::md5sum(native_source)),
+                   highs_version = if (measure == "maxmpi" && cost_timeout == 0) as.character(utils::packageVersion("highs")),
                    builder_code = unname(tools::md5sum(file.path(package_dir, "programs", "build_placebo_donor_matrices.R"))))
   manifest_path <- file.path(output_dir, "benchmark_config.rds")
   chunk_dir <- file.path(output_dir, "donor_matrix_chunks")
@@ -155,15 +260,23 @@ build_placebo_donor_matrix <- function(
     groups <- split(group_raw, paste(group_raw$group_id, group_raw$post, sep = "|"))
     individual <- lapply(individual, function(d) d[order(d$round_number), , drop = FALSE])
     groups <- lapply(groups, function(d) d[order(d$round_number), , drop = FALSE])
+    if (measure == "ccei" && choices_per_member == 1L) {
+      coordinates <- c("coord_x", "coord_y", "intercept_x", "intercept_y")
+      group_coordinates <- lapply(groups, function(d) as.matrix(d[coordinates]))
+    }
     cost <- switch(measure,
-      ccei = function(EX, side) as.numeric(rp_cost_ccei(EX, side)),
-      hm = function(EX, side) as.numeric(rp_cost_hm(EX, side)),
+      ccei = function(EX, side) as.numeric(if (use_native) rp_donor_ccei(EX$E, side) else rp_cost_ccei(EX, side)),
+      hm = function(EX, side) as.numeric(rp_donor_hm(EX$E, side)),
       maxmpi = function(EX, side) {
         run <- function() {
           if (cost_timeout > 0) setTimeLimit(elapsed = cost_timeout, transient = TRUE)
           on.exit(if (cost_timeout > 0) setTimeLimit(cpu = Inf, elapsed = Inf, transient = FALSE))
-          z <- rp_cost_mpi(EX, side)
-          if (!isTRUE(z$exhausted)) stop("MaxMPI search did not exhaust its branch-and-bound tree.")
+          z <- if (use_native) rp_donor_mpi(EX$E, side, branch_limit = 128L) else rp_cost_mpi(EX, side)
+          if (use_native && !isTRUE(z$exhausted)) {
+            z$value <- rp_donor_mpi_exact(EX$E, side, lower = z$value)
+          } else if (!isTRUE(z$exhausted)) {
+            stop("MaxMPI search did not exhaust its branch-and-bound tree.")
+          }
           as.numeric(z$value)
         }
         tryCatch(run(), error = function(e) {
@@ -193,7 +306,7 @@ build_placebo_donor_matrix <- function(
       sampled <- sample.int(nrow(other), min(max_donors, nrow(other)), replace = FALSE)
       donors <- rbind(own, other[sampled, , drop = FALSE])
     }
-    rows <- lapply(seq_len(nrow(donors)), function(j) {
+    donor_row <- function(j) {
       donor <- donors[j, , drop = FALSE]
       own <- donor$target_group_id == target$target_group_id
       if (measure == "ra") {
@@ -204,7 +317,7 @@ build_placebo_donor_matrix <- function(
         ih2 <- if (is.finite(c12) && c12 > 0) c2 / c12 else NA_real_
       } else {
         gg <- groups[[paste(donor$target_group_id, donor$post, sep = "|")]]
-        if (is.null(gg) || nrow(gg) != choices_per_member) stop("Collective choices are incomplete for donor ", donor$target_group_id)
+        if (is.null(gg) || nrow(gg) != group_choices) stop("Collective choices are incomplete for donor ", donor$target_group_id)
         c1 <- cross_cost(i1, gg)
         c2 <- cross_cost(i2, gg)
         c12 <- cross_cost(rbind(i1, i2), gg)
@@ -216,15 +329,30 @@ build_placebo_donor_matrix <- function(
           ih2 <- target$actual2
         }
       }
-      data.frame(target_group_id = target$target_group_id, post = target$post,
-                 target_class = target$target_class, member1_id = target$member1_id,
-                 member2_id = target$member2_id, donor_group_id = donor$target_group_id,
-                 donor_class = donor$target_class, is_own = as.integer(own),
-                 same_class = as.integer(donor$target_class == target$target_class),
-                 cost1 = c1, cost2 = c2, cost12 = c12, Ihat1_donor = ih1,
-                 Ihat2_donor = ih2, degenerate = as.integer(is.na(ih1)), stringsAsFactors = FALSE)
-    })
-    do.call(rbind, rows)
+      c(cost1 = c1, cost2 = c2, cost12 = c12, Ihat1_donor = ih1, Ihat2_donor = ih2)
+    }
+    # Distribute donors for MaxMPI so a difficult target can use all workers.
+    if (measure == "ccei" && choices_per_member == 1L) {
+      donor_groups <- group_coordinates[paste(donors$target_group_id, donors$post, sep = "|")]
+      if (any(vapply(donor_groups, function(g) is.null(g) || nrow(g) != group_choices, logical(1)))) stop("Incomplete donor-group choices.")
+      costs <- rp_donor_ccei_batch(as.matrix(rbind(i1, i2)[coordinates]), donor_groups)
+      ih1 <- rp_index(costs[, 1L], costs[, 2L], costs[, 3L])
+      rows <- lapply(seq_len(nrow(donors)), function(j) c(cost1 = costs[j, 1L], cost2 = costs[j, 2L],
+        cost12 = costs[j, 3L], Ihat1_donor = ih1[j], Ihat2_donor = 1-ih1[j]))
+    } else rows <- if (measure == "maxmpi" && cost_timeout == 0 && cores > 1L &&
+                .Platform$OS.type != "windows") {
+      parallel::mclapply(seq_len(nrow(donors)), donor_row,
+                        mc.cores = min(cores, nrow(donors)))
+    } else lapply(seq_len(nrow(donors)), donor_row)
+    if (!all(vapply(rows, function(row) is.numeric(row) && length(row) == 5L, logical(1)))) stop("Donor worker failed.")
+    values <- as.data.frame(do.call(rbind, rows))
+    data.frame(target_group_id = target$target_group_id, post = target$post,
+               target_class = target$target_class, member1_id = target$member1_id,
+               member2_id = target$member2_id, donor_group_id = donors$target_group_id,
+               donor_class = donors$target_class,
+               is_own = as.integer(donors$target_group_id == target$target_group_id),
+               same_class = as.integer(donors$target_class == target$target_class),
+               values, degenerate = as.integer(is.na(values$Ihat1_donor)), stringsAsFactors = FALSE)
   }
 
   pool_summary <- function(x, pool) {
@@ -306,7 +434,8 @@ build_placebo_donor_matrix <- function(
       validate_diagonal(block, roster[i, , drop = FALSE])
       if (save_donor_matrix) block else member_summary(block)
     }
-    results <- if (cores > 1L && .Platform$OS.type != "windows") {
+    results <- if (cores > 1L && .Platform$OS.type != "windows" &&
+                   !(measure == "maxmpi" && cost_timeout == 0)) {
       parallel::mclapply(indices, worker, mc.cores = min(cores, length(indices)), mc.preschedule = TRUE)
     } else lapply(indices, worker)
     failed <- which(!vapply(results, is.data.frame, logical(1)))

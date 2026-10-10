@@ -1,0 +1,74 @@
+ M Code/06_Tables_Main.do
+ M Code/07_Figures_Main.R
+ M Code/08_Tables_Appendix.do
+ M Code/09_Figures_Appendix.R
+ M Code/11_collective_quality.do
+ M Code/1_1_calculate_indices.R
+ D Code/99_19_individual_ccei_change.do
+ D Code/99_22_table4_placebo_normalization.do
+ D Code/99_7_placebo_normalized_regressions.do
+ D Code/99_8_placebo_normalized_figures.R
+ M Code/IminusM_review/10_export_adopted_assets.py
+ M Code/IminusM_review/ADOPTED_SPECIFICATION.md
+ M Code/IminusM_review/README.md
+ M Code/programs/build_placebo_donor_matrices.R
+ M Code/programs/calculate_indices_disjoint.R
+ D Code/programs/placebo_normalized_regressions_one_measure.do
+ M Code/programs/prepare_table3_controls.do
+ M Code/results/ccei_bargaining_had_individual_high.png
+ M Code/results/ccei_bargaining_whose_suggestion.png
+ M Code/results/figures/ccei_IminusM_by_higher_ccei_bar.png
+ M Code/results/figures/ccei_IminusM_by_higher_ccei_cdf.png
+ M Code/results/figures/ccei_bargaining_had_individual_high.png
+ M Code/results/figures/ccei_bargaining_whose_suggestion.png
+ M Code/results/ihat/ccei_bargaining_had_individual_high.png
+ M Code/results/ihat/ccei_bargaining_whose_suggestion.png
+ M Code/results/new_indices/collective_rationality_summary/README.txt
+ M Code/results/new_indices/collective_rationality_summary/figure6.ster
+ M Code/results/new_indices/collective_rationality_summary/table5_ccei_1.ster
+ M Code/results/new_indices/collective_rationality_summary/table5_ccei_2.ster
+ M Code/results/new_indices/collective_rationality_summary/table5_ccei_3.ster
+ M Code/results/new_indices/collective_rationality_summary/table5_ccei_4.ster
+ M Code/results/new_indices/collective_rationality_summary/table5_ccei_5.ster
+ M Code/results/new_indices/collective_rationality_summary/table5_ccei_6.ster
+ M Code/results/new_indices/collective_rationality_summary/table5_ceiv_1.ster
+ M Code/results/new_indices/collective_rationality_summary/table5_ceiv_2.ster
+ M Code/results/new_indices/collective_rationality_summary/table5_ceiv_3.ster
+ M Code/results/new_indices/collective_rationality_summary/table5_ceiv_4.ster
+ M Code/results/new_indices/collective_rationality_summary/table5_ceiv_5.ster
+ M Code/results/new_indices/collective_rationality_summary/table5_ceiv_6.ster
+ M Code/results/tables/collective_ccei_ceiv_categories.tex
+ D Code/results/tables/table_alternative_indices_summary.tex
+ M Code/results/tables/table_attrition_balance.tex
+ M Code/results/tables/table_bargainingCCEI_M.tex
+ M Code/results/tables/table_bargainingCCEI_bothlow_M.tex
+ M Code/results/tables/table_bargainingCCEI_buffers_M.tex
+ M Code/results/tables/table_bargainingCCEI_mover_M.tex
+ M Code/results/tests/disjoint_choice/README.md
+ M Code/temp-TODO.md
+ M Overleaf
+?? Archive/ceiv_refresh_2026-10-10/
+?? Archive/figure_A7_adoption_2026-10-10/
+?? Archive/placebo_normalized_legacy_2026-10-10/
+?? Archive/table_A5_full_benchmarks_2026-10-06/
+?? Archive/todo_updates_2026-10-09/
+?? Code/99_24_risk_survey_mean_check.R
+?? Code/image.png
+?? Code/programs/hdfe_cluster_vce.do
+?? Code/programs/plot_table3_placebo.R
+?? Code/programs/rp_donor_costs.cpp
+?? Code/results/benchmarks/
+?? Code/results/figure_A7_review/
+?? Code/results/figures/figure4_placebo_coefficients.png
+?? Code/results/new_indices/collective_rationality_summary/joint_outcomes_excluding_simple_choices.png
+?? Code/results/new_indices/section6_xxx/
+?? Code/results/risk_survey_mean_check/
+?? Code/results/tables/table_bargaining_alternatives_M.tex
+?? Code/results/tables/table_leave_one_choice_out.tex
+?? Code/results/tests/disjoint_choice/benchmarks/
+?? Code/results/tests/disjoint_choice/fold_coefficient_stability.png
+?? Code/results/tests/disjoint_choice/loco_config.rds
+?? temp_1791637530046.-1892424770.jpeg
+?? tmp/pdfs/main_v3.txt
+?? tmp/pdfs/main_v3_figure5.png
+?? tmp/pdfs/main_v3_tableA6.png

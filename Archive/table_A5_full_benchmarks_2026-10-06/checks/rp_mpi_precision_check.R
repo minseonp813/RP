@@ -1,0 +1,15 @@
+setwd('/Users/minseonp/Library/CloudStorage/Dropbox/RP/Code')
+source('../Archive/table_A5_full_benchmarks_2026-10-06/checks/build_placebo_donor_matrices_unscaled.R')
+d <- readRDS('../Archive/table_A5_full_benchmarks_2026-10-06/checks/maxmpi_numerical_bound_case.rds')
+text <- paste(deparse(rp_donor_mpi_exact),collapse='\n')
+text <- sub('primal_feasibility_tolerance = 1e-09', 'primal_feasibility_tolerance = 1e-10, dual_feasibility_tolerance = 1e-10, optimality_tolerance = 1e-10',text,fixed=TRUE)
+text <- sub('mip_feasibility_tolerance = 1e-09','mip_feasibility_tolerance = 1e-10',text,fixed=TRUE)
+for(scale in c(1,1e3,1e6)) {
+ code <- sub('best - weights','scale * (best - weights)',text,fixed=TRUE)
+ code <- sub('-fit$info$mip_dual_bound <= 1e-10','-fit$info$mip_dual_bound / scale <= 1e-10',code,fixed=TRUE)
+ code <- sub('value <- mean(weights[chosen])','value <- mean(weights[chosen]); cat("scale",scale,"objective",sprintf("%.17g",fit$objective_value/scale),"dual",sprintf("%.17g",fit$info$mip_dual_bound/scale),"value",sprintf("%.17g",value),"\\n")',code,fixed=TRUE)
+ fun <- eval(parse(text=code))
+ value <- fun(d$E,d$side,d$lower)
+ stopifnot(abs(value-d$value)<1e-12)
+}
+cat('SUCCESS: tighter tolerances/scaled objectives preserve the selected-cycle value and satisfy the original optimality check.\n')

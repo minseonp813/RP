@@ -1,0 +1,10 @@
+setwd('/Users/minseonp/Library/CloudStorage/Dropbox/RP/Code')
+old <- haven::read_dta('IminusM_review/outputs/benchmarks/hm_sample50/placebo_normalized_member_wave.dta')
+new <- haven::read_dta('results/benchmarks/hm/placebo_normalized_member_wave.dta')
+key <- function(d)paste(d$group_id,d$post,d$id,sep='|')
+rows <- match(key(new),key(old))
+stopifnot(nrow(old)==2608L,nrow(new)==2608L,!anyNA(rows),all(old$n_all==50L),all(new$n_all==651L),
+ identical(is.na(old$I_actual[rows]),is.na(new$I_actual)),max(abs(old$I_actual[rows]-new$I_actual),na.rm=TRUE)<1e-10)
+cat('PASS: HM actual outcomes and member/wave matches are unchanged; only M expands from 50 to 651 donors.\n')
+cat('Benchmark correlation:',cor(old$M_all_imp[rows],new$M_all_imp),'\n')
+cat('Mean absolute benchmark difference:',mean(abs(old$M_all_imp[rows]-new$M_all_imp)),'\n')

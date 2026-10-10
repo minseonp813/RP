@@ -15,12 +15,15 @@
 #   3. Select the balanced pair roster, apply exclusions and check the sample.
 #   4. Calculate CCEI, HM, MaxMPI, own-pair distances and risk aversion.
 #   5. Validate cross costs, member distances and exact MaxMPI completion.
-#   6. Calculate collective CEIV/CEI and save the actual-index checkpoint.
-#   7. Build all four M benchmarks from choices and map results by member ID.
+#   6. Calculate collective CEI and save the actual-index checkpoint (CEIV is imported by 11).
+#   7. Build M benchmarks from choices and map results by member ID (all four by default).
 #   8. Save the wide index and benchmark panel for 2_1_build_panel.R.
 # Benchmark section 7 uses every non-own pair in the same wave (651 donors in
 # the current sample), without a solver time cap. It can be costly; completed
 # results/chunks are reused only when inputs and calculation settings match.
+# For a section-7-only run, PLACEBO_MEASURES can select a comma-separated subset
+# (e.g. hm,maxmpi); PLACEBO_CORES sets the number of parallel workers.
+# Full HM/MaxMPI need Rcpp; full MaxMPI also needs highs (install.packages("highs")).
 # Pre-integration scripts and panels are preserved locally in
 # Archive/M_before_integration_2026-10-06/. Existing placebo/review outputs stay
 # in their original folders for comparison with results/benchmarks/.
@@ -372,7 +375,7 @@ if (!all(measure_results$maxmpi$exhausted)) {
 }
 
 # ----------------------------------------------------------------------------
-# 6. Collective CEIV and untempered CEI
+# 6. Collective CEI and untempered CEI
 # ----------------------------------------------------------------------------
 python_candidates <- unique(c(
   Sys.getenv("CEI_PYTHON", unset = ""),
@@ -453,8 +456,13 @@ panel_final <- haven::read_dta("data/panel_final.dta")
 base_raw <- rp_load_wave("data/base_raw.dta")
 end_raw <- rp_load_wave("data/end_raw.dta")
 benchmark_cores <- as.integer(Sys.getenv("PLACEBO_CORES", "1"))
+benchmark_measures <- trimws(strsplit(
+  Sys.getenv("PLACEBO_MEASURES", "ccei,hm,maxmpi,ra"), ",", fixed = TRUE
+)[[1]])
+stopifnot(length(benchmark_measures) > 0L, !anyDuplicated(benchmark_measures),
+          all(benchmark_measures %in% c("ccei", "hm", "maxmpi", "ra")))
 
-for (measure in c("ccei", "hm", "maxmpi", "ra")) {
+for (measure in benchmark_measures) {
   benchmark <- build_placebo_donor_matrix(
     measure, package_dir, pairs = panel_final, base = base_raw, end = end_raw,
     output_dir = file.path(package_dir, "results", "benchmarks", measure),
@@ -508,4 +516,4 @@ for (measure in c("ccei", "hm", "maxmpi", "ra")) {
 # ----------------------------------------------------------------------------
 # 8. Save the index and benchmark panel
 # ----------------------------------------------------------------------------
-write_dta(panel_final, "data/panel_final.dta")
+haven::write_dta(panel_final, "data/panel_final.dta")

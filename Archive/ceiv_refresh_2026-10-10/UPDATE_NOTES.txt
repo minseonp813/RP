@@ -1,0 +1,45 @@
+CEIV refresh, October 10, 2026
+
+Current source: TalkFile_ceiv_fresh_3dp.csv. This directory preserves the
+pre-refresh working versions, including existing uncommitted changes.
+
+Active changes: Code/11_collective_quality.do imports the CSV, validates all
+keys and flags, and refreshes three CEIV checkpoints. Code/07_Figures_Main.R
+and Code/results/new_indices/section6_xxx/analysis.do use ceiv_at1 for categories.
+Code/1_1_calculate_indices.R now labels its separate CEI calculation correctly.
+
+Reruns: all twelve OLS models, the main joint multinomial model, Table 1, the
+categorical appendix table, Figures 6-8 and appendix counterparts, covariate
+AMEs, exact Shapley decomposition, alternative-index AMEs, and survey means.
+Section-only table and figure scripts were extracted from the existing source
+files to avoid rerunning unrelated placebo simulations. The extraction scripts
+and logs are in tmp/ceiv_refresh/ at the project root.
+
+All 1,304 endpoint statuses are unchanged. Twelve rounded CEIV values differ
+from the previous data; the largest unrounded change is 0.000546. Displayed
+table entries and all active numerical claims in the draft remain unchanged
+at their reported precision. The main multinomial AME confidence intervals
+were refreshed. One borderline interval (higher CCEI on the CCEI-only category)
+now includes zero: [-6.897, 0.052] percentage points, previously [-6.807, -0.038].
+The interval claims in the manuscript remain valid. The joint outcomes and
+regressors are identical; this difference appears on refitting the model. The continuous
+CEIV data, regressions, category statistics and plots have been regenerated.
+
+Draft edits explain rounding and endpoint attainment in the theory footnote
+and figure notes, clarify the CEIV summary paragraph, and update the commented
+CEIV comparison p-value from 0.991 to 0.989.
+
+Verification: 1,304 unique source rows matched exactly; refreshed group,
+individual, and wide checkpoints contain 1,304, 2,608, and 652 observations.
+All estimation sample checks and numerical derivative checks passed. Main
+AME point estimates and shares match the prior results exactly; all written
+confidence-interval claims hold. Both manuscript table inputs match regenerated
+exports, and figures were checked in the compiled draft.
+
+Compilation retained pre-existing unresolved references (tab:collective_ccei,
+tab:collective_ccei2, tab:collective_fgarp, tab:collective_rev_max_mpi,
+subsec:risk_aversion) and the missing citation rockafellar1970convex.
+
+Final manuscript source SHA-256: b3de83d23cedaa07b93a2570c5107baf842c2c6eb09b09d770b7c000ebaca05c
+Final PDF: Overleaf/main_v3.pdf, 97 pages. Affected tables, figures, and notes
+were rendered and visually checked; source hash stayed unchanged during the build.

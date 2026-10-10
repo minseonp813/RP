@@ -1,10 +1,11 @@
 ********************************************************************************
 * 06_Tables_Main.do: Main-paper tables and supplementary CEI/CCEI specifications
-* Last updated: 2026-10-06
+* Last updated: 2026-10-10
 * Original analysis authors: Byunghun Hahn and Minseon Park
 *   Attribution follows the archived table and regression script headers.
 *
 * Run from Code. All paths below are relative to that directory.
+* Locked draft order: Table 1 (summary), Table 2 (balance), Table 3 (distance).
 *
 * Inputs (data/):
 *   panel_individual.dta, panel_group.dta, panel_final.dta
@@ -16,8 +17,7 @@
 *   IminusM_review/outputs/data/ccei_ra_candidate_analysis.dta
 *
 * Called code:
-*   99_21_appendix_robustness.do
-*   programs/prepare_table3_controls.do (exact-choice controls and balanced sample)
+*   programs/prepare_table3_controls.do (exact-choice controls and balanced-subsample flag)
 *   programs/prepare_collective_sample.do
 *
 * Outputs (results/tables/; existing files are replaced):
@@ -28,13 +28,10 @@
 *   cei_four_outcomes_combined.tex
 *   cei_ccei_models_{min,dist}.tex, cei_ccei_ols_min.tex
 *   cei_joint_mlogit_{min,dist}.tex
-*   table_bargaining_alternatives.tex, table_bargainingHM.tex
-*   table_bargainingMaxMPI.tex
-*   table_bargainingRA_distance{,_bothlow,_cceidiff}.tex
-*   appendix_robustness.log (created by the called appendix script)
 *
 * Manuscript copy:
 *   ../Overleaf/tables_2025/table_ccei_summary_IminusM.tex
+*   ../Overleaf/tables_2025/table_attrition_balance.tex
 *   ../Overleaf/tables_2025/table_bargainingCCEI_M.tex
 * Table 3 log: Logs/06_table3.log. Its section can run independently from Code.
 *
@@ -66,7 +63,10 @@ foreach required in panel_individual.dta panel_group.dta panel_final.dta ///
         exit 601
     }
 }
+
+********************************************************************************
 * Table 1: Summary statistics, with placebo-adjusted preference distance I - M
+********************************************************************************
 
 use `"`data_dir'/panel_individual.dta"', clear
 merge 1:1 id post using ///
@@ -145,7 +145,13 @@ file close summary_file
 copy `"`tex_dir'/table_ccei_summary_IminusM.tex"' ///
     `"`code_dir'/../Overleaf/tables_2025/table_ccei_summary_IminusM.tex"', replace
 
+********************************************************************************
 * Table 2: Attrition and randomization
+********************************************************************************
+
+local code_dir `"`c(pwd)'"'
+local data_dir `"`code_dir'/data"'
+local tex_dir `"`code_dir'/results/tables"'
 
 tempfile t2_baseline t2_analysis_ids t2_analysis t2_male t2_height
 tempfile t2_math t2_noncog t2_network_out t2_network_in t2_edges
@@ -157,6 +163,7 @@ gen double risk_aversion = t2_expensive / (coord_x + coord_y) ///
     if inrange(round_number, 1, 18) & coord_x + coord_y != 0
 collapse (mean) ccei=ccei_ind risk_aversion, by(id)
 isid id
+gen long t2_class = floor(id / 100)
 save `t2_baseline'
 
 use `"`data_dir'/male.dta"', clear
@@ -257,6 +264,7 @@ save `t2_baseline', replace
 use `"`data_dir'/panel_individual.dta"', clear
 keep if post == 0
 destring id, replace
+assert real(class) == floor(id / 100)
 keep id ccei_i RA_i male_i height_i mathscore_i outgoing_i agreeable_i ///
     conscientious_i stable_i opened_i inclass_n_friends_i ///
     inclass_popularity_i mathscore_i_missing outgoing_i_missing ///
@@ -282,6 +290,7 @@ replace emotional_stability = . if stable_i_missing == 1
 replace openness = . if opened_i_missing == 1
 drop *_missing
 isid id
+gen long t2_class = floor(id / 100)
 save `t2_analysis'
 keep id
 gen byte in_analysis = 1
@@ -290,31 +299,28 @@ save `t2_analysis_ids'
 local t2_vars "ccei risk_aversion male height math_score inclass_n_friends inclass_popularity agreeable conscientious emotional_stability outgoing openness"
 local t2_labels `""Individual CCEI" "Risk aversion" "Male" "Height" "Math score" "Out-degree" "In-degree" "Agreeableness" "Conscientiousness" "Emotional stability" "Outgoingness" "Openness""'
 
+* Stack the overlapping samples so class clusters also account for shared students.
+use `t2_baseline', clear
+append using `t2_analysis', generate(t2_mean_sample)
 local t2_k = 0
 foreach v of local t2_vars {
     local ++t2_k
-    use `t2_baseline', clear
-    quietly summarize `v'
+    quietly summarize `v' if t2_mean_sample == 0
     local t2_base_mean_`t2_k' = r(mean)
-    local t2_base_sd_`t2_k' = r(sd)
-    local t2_base_n_`t2_k' = r(N)
 
-    use `t2_analysis', clear
-    quietly summarize `v'
+    quietly summarize `v' if t2_mean_sample == 1
     local t2_analysis_mean_`t2_k' = r(mean)
-    local t2_analysis_sd_`t2_k' = r(sd)
-    local t2_analysis_n_`t2_k' = r(N)
     local t2_diff_`t2_k' = `t2_analysis_mean_`t2_k'' - `t2_base_mean_`t2_k''
 
-    quietly ttesti `t2_base_n_`t2_k'' `t2_base_mean_`t2_k'' `t2_base_sd_`t2_k'' ///
-        `t2_analysis_n_`t2_k'' `t2_analysis_mean_`t2_k'' `t2_analysis_sd_`t2_k'', unequal
-    local t2_attrition_p_`t2_k' = r(p)
+    quietly regress `v' t2_mean_sample, vce(cluster t2_class)
+    local t2_attrition_p_`t2_k' = 2 * ttail(e(df_r), ///
+        abs(_b[t2_mean_sample] / _se[t2_mean_sample]))
 }
 
 use `t2_baseline', clear
 merge 1:1 id using `t2_analysis_ids', nogen keep(master match)
 replace in_analysis = 0 if missing(in_analysis)
-quietly regress in_analysis `t2_vars'
+quietly regress in_analysis `t2_vars', vce(cluster t2_class)
 quietly test `t2_vars'
 local t2_attrition_F = r(F)
 local t2_attrition_df = r(df)
@@ -352,15 +358,19 @@ local t2_joint_constraints ""
 local t2_k = 0
 foreach v of local t2_vars {
     local ++t2_k
+    * suest requires conventional OLS fits; clustering is applied to the joint VCE.
     quietly regress `v'_i `v'_j i.t2_class_fe
     estimates store t2_rand_`t2_k'
+
+    quietly regress `v'_i `v'_j i.t2_class_fe, vce(cluster t2_class_fe)
     local t2_random_beta_`t2_k' = _b[`v'_j]
     local t2_random_p_`t2_k' = 2 * ttail(e(df_r), abs(_b[`v'_j] / _se[`v'_j]))
     local t2_joint_constraints `"`t2_joint_constraints' ([t2_rand_`t2_k'_mean]`v'_j = 0)"'
 }
 
 quietly suest t2_rand_1 t2_rand_2 t2_rand_3 t2_rand_4 t2_rand_5 ///
-    t2_rand_6 t2_rand_7 t2_rand_8 t2_rand_9 t2_rand_10 t2_rand_11 t2_rand_12
+    t2_rand_6 t2_rand_7 t2_rand_8 t2_rand_9 t2_rand_10 t2_rand_11 t2_rand_12, ///
+    vce(cluster t2_class_fe)
 quietly test `t2_joint_constraints'
 local t2_random_chi2 = r(chi2)
 local t2_random_df = r(df)
@@ -396,9 +406,14 @@ file write t2_file "Joint test: & `bs'multicolumn{2}{l}{`bs'ensuremath{`bs'chi^{
 file write t2_file "N & `bs'multicolumn{2}{c}{652} & 1,572 & 1,304 & & `bs'`bs'" _n
 file write t2_file "`bs'bottomrule" _n
 file close t2_file
+copy `"`tex_dir'/table_attrition_balance.tex"' ///
+    `"`code_dir'/../Overleaf/tables_2025/table_attrition_balance.tex"', replace
 estimates clear
 
-* Prepare Tables 3 and 4. This block can also run independently from Code.
+
+********************************************************************************
+* Table 3: actual distance I controlling for the full 651-donor benchmark M.
+********************************************************************************
 local code_dir `"`c(pwd)'"'
 local data_dir `"`code_dir'/data"'
 local tex_dir `"`code_dir'/results/tables"'
@@ -406,15 +421,12 @@ local distance_var "Ihat_ig"
 cap mkdir `"`tex_dir'"'
 do "programs/prepare_table3_controls.do"
 
-global t34_group = "mathscore_i mathscore_diff height_i height_diff outgoing_i outgoing_diff opened_i opened_diff agreeable_i agreeable_diff conscientious_i conscientious_diff stable_i stable_diff female_i_male_j male_i_female_j"
 global t34_group_nogender = "mathscore_i mathscore_diff height_i height_diff outgoing_i outgoing_diff opened_i opened_diff agreeable_i agreeable_diff conscientious_i conscientious_diff stable_i stable_diff"
 global t34_friend = "inclass_n_friends_i inclass_n_diff inclass_popularity_i inclass_pop_diff"
 global t34_missing = "mathscore_diff_missing outgoing_diff_missing opened_diff_missing agreeable_diff_missing conscientious_diff_missing stable_diff_missing"
-global t34_ra = "RA_i RA_diff"
 global t34_share = "corner_share_i corner_share_diff mid_share_i mid_share_diff"
 
 label var HighCCEI_both_high "\$Higher CCEI_i\$"
-label var HighCCEI_both_low "\$Higher CCEI_i\$"
 label var ccei_gap_ij "\$CCEI_i-CCEI_j\$"
 label var mathscore_i "\$Math score_i\$"
 label var mathscore_diff "\$Math score_{diff}\$"
@@ -423,12 +435,14 @@ label var inclass_pop_diff "\$In-degree_{diff}\$"
 label var female_i_male_j "\$(Female_i, Male_j)\$"
 label var male_i_female_j "\$(Male_i, Female_j)\$"
 
-* Table 3: actual distance I controlling for the full 651-donor benchmark M.
 * Generate the six columns used in the current draft; no risk-aversion controls.
 cap mkdir "Logs"
 capture log close main_table3
 log using "Logs/06_table3.log", name(main_table3) text replace
+* Use every defined student-wave, matching Figure 3; no balance restriction.
+* Retain one-wave students under individual FE (they supply no within variation).
 preserve
+gen byte available_t3 = !missing(`distance_var')
 capture drop M_ccei n_ccei_donors
 merge 1:1 id post using "IminusM_review/outputs/data/ccei_ra_candidate_analysis.dta", ///
     keepusing(M_ccei n_ccei_donors) assert(match) nogen
@@ -445,17 +459,20 @@ local gender "female_i_male_j male_i_female_j"
 local selected "mathscore_i mathscore_diff female_i_male_j male_i_female_j inclass_popularity_i inclass_pop_diff"
 
 eststo clear
-eststo bh1: reghdfe `distance_var' HighCCEI_both_high M_ccei if balanced_t3, absorb(class) vce(cluster class)
-eststo bh3: reghdfe `distance_var' HighCCEI_both_high M_ccei `full_controls' `gender' if balanced_t3, absorb(class) vce(cluster class)
-eststo bh4: reghdfe `distance_var' HighCCEI_both_high M_ccei `full_controls' if balanced_t3, absorb(id_fe) vce(cluster class)
-eststo cd1: reghdfe `distance_var' ccei_gap_ij M_ccei if balanced_t3, absorb(class) vce(cluster class)
-eststo cd3: reghdfe `distance_var' ccei_gap_ij M_ccei `full_controls' `gender' if balanced_t3, absorb(class) vce(cluster class)
-eststo cd4: reghdfe `distance_var' ccei_gap_ij M_ccei `full_controls' if balanced_t3, absorb(id_fe) vce(cluster class)
+eststo bh1: reghdfe `distance_var' HighCCEI_both_high M_ccei if available_t3, absorb(class) vce(cluster class)
+eststo bh3: reghdfe `distance_var' HighCCEI_both_high M_ccei `full_controls' `gender' if available_t3, absorb(class) vce(cluster class)
+eststo bh4: reghdfe `distance_var' HighCCEI_both_high M_ccei `full_controls' if available_t3, absorb(id_fe) vce(cluster class) keepsingletons
+eststo cd1: reghdfe `distance_var' ccei_gap_ij M_ccei if available_t3, absorb(class) vce(cluster class)
+eststo cd3: reghdfe `distance_var' ccei_gap_ij M_ccei `full_controls' `gender' if available_t3, absorb(class) vce(cluster class)
+eststo cd4: reghdfe `distance_var' ccei_gap_ij M_ccei `full_controls' if available_t3, absorb(id_fe) vce(cluster class) keepsingletons
 
 foreach model in bh1 bh3 bh4 cd1 cd3 cd4 {
     estimates restore `model'
-    assert e(N) == 2512 & e(N_clust) == 64
-    assert e(sample) == balanced_t3
+    assert e(N) == 2560 & e(N_clust) == 64
+    assert e(sample) == available_t3
+    quietly summarize `distance_var' if e(sample)
+    estadd scalar ymean = r(mean) : `model'
+    estadd scalar ysd = r(sd) : `model'
 }
 foreach model in bh1 bh3 cd1 cd3 {
     estadd local fixed_effects "Class" : `model'
@@ -477,32 +494,12 @@ esttab bh1 bh3 bh4 cd1 cd3 cd4 using `"`tex_dir'/table_bargainingCCEI_M.tex"', r
 copy `"`tex_dir'/table_bargainingCCEI_M.tex"' ///
     `"`code_dir'/../Overleaf/tables_2025/table_bargainingCCEI_M.tex"', replace
 restore
-di as result "SUCCESS: exported current Table 3; six M-controlled columns, N=2512, clusters=64."
+di as result "SUCCESS: exported current Table 3; six M-controlled columns, N=2560, clusters=64."
 log close main_table3
 
-* Table 4: Risk-aversion distance
-
-capture drop RA_distance_denom RA_I_ig
-gen RA_distance_denom = (RA_i - RA_g)^2 + (RA_j - RA_g)^2
-gen RA_I_ig = (RA_i - RA_g)^2 / RA_distance_denom
-replace RA_I_ig = . if RA_distance_denom == 0
-
-* Retain the separate ties-assigned-Low robustness specification.
-eststo clear
-eststo: reghdfe RA_I_ig HighCCEI_both_low, absorb(class) vce(cluster class)
-eststo: reghdfe RA_I_ig HighCCEI_both_low $t34_group $t34_friend $t34_missing, absorb(class) vce(cluster class)
-eststo: reghdfe RA_I_ig HighCCEI_both_low $t34_group $t34_friend $t34_missing $t34_ra $t34_share, absorb(class) vce(cluster class)
-eststo: reghdfe RA_I_ig HighCCEI_both_low $t34_group_nogender $t34_friend $t34_missing $t34_ra $t34_share, absorb(id_fe) vce(cluster class) keepsingletons
-esttab using `"`tex_dir'/table_bargainingRA_distance_bothlow.tex"', replace ///
-    b(3) se(3) stats(N r2, labels("N" "R-squared") fmt(0 3)) ///
-    nogap compress star(+ 0.1 * 0.05 ** 0.01) label substitute(\_ _) ///
-    keep(HighCCEI_both_low mathscore_i mathscore_diff inclass_popularity_i inclass_pop_diff female_i_male_j male_i_female_j) ///
-    nomtitles fragment nonumbers nolines prefoot("\hline") postfoot("\bottomrule")
-
-* Refresh the combined appendix table and its component fragments.
-do "99_21_appendix_robustness.do"
-
+********************************************************************************
 * Table 5: Collective CCEI
+********************************************************************************
 
 do "programs/prepare_collective_sample.do" `"`data_dir'"'
 

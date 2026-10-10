@@ -2,7 +2,8 @@
 > The CCEI-CEIV exploration dofiles numbered 99_23 through 99_34, their exploration-only .do helpers,
 > their plotting/report builders, and associated logs were removed on October 6, 2026.
 > Their saved results remain below as historical outputs.
-> The retained 11_collective_quality.do now imports and validates the workbook directly.
+> The retained 11_collective_quality.do imports `TalkFile_ceiv_fresh_3dp.csv` as of October 10, 2026,
+> and uses its solver attainment flag for CEIV endpoint status. The workbook-based results below are historical.
 
 # CEIV and CEIC review results
 
