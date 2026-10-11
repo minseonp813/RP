@@ -1,4 +1,4 @@
-* Run from Code. Section 6.3 figures and appendix table, with validated CEIV inputs.
+* Run from Code. Draft collective-outcome figures, text and appendix table.
 clear all
 set more off
 adopath ++ "programs"
@@ -32,33 +32,10 @@ assert inrange(ceiv_g,0,1) & ceiv_seconds>=0
 tempfile indices
 save `indices'
 
-use "`data_dir'/panel_individual.dta", clear
-isid id post
-local original_n = _N
-merge m:1 group_id post using `indices', assert(match) nogen
-assert _N==`original_n'
-bysort group_id post: assert _N==2
-save "`data_dir'/panel_individual_new_indices.dta", replace
-
 use "`data_dir'/panel_group.dta", clear
 isid group_id post
 merge 1:1 group_id post using `indices', assert(match) nogen
 save "`data_dir'/panel_group_new_indices.dta", replace
-
-* Refresh the wide CEIV checkpoint from the same source.
-use `indices', clear
-keep group_id post ceiv_g ceiv_at1
-gen str4 wave = cond(post==0,"base","end")
-drop post
-reshape wide ceiv_g ceiv_at1, i(group_id) j(wave) string
-rename (ceiv_gbase ceiv_gend ceiv_at1base ceiv_at1end) ///
-    (ceiv_g_base ceiv_g_end ceiv_at1_base ceiv_at1_end)
-tempfile indices_wide
-save `indices_wide'
-use "`data_dir'/panel_final.dta", clear
-merge 1:1 group_id using `indices_wide', assert(match) nogen
-assert _N==652
-save "`data_dir'/panel_final_new_indices.dta", replace
 
 do "programs/prepare_collective_sample.do" "`c(pwd)'/data"
 merge 1:1 group_id post using "data/panel_group_new_indices.dta", ///
@@ -94,37 +71,28 @@ gen byte joint_category = 1+(ccei_g>=1-1e-9)+2*ceiv_at1
 gen double pooled_median = `median'
 save "`data_dir'/collective_analysis_sample.dta", replace
 
+* Appendix categorical table: Low--High is omitted in all three specifications.
 tempname coefficients diagnostics
 tempfile coefficient_results model_results
 postfile `coefficients' str4 outcome byte column str12 term ///
     double estimate double se double p using `coefficient_results'
-postfile `diagnostics' str4 outcome byte column double equality_p double r2 ///
-    long n long clusters long df_m using `model_results'
+postfile `diagnostics' str4 outcome byte column double r2 ///
+    long n long clusters using `model_results'
 foreach outcome in ccei ceiv {
-    forvalues column=1/6 {
-        local specification = mod(`column'-1,3)+1
-        local regressors "low_low high_high"
-        if `column'>3 local regressors "ccei_max ccei_dist"
+    forvalues column=1/3 {
         local controls ""
-        if `specification'>1 local controls "$t5_group $t5_friend $t5_share"
+        if `column'>1 local controls "$t5_group $t5_friend $t5_share"
         local fe class_fe
-        if `specification'==3 local fe pair_fe
-        reghdfe `outcome'_g `regressors' `controls', ///
+        if `column'==3 local fe pair_fe
+        reghdfe `outcome'_g low_low high_high `controls', ///
             absorb(`fe') vce(cluster class_fe)
         assert e(N)==1304 & e(N_clust)==64
-        estimates save "`out'/table5_`outcome'_`column'.ster", replace
-        foreach term in `regressors' {
+        foreach term in low_low high_high {
             quietly lincom `term'
             post `coefficients' ("`outcome'") (`column') ("`term'") ///
                 (r(estimate)) (r(se)) (r(p))
         }
-        local comparison_p = .
-        if `column'>3 {
-            * Preserve the test of equal member-specific slopes under max/gap.
-            quietly test ccei_max+2*ccei_dist=0
-            local comparison_p = r(p)
-        }
-        post `diagnostics' ("`outcome'") (`column') (`comparison_p') (e(r2)) (e(N)) (e(N_clust)) (e(df_m))
+        post `diagnostics' ("`outcome'") (`column') (e(r2)) (e(N)) (e(N_clust))
     }
 }
 postclose `coefficients'
@@ -143,15 +111,14 @@ postfile `ames' str13 specification byte outcome str7 member double estimate dou
     double high double share long n long pairs long clusters using `ame_results'
 foreach specification in class_fe full_controls {
     local controls ""
-    local model "joint_outcome_model_class_fe"
     if "`specification'"=="full_controls" {
         local controls "controls($t5_group $t5_friend $t5_share)"
-        local model "joint_outcome_model"
     }
     collective_multinomial_ame joint_category, base(1) `controls'
     assert r(n)==1304 & r(pairs)==652 & r(clusters)==64
     matrix effects = r(effects)
-    estimates save "`out'/`model'.ster", replace
+    * The full model supplies the covariate and Shapley results reported in the text.
+    if "`specification'"=="full_controls" estimates save "`out'/joint_outcome_model.ster", replace
     * Independently evaluate derivatives of fitted category probabilities.
     forvalues member=1/2 {
         local x ccei_max_01
@@ -186,7 +153,7 @@ foreach specification in class_fe full_controls {
 postclose `ames'
 use `ame_results', clear
 export delimited using "`out'/joint_outcome_ame.csv", replace
-di as result "SUCCESS: all twelve table models and both joint-outcome models passed sample and inference checks."
+di as result "SUCCESS: all six appendix table models and both joint-outcome models passed sample and inference checks."
 log close
 
 * Main Figure 8 uses the same sample in three linear probability specifications.

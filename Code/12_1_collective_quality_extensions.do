@@ -1,4 +1,4 @@
-* Run from Code after 11_collective_quality.do: Section 6 extensions and appendix robustness.
+* Run from Code after 11_collective_quality.do: draft covariate/Shapley text and Figure A11.
 clear all
 set more off
 adopath ++ "programs"
@@ -16,7 +16,7 @@ local friendship "inclass_n_friends_max inclass_n_friends_dist inclass_popularit
 local shares "corner_share_max corner_share_dist mid_share_max mid_share_dist"
 local controls "`student' `friendship' `shares'"
 
-* Other covariates: continuous derivatives, with class-clustered inference.
+* Covariate effects reported in the draft text, with class-clustered inference.
 estimates use "results/collective_quality/joint_outcome_model.ster"
 assert e(N)==1304 & e(N_clust)==64 & e(converged)==1
 local full_ll = e(ll)
@@ -45,7 +45,7 @@ preserve
     export delimited using "`out'/covariate_ame.csv", replace
 restore
 
-* Exact Shapley allocation of log-likelihood gains beyond class fixed effects.
+* Draft text: exact Shapley allocation of log-likelihood gains beyond class fixed effects.
 * Four blocks imply 16 subset fits, all on the identical sample.
 matrix likelihoods = J(16,1,.)
 forvalues subset=0/15 {

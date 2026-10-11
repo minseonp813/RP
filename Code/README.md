@@ -79,6 +79,20 @@ specifications as Figure 8, estimated by `12_1_collective_quality_extensions.do`
 and plotted by `12_2_collective_quality_plots.R`. Both LPM analyses reuse
 `programs/collective_linear_ame.ado` and class-clustered t(63) intervals.
 
+The collective-quality scripts retain only analyses used in `Overleaf/main_v3.tex`:
+
+| Script | Current draft use |
+| --- | --- |
+| `11_collective_quality.do` | CEIV inputs, categorical appendix table and A10 multinomial-logit estimates |
+| `11_2_collective_quality_linear.do` | Figure 8 LPM estimates |
+| `11_3_collective_quality_plots.R` | Figure 8 and A10 panels |
+| `12_1_collective_quality_extensions.do` | Covariate/Shapley discussion and A11 alternative-index estimates |
+| `12_2_collective_quality_plots.R` | A11 panels and SDs reported in their notes |
+
+The unused individual/wide CEIV panel copies, continuous appendix-table
+regressions and covariate review plots are no longer generated. The group
+CEIV panel remains an input to Table 1. Historical result files are retained.
+
 New benchmark calculations belong to section 7 of `1_1_calculate_indices.R`
 and `programs/build_placebo_donor_matrices.R`. The retained CCEI and RA files
 are completed historical inputs, not resumable caches for that builder.
