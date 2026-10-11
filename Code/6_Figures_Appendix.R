@@ -1,5 +1,5 @@
 ################################################################################
-# 09_Figures_Appendix.R
+# 6_Figures_Appendix.R
 # Latest update: 2026-10-11
 # Locked draft order: Figures A4 (CCEI CDFs), A5 (RA CDFs), A6 (I-M histogram),
 # A7 (Table 3 Shapley decomposition), A8 (placebo CCEI-difference coefficients),
@@ -8,8 +8,8 @@
 # Purpose: appendix figures, including the current I-M histogram (A6) and
 #          the four-specification Shapley decomposition (A7) and placebo panels (A8).
 # Inputs: Code/data panels, retained validated CCEI/M panel, and the
-#         Figure A7 CSV from 08 and the six placebo-coefficient distributions from 07.
-#         Collective-outcome AME and R2 exports from 06/08.
+#         Figure A7 CSV from 5 and the retained full donor matrix.
+#         Collective-outcome AME and R2 exports from 3/5.
 # Outputs: results/figures/figure_A7/*.pdf (copied to Overleaf), hist_IminusM_ig.png
 #          figure4_placebo_col{5,6}.pdf and the other appendix figures.
 #          A10--A12 panels in results/figures/collective_rationality (copied to Overleaf).
@@ -194,7 +194,7 @@ save_appendix_figure(histogram, "hist_IminusM_ig.png", width = 8, height = 5.1)
 
 ################################################################################
 # Figure A7: four Table 3 specifications, with separate manuscript subfigures.
-# Run independently from Code after the matching section of 08.
+# Run independently from Code after the matching section of 5.
 ################################################################################
 plot_table3_shapley_review <- function(
     input_file = file.path(result_dir, "figure_A7_review/table3_shapley.csv"),
@@ -296,11 +296,16 @@ plot_table3_shapley_review()
 
 ################################################################################
 # Figure A8: Placebo tests for Table 3 Columns (5)/(6), immediately after A7.
-# Run independently from Code after the Figure 4 section of 07_Figures_Main.R.
-# Use the same saved assignments, fixed M, full sample and actual-choice references.
-################################################################################
+# Run from Code after 3_Tables_Main.do; main Figure 4 is not a prerequisite.
+if (!exists("code_dir")) code_dir <- getwd()
+.libPaths(c(file.path(code_dir, ".R-library"), .libPaths()))
+library(ggplot2)
+library(dplyr)
+source(file.path(code_dir, "programs/estimate_table3_placebo.R"))
+estimate_table3_placebo(code_dir, c(5L, 6L), "figureA8_placebo")
 source(file.path(code_dir, "programs/plot_table3_placebo.R"))
-export_table3_placebo_panels(code_dir, c(5L, 6L), "figure_A8_placebo_coefficients.png")
+export_table3_placebo_panels(code_dir, c(5L, 6L), "figure_A8_placebo_coefficients.png",
+                            input_prefix = "figureA8_placebo")
 
 ################################################################################
 # Supplementary figure: CDFs of absolute risk-preference distance, by wave
@@ -481,7 +486,7 @@ ggsave(
 ################################################################################
 # Figure A10: Multinomial-Logit Individual Rationality And Joint Outcomes
 ################################################################################
-# Run this section from Code after the collective-outcomes section in 06.
+# Run this section from Code after the collective-outcomes section in 5.
 if (!exists("code_dir")) code_dir <- getwd()
 .libPaths(c(file.path(code_dir, ".R-library"), .libPaths()))
 library(ggplot2)
@@ -500,7 +505,7 @@ stopifnot(file.copy(ame_files, file.path(draft_figure_dir, basename(ame_files)),
 
 ################################################################################
 # Figure A11: Alternative Rationality And Joint Collective Outcomes
-# Run this section from Code after the alternative-index section in 08.
+# Run this section from Code after the alternative-index section in 5.
 ################################################################################
 if (!exists("code_dir")) code_dir <- getwd()
 .libPaths(c(file.path(code_dir, ".R-library"), .libPaths()))
@@ -539,7 +544,7 @@ stopifnot(file.copy(alternative_files, file.path(draft_dir, basename(alternative
 
 ################################################################################
 # Figure A12: Joint-Outcome Overall-R2 Decomposition
-# Run this section from Code after the collective-outcomes section in 06.
+# Run this section from Code after the collective-outcomes section in 5.
 ################################################################################
 if (!exists("code_dir")) code_dir <- getwd()
 out <- file.path(code_dir, "results/collective_quality/extensions")
@@ -667,7 +672,7 @@ make_shapley_plot <- function(
   if (!file.exists(input_file)) {
     warning(
       "Skipping Shapley figure because ", input_file,
-      " does not exist. Allow 08_Tables_Appendix.do to finish first."
+      " does not exist. Allow 5_Tables_Appendix.do to finish first."
     )
     return(invisible(FALSE))
   }
@@ -822,14 +827,14 @@ make_shapley_plot(
 
 ################################################################################
 # Leave-one-choice-out review: individual-fit intervals and Table 3 comparison.
-# Run after all 18 folds have been estimated by the final section of 08.
+# Run after all 18 folds have been estimated by the final section of 5.
 ################################################################################
 holdout_dir <- Sys.getenv("LOCO_OUTPUT_DIR", "results/tests/disjoint_choice")
 inference_file <- file.path(holdout_dir, "focal_fit_inference.csv")
 if (file.exists(inference_file)) {
   fits <- read.csv(inference_file)
   if (nrow(fits) == 108L) {
-    reference <- read.csv("results/figures/figure4_placebo_summary.csv")
+    reference <- read.csv(file.path(code_dir, "results/tables/table3_focal_estimates.csv"))
     stopifnot(all(table(fits$column) == 18L), !anyDuplicated(fits[c("fold", "column")]),
               all(is.finite(fits$coefficient)), all(fits$se > 0),
               all(fits$df_r == fits$clusters-1), all(reference$N == 2560))
@@ -866,4 +871,4 @@ if (file.exists(inference_file)) {
   }
 }
 
-message("09_Figures_Appendix.R completed. Outputs: ", result_dir)
+message("6_Figures_Appendix.R completed. Outputs: ", result_dir)

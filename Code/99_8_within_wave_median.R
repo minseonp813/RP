@@ -50,7 +50,7 @@ transitions <- analysis_data |>
   count(post, pooled_pair_category, pair_category)
 write.csv(transitions, file.path(result_dir, "category_transitions.csv"), row.names = FALSE)
 
-main_file <- readLines("07_Figures_Main.R")
+main_file <- readLines("4_Figures_Main.R")
 main_expressions <- parse(text = main_file)
 for (expression in main_expressions) {
   if (is.call(expression) && identical(expression[[1]], as.name("<-")) &&

@@ -1,5 +1,5 @@
 ********************************************************************************
-* 08_Tables_Appendix.do: Appendix tables and Shapley decomposition inputs
+* 5_Tables_Appendix.do: Appendix tables and Shapley decomposition inputs
 * Last updated: 2026-10-11
 * Locked draft order: Tables A1 (buffers), A2 (I-M correlations), A3 (mover),
 * A4 (individual CCEI changes), A5 (alternative measures), A6 (strictly higher CCEI),
@@ -11,22 +11,22 @@
 * The choice-buffer section rebuilds exact, 2.5-point, and 5-point shares from raw
 * choices and controls for M from data/panel_individual.dta.
 * It writes table_bargainingCCEI_buffers_M.tex to results/tables and Overleaf,
-* with its estimation log in Logs/08_choice_buffers.log.
+* with its estimation log in Logs/5_choice_buffers.log.
 * Table A5 uses full HM/MaxMPI benchmarks from results/benchmarks and the retained
 * full RA benchmark. It exports table_bargaining_alternatives_M.tex/.csv;
-* its log is Logs/08_alternative_full.log.
+* its log is Logs/5_alternative_full.log.
 * Hold-out validation reads 17/1 inputs from programs/calculate_indices_disjoint.R
 * and estimates the six Table 3 specifications directly in this dofile. It writes
 * results/tables/table_leave_one_choice_out.tex after all 18 folds.
 * The Table 3 extensions export table_bargainingCCEI_{mover,bothlow}_M.tex
 * from the validated analysis panel retained with the CCEI benchmark.
-* Mover log: Logs/08_table3_extensions.log; ties-low log: Logs/08_ties_low.log.
+* Mover log: Logs/5_table3_extensions.log; ties-low log: Logs/5_ties_low.log.
 * Tables A1-A6 are generated below in draft order and copied to Overleaf.
 * Added sections can run independently.
 * Figure A7 exports five-block Shapley decompositions of Table 3 Columns
 * (2), (3), (5), (6) to results/figure_A7_review/table3_shapley.csv.
-* Its log is Logs/08_shapley_distance_review.log; 09 draws manuscript subfigures.
-* Figure A11 alternative-index LPMs are estimated here; 09 draws their panels.
+* Its log is Logs/5_shapley_distance_review.log; 6 draws manuscript subfigures.
+* Figures A10--A12 are estimated here; 6 draws their panels.
 ********************************************************************************
 
 clear all
@@ -62,7 +62,7 @@ local tex_dir `"`code_dir'/results/tables"'
 cap mkdir `"`tex_dir'"'
 cap mkdir "Logs"
 capture log close choice_buffers
-log using "Logs/08_choice_buffers.log", name(choice_buffers) text replace
+log using "Logs/5_choice_buffers.log", name(choice_buffers) text replace
 
 * Reuse Table 3's raw-choice definitions, adding inclusive payoff-share buffers.
 tempfile baseline_shares choice_shares partner_shares
@@ -283,10 +283,10 @@ label var male_i_female_j "\$(Male_i, Female_j)\$"
 * Table A3: Individual Rationality and Revealed-Preference Distance by Mover Status
 ********************************************************************************
 * Actual I is the outcome; all columns control for the full 651-donor M.
-* Individual, friendship and choice-share controls match 06; RA is excluded.
+* Individual, friendship and choice-share controls match 3; RA is excluded.
 cap mkdir "Logs"
 capture log close table3_extensions
-log using "Logs/08_table3_extensions.log", name(table3_extensions) text replace
+log using "Logs/5_table3_extensions.log", name(table3_extensions) text replace
 preserve
 * Use the validated benchmark panel; the available-distance mask matches Table 3.
 use "data/panel_individual.dta", clear
@@ -490,7 +490,7 @@ local a5_tex_dir `"`a5_code_dir'/results/tables"'
 cap mkdir "Logs"
 cap mkdir `"`a5_tex_dir'"'
 capture log close alternative_full
-log using "Logs/08_alternative_full.log", name(alternative_full) text replace
+log using "Logs/5_alternative_full.log", name(alternative_full) text replace
 preserve
 use "data/panel_individual.dta", clear
 
@@ -623,13 +623,13 @@ log close alternative_full
 * Table A6: Individual Rationality and Revealed-Preference Distance: Strictly Higher CCEI
 ********************************************************************************
 * Actual I is the outcome; all columns control for the full 651-donor M.
-* Individual, friendship and choice-share controls match 06; RA is excluded.
+* Individual, friendship and choice-share controls match 3; RA is excluded.
 local code_dir `"`c(pwd)'"'
 local distance_var "Ihat_ig"
 local tex_dir "results/tables"
 cap mkdir "Logs"
 capture log close ties_low
-log using "Logs/08_ties_low.log", name(ties_low) text replace
+log using "Logs/5_ties_low.log", name(ties_low) text replace
 preserve
 use "data/panel_individual.dta", clear
 gen byte available_t3 = !missing(`distance_var')
@@ -1238,7 +1238,7 @@ cap mkdir "`out'"
 cap mkdir "results/tables"
 cap mkdir "Logs"
 capture log close collective_categories
-log using "Logs/08_collective_categories.log", name(collective_categories) text replace
+log using "Logs/5_collective_categories.log", name(collective_categories) text replace
 do "programs/build_collective_analysis_sample.do" "`c(pwd)'/data"
 
 * Appendix categorical table: Low--High is omitted in all three specifications.
@@ -1340,8 +1340,179 @@ log close collective_categories
 
 
 ********************************************************************************
+* Figures A10 and A12 estimates: multinomial AMEs and exact overall-R2 Shapley.
+* Run this section independently from Code. 6 draws the appendix panels.
+********************************************************************************
+set more off
+adopath ++ "programs"
+local out "results/collective_quality"
+local extension_out "`out'/extensions"
+cap mkdir "results"
+cap mkdir "`out'"
+cap mkdir "`extension_out'"
+cap mkdir "Logs"
+capture log close collective_appendix
+log using "Logs/5_collective_outcomes.log", name(collective_appendix) text replace
+do "programs/build_collective_analysis_sample.do" "`c(pwd)'/data"
+
+* Appendix multinomial-logit AMEs: class FE and class FE with full controls.
+tempname ames
+tempfile ame_results
+postfile `ames' str13 specification byte outcome str7 member double estimate double se double low ///
+    double high double share long n long pairs long clusters using `ame_results'
+foreach specification in class_fe full_controls {
+    local controls ""
+    if "`specification'"=="full_controls" {
+        local controls "controls($t5_group $t5_friend $t5_share)"
+    }
+    collective_multinomial_ame joint_category, base(1) `controls'
+    assert r(n)==1304 & r(pairs)==652 & r(clusters)==64
+    matrix effects = r(effects)
+    * Independently evaluate derivatives of fitted category probabilities.
+    forvalues member=1/2 {
+        local x ccei_max_01
+        if `member'==2 local x ccei_min_01
+        gen double original_x = `x'
+        replace `x' = original_x+1e-5
+        forvalues category=1/4 {
+            predict double hi`category', pr outcome(`category')
+        }
+        replace `x' = original_x-1e-5
+        forvalues category=1/4 {
+            predict double lo`category', pr outcome(`category')
+            gen double derivative = (hi`category'-lo`category')/(2e-5)
+            quietly summarize derivative, meanonly
+            assert abs(r(mean)-effects[`category',4*(`member'-1)+1])<1e-8
+            drop derivative hi`category' lo`category'
+        }
+        replace `x' = original_x
+        drop original_x
+    }
+    forvalues category=1/4 {
+        forvalues member=1/2 {
+            local name = cond(`member'==1,"maximum","minimum")
+            local start = 4*(`member'-1)
+            post `ames' ("`specification'") (`category') ("`name'") ///
+                (effects[`category',`start'+1]) (effects[`category',`start'+2]) ///
+                (effects[`category',`start'+3]) (effects[`category',`start'+4]) ///
+                (effects[`category',9]) (1304) (652) (64)
+        }
+    }
+}
+postclose `ames'
+preserve
+    use `ame_results', clear
+    export delimited using "`out'/joint_outcome_ame.csv", replace
+restore
+local student "$t5_group"
+local friendship "$t5_friend"
+local shares "$t5_share"
+
+* Figure A12: exact overall-R2 decomposition of Figure 8's controlled LPMs.
+* Five blocks, including fixed effects, imply 32 coalitions on the same sample.
+preserve
+    local block1 "ccei_max_01 ccei_min_01"
+    local block2 "`student'"
+    local block3 "`friendship'"
+    local block4 "`shares'"
+    foreach x of varlist `block1' `block2' `block3' `block4' class_fe pair_fe joint_category {
+        assert !missing(`x')
+    }
+    egen byte pairtag = tag(group_id)
+    quietly count if pairtag
+    assert r(N)==652
+    local label1 "Individual CCEI"
+    local label2 "Student characteristics"
+    local label3 "Friendship measures"
+    local label4 "Corner/Midpoint shares"
+    local label5 "Fixed effects"
+    tempname output fits coalitions coalition_r2
+    tempfile decomposition full_models subset_models
+    postfile `output' str13 specification byte outcome str32 block double shapley_value ///
+        double shapley_percent double total_r2 int n pairs clusters using `decomposition'
+    postfile `fits' str13 specification byte outcome double total_r2 double within_r2 double share ///
+        double maximum_beta double maximum_se double minimum_beta double minimum_se int n pairs clusters using `full_models'
+    postfile `coalitions' str13 specification byte outcome byte mask double r2 int n using `subset_models'
+    gen byte indicator = .
+    foreach specification in full_controls pair_fe {
+        local fe class_fe
+        if "`specification'"=="pair_fe" local fe pair_fe
+        forvalues outcome=1/4 {
+            quietly replace indicator = joint_category==`outcome'
+            quietly summarize indicator
+            scalar share = r(mean)
+            quietly reghdfe indicator `block1' `block2' `block3' `block4', ///
+                absorb(`fe') vce(cluster class_fe)
+            assert e(N)==1304 & e(N_clust)==64 & e(df_r)==63
+            scalar target_r2 = e(r2)
+            scalar maximum_beta = _b[ccei_max_01]
+            scalar maximum_se = _se[ccei_max_01]
+            scalar minimum_beta = _b[ccei_min_01]
+            scalar minimum_se = _se[ccei_min_01]
+            post `fits' ("`specification'") (`outcome') (e(r2)) (e(r2_within)) ///
+                (share) (maximum_beta) (maximum_se) (minimum_beta) (minimum_se) (1304) (652) (64)
+            matrix `coalition_r2' = J(32,1,0)
+            post `coalitions' ("`specification'") (`outcome') (0) (0) (1304)
+            forvalues mask=1/31 {
+                local rhs ""
+                forvalues block=1/4 {
+                    if mod(floor(`mask'/2^(`block'-1)),2) local rhs "`rhs' `block`block''"
+                }
+                if `mask'>=16 quietly reghdfe indicator `rhs', absorb(`fe') vce(cluster class_fe)
+                else quietly regress indicator `rhs', vce(cluster class_fe)
+                assert e(N)==1304
+                matrix `coalition_r2'[`mask'+1,1] = e(r2)
+                post `coalitions' ("`specification'") (`outcome') (`mask') (e(r2)) (e(N))
+            }
+            assert abs(e(r2)-target_r2)<1e-10
+            assert abs(_b[ccei_max_01]-maximum_beta)<1e-10
+            assert abs(_se[ccei_max_01]-maximum_se)<1e-10
+            assert abs(_b[ccei_min_01]-minimum_beta)<1e-10
+            assert abs(_se[ccei_min_01]-minimum_se)<1e-10
+            scalar contribution_sum = 0
+            forvalues block=1/5 {
+                scalar contribution = 0
+                forvalues mask=0/31 {
+                    if !mod(floor(`mask'/2^(`block'-1)),2) {
+                        local size = 0
+                        forvalues other=1/5 {
+                            local size = `size'+mod(floor(`mask'/2^(`other'-1)),2)
+                        }
+                        local weight = cond(inlist(`size',0,4),1/5,cond(inlist(`size',1,3),1/20,1/30))
+                        scalar increment = `coalition_r2'[`mask'+1+2^(`block'-1),1]-`coalition_r2'[`mask'+1,1]
+                        assert increment>=-1e-10
+                        scalar contribution = contribution+`weight'*increment
+                    }
+                }
+                scalar contribution_sum = contribution_sum+contribution
+                post `output' ("`specification'") (`outcome') ("`label`block''") ///
+                    (contribution) (100*contribution/target_r2) (target_r2) (1304) (652) (64)
+            }
+            assert abs(contribution_sum-target_r2)<1e-10
+        }
+    }
+    postclose `output'
+    postclose `fits'
+    postclose `coalitions'
+    use `decomposition', clear
+    isid specification outcome block
+    bysort specification outcome: egen double share_sum = total(shapley_percent)
+    assert abs(share_sum-100)<1e-8
+    drop share_sum
+    export delimited using "`extension_out'/joint_outcome_shapley_r2.csv", replace
+    list specification outcome block shapley_value shapley_percent total_r2, noobs sepby(specification outcome) abbreviate(24)
+    use `full_models', clear
+    export delimited using "`extension_out'/joint_outcome_shapley_models.csv", replace
+    use `subset_models', clear
+    export delimited using "`extension_out'/joint_outcome_shapley_coalitions.csv", replace
+restore
+
+di as result "SUCCESS: A10 multinomial AMEs and A12 decompositions validated."
+log close collective_appendix
+
+********************************************************************************
 * Figure A11 estimates: alternative individual HM and RevMaxMPI rationality.
-* Run this section independently from Code. 09 draws the four appendix panels.
+* Run this section independently from Code. 6 draws the four appendix panels.
 ********************************************************************************
 set more off
 adopath ++ "programs"
@@ -1351,7 +1522,7 @@ cap mkdir "results/collective_quality"
 cap mkdir "`out'"
 cap mkdir "Logs"
 capture log close collective_alternatives
-log using "Logs/08_collective_alternatives.log", name(collective_alternatives) text replace
+log using "Logs/5_collective_alternatives.log", name(collective_alternatives) text replace
 do "programs/build_collective_analysis_sample.do" "`c(pwd)'/data"
 local controls "$t5_group $t5_friend $t5_share"
 
@@ -1401,14 +1572,14 @@ log close collective_alternatives
 
 ********************************************************************************
 * Figure A7: Table 3 Columns (2), (3), (5), (6), with FE as a Shapley block.
-* Run independently from Code. 09 exports separate panels for the manuscript.
+* Run independently from Code. 6 exports separate panels for the manuscript.
 * All 32 coalitions use the same sample; contributions sum to overall R-squared.
 ********************************************************************************
 clear
 set more off
 cap mkdir "Logs"
 capture log close distance_shapley_review
-log using "Logs/08_shapley_distance_review.log", name(distance_shapley_review) text replace
+log using "Logs/5_shapley_distance_review.log", name(distance_shapley_review) text replace
 use "data/panel_individual.dta", clear
 assert n_ccei_donors == 651 & !missing(M_ccei)
 keep if !missing(Ihat_ig)
@@ -1516,7 +1687,7 @@ if _rc {
 else {
     cap mkdir "Logs"
     capture log close leave_one_choice_out
-    log using "Logs/08_leave_one_choice_out.log", name(leave_one_choice_out) text replace
+    log using "Logs/5_leave_one_choice_out.log", name(leave_one_choice_out) text replace
     use `"`holdout_dir'/run_config.dta"', clear
     assert _N == 1 & version == 3 & planned_folds == 18 & inrange(folds, 1, 18)
     assert training_choices == 17 & heldout_choices == 1 & group_choices == 18

@@ -1,11 +1,13 @@
 # Shared display for Figure 4 (Columns 2/3) and Figure A8 (Columns 5/6).
-# Both figures read the same 500-repetition, six-specification output from 07.
-export_table3_placebo_panels <- function(code_dir, columns, review_filename) {
+# Estimation is shared; each figure reads its own 500-repetition exports.
+export_table3_placebo_panels <- function(code_dir, columns, review_filename = NULL,
+                                       input_prefix = "figure4_placebo") {
   figure_dir <- file.path(code_dir, "results/figures")
-  draws <- read.csv(file.path(figure_dir, "figure4_placebo_coefficients.csv"))
-  summary <- read.csv(file.path(figure_dir, "figure4_placebo_summary.csv"))
-  # Reject the retained 2,512-row results when 09 is run before the updated 07.
-  stopifnot(nrow(summary) == 6L, all(summary$N == 2560L),
+  draws <- read.csv(file.path(figure_dir, paste0(input_prefix, "_coefficients.csv")))
+  summary <- read.csv(file.path(figure_dir, paste0(input_prefix, "_summary.csv")))
+  # Reject stale samples or incomplete draws before exporting manuscript panels.
+  stopifnot(nrow(summary) == length(columns), setequal(summary$specification, columns),
+            all(summary$N == 2560L),
             all(summary$clusters == 64L), all(summary$repetitions == 500L),
             all(draws$N == 2560L), all(draws$clusters == 64L),
             !anyDuplicated(draws[c("specification", "repetition")]))
@@ -45,13 +47,15 @@ export_table3_placebo_panels <- function(code_dir, columns, review_filename) {
     stopifnot(file.copy(panel_file,
       file.path(code_dir, "../Overleaf/figures_2025", basename(panel_file)), overwrite = TRUE))
   }
-  grDevices::png(file.path(figure_dir, review_filename), width = 3600, height = 1350, res = 300)
-  grid::grid.newpage()
-  grid::pushViewport(grid::viewport(layout = grid::grid.layout(1, 2)))
-  for (panel in seq_along(columns)) {
-    print(plots[[panel]], newpage = FALSE,
-      vp = grid::viewport(layout.pos.row = 1, layout.pos.col = panel))
+  if (!is.null(review_filename)) {
+    grDevices::png(file.path(figure_dir, review_filename), width = 3600, height = 1350, res = 300)
+    grid::grid.newpage()
+    grid::pushViewport(grid::viewport(layout = grid::grid.layout(1, 2)))
+    for (panel in seq_along(columns)) {
+      print(plots[[panel]], newpage = FALSE,
+        vp = grid::viewport(layout.pos.row = 1, layout.pos.col = panel))
+    }
+    grDevices::dev.off()
   }
-  grDevices::dev.off()
   invisible(plots)
 }

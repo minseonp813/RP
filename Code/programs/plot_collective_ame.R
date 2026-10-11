@@ -48,7 +48,7 @@ plot_cei_ame <- function(input, output_dir, classification = "original", portrai
                                max(30, ceiling(max(d$high) / 10) * 10))
   stopifnot(all(d$low >= limits[1]), all(d$high <= limits[2]))
 
-  # Match 07_Figures_Main.R: base size 14, white background, blue/red members,
+  # Match 4_Figures_Main.R: base size 14, white background, blue/red members,
   # Titles, panel captions, and notes belong in LaTeX.
   paper_theme <- theme_minimal(base_size = 14) +
     theme(panel.grid.minor = element_blank(),
