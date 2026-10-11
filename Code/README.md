@@ -73,21 +73,35 @@ Figure 8 and Appendix Figures A10--A11 express effects in percentage points
 for a one-SD increase in the indicated member's rationality. Each member's SD
 is computed from the pooled 1,304 pair-wave sample. Stored estimates remain
 per 0.1 units; `programs/plot_collective_ame.R` rescales the points and intervals
-by SD/0.1. `11_3_collective_quality_plots.R` generates Figure 8 and the A10
-multinomial-logit counterpart. A11 uses HM and RevMaxMPI in the same three LPM
-specifications as Figure 8, estimated by `12_1_collective_quality_extensions.do`
-and plotted by `12_2_collective_quality_plots.R`. Both LPM analyses reuse
+by SD/0.1. `07_Figures_Main.R` generates Figure 8; `09_Figures_Appendix.R`
+generates the A10 multinomial-logit counterpart. A11 uses HM and RevMaxMPI in
+the same three LPM specifications as Figure 8, estimated by
+`08_Tables_Appendix.do` and plotted by `09_Figures_Appendix.R`. Both LPM analyses reuse
 `programs/collective_linear_ame.ado` and class-clustered t(63) intervals.
 
-The collective-quality scripts retain only analyses used in `Overleaf/main_v3.tex`:
+Collective-quality analysis is integrated into 06--09:
 
 | Script | Current draft use |
 | --- | --- |
-| `11_collective_quality.do` | CEIV inputs, categorical appendix table and A10 multinomial-logit estimates |
-| `11_2_collective_quality_linear.do` | Figure 8 LPM estimates |
-| `11_3_collective_quality_plots.R` | Figure 8 and A10 panels |
-| `12_1_collective_quality_extensions.do` | Covariate/Shapley discussion and A11 alternative-index estimates |
-| `12_2_collective_quality_plots.R` | A11 panels and SDs reported in their notes |
+| `06_Tables_Main.do` | Figure 8 LPMs, A10 multinomial estimates, covariate AMEs and A12 R2 decompositions |
+| `07_Figures_Main.R` | Figures 6--8 |
+| `08_Tables_Appendix.do` | Categorical collective-outcomes table and A11 alternative-index estimates |
+| `09_Figures_Appendix.R` | A10--A12 panels and alternative-index SDs |
+| `programs/build_collective_analysis_sample.do` | Shared CEIV inputs and pair-wave sample, called by 06 and 08 |
+
+Run 06 before 07, and 06/08 before 09. The collective sections in 06 and 08
+prepare their own sample and define their own locals; each can run independently
+from `Code`. The A10, A11 and A12 plotting sections in 09 likewise define their
+own paths. Model and plot helpers remain in `programs`. The former standalone
+11/12 scripts have been removed. The full multinomial fit supplies covariate
+effects directly while its estimation sample is in memory, avoiding a refit.
+
+Figure A12 decomposes the overall R-squared of the four joint-outcome LPMs
+under Class FE + controls and Pair FE + controls. The exact Shorrocks--Shapley
+calculation includes fixed effects as one of five blocks and evaluates all
+32 coalitions on the same sample. 06 writes decomposition, full-model and
+coalition CSVs to `results/collective_quality/extensions`; 09 generates
+`joint_outcome_shapley.png` and its manuscript PDF and copies both to Overleaf.
 
 The unused individual/wide CEIV panel copies, continuous appendix-table
 regressions and covariate review plots are no longer generated. The group

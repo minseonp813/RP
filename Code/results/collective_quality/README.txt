@@ -1,68 +1,78 @@
 Section 6 collective-quality pipeline
 
-Run the analysis scripts from Code.
+Run the relevant sections from Code. Estimation is in 06/08; plotting is in
+07/09. The former standalone 11/12 scripts have been removed.
 
-1. Refresh the main estimates:
-   /Applications/StataNow/StataMP.app/Contents/MacOS/stata-mp -b do 11_collective_quality.do
+1. Main collective estimates: 06_Tables_Main.do, section headed
+   "Collective outcomes: Figure 8, multinomial A10 estimates, covariate text and A12."
 
-   Input: ../TalkFile_ceiv_fresh_3dp.csv and the existing panel data.
-   Analysis sample: data/collective_analysis_sample.dta.
-   Outputs here: table5_coefficients.csv and table5_diagnostics.csv from the
-   six categorical appendix-table regressions, joint_outcome_model.ster
-   (full controls, used for the draft text), and joint_outcome_ame.csv
-   for the multinomial-logit appendix figure. The script also runs
-   11_2_collective_quality_linear.do, producing joint_outcome_linear_ame.csv
-   for main Figure 8. Its three specifications use Class FE, Class FE + controls,
-   and Pair FE + controls, in that order from top to bottom. Triangles, hollow
-   circles, and squares distinguish them. All use the same joint CCEI regressors,
-   sample, and class-clustered inference; LPM intervals use t(63). The appendix
-   multinomial-logit figure retains the first two specifications and uses normal
-   intervals.
-   Logs: Logs/11_collective_quality.log and Logs/11_2_collective_quality_linear.log.
+   programs/build_collective_analysis_sample.do imports
+   ../TalkFile_ceiv_fresh_3dp.csv, preserves its endpoint-attainment flags, and
+   builds data/panel_group_new_indices.dta and data/collective_analysis_sample.dta.
+   The group CEIV panel also supplies Table 1. The same helper is called before
+   Table 1 in 06 and by both collective sections in 08.
 
-2. Refresh Figures 6-8 using the final three sections of 07_Figures_Main.R.
-   For those sections alone, set code_dir to Code, load haven/ggplot2/dplyr/grid,
-   and load the paper_theme and sig_mark definitions above. The Figure 7 section
-   loads programs/class_fe_category_summary.R itself.
-   Figures go to results/figures/collective_rationality and are copied to
-   ../Overleaf/figures_2025/collective_rationality. Counts, category estimates,
-   and pairwise mean contrasts are written here.
-   The Figure 8 section calls 11_3_collective_quality_plots.R, which can also
-   run independently from Code. The shared programs/plot_collective_ame.R
-   matches the existing draft style. Main images use figure8_lpm_ame_*; the
-   multinomial-logit appendix images retain figure6_a_ame_*. Both are copied
-   to the Overleaf figure folder. Figure 8 and Appendix Figure A10 use one-SD
-   increases: 0.058234780484 for the higher CCEI and 0.151319396465 for the lower
-   CCEI. SDs are computed from the pooled analysis sample at plotting time;
-   the stored effects and intervals remain per 0.1 units.
+   Outputs here: joint_outcome_linear_ame.csv for Figure 8 and
+   joint_outcome_ame.csv for A10. Extensions outputs: covariate_ame.csv,
+   joint_outcome_shapley_r2.csv, joint_outcome_shapley_models.csv and
+   joint_outcome_shapley_coalitions.csv. Covariate effects use the full-control
+   multinomial fit directly while its estimation sample is in memory.
+   Log: Logs/06_collective_outcomes.log.
 
-3. Export the collective-outcomes appendix table using its section in
-   08_Tables_Appendix.do (headed "Collective-outcomes appendix table").
-   It can run independently from Code after step 1, using the coefficient and
-   diagnostic CSVs. It writes results/tables/collective_ccei_ceiv_categories.tex
-   and copies it to ../Overleaf/tables_2025.
+   Figure 8 uses Class FE, Class FE + controls and Pair FE + controls, with
+   class-clustered t(63) intervals. A10 uses the first two specifications in
+   multinomial logit, with class-clustered normal intervals. Figure A12 decomposes
+   the overall R-squared of eight controlled LPMs: four Class FE models and four
+   Pair FE models. Its five blocks include both individual CCEIs, student
+   characteristics, friendship, corner/midpoint shares and fixed effects. All
+   32 coalitions use the same 1,304 observations; exact contributions sum to
+   each full model's overall R-squared and percentage shares sum to 100.
 
-4. Refresh the Section 6 covariate/Shapley text and alternative-index appendix figure:
-   /Applications/StataNow/StataMP.app/Contents/MacOS/stata-mp -b do 12_1_collective_quality_extensions.do
-   Rscript 12_2_collective_quality_plots.R
+2. Main figures: 07_Figures_Main.R, sections for Figures 6--8.
 
-   Estimates and CSVs: extensions/ (covariate AMEs, Shapley shares,
-   alternative_linear_ame.csv, alternative_sd_units.csv).
-   Log: Logs/12_1_collective_quality_extensions.log.
-   Figures: results/figures/collective_rationality. The alternative-index figure
-   uses four alternative_{HM,MaxMPI}_lpm_ame_{maximum,minimum}.png panels,
-   copied to the Overleaf figure folder. Covariate effects and Shapley shares
-   support the Section 6 discussion; their former review plots are not generated.
-   Appendix Figure A11 matches Figure 8's three LPM specifications and style,
-   using each member's pooled-sample SD of HM or RevMaxMPI. Both LPM analyses
-   share programs/collective_linear_ame.ado and t(63) intervals. The previous
-   alternative_ame.csv and HM/MaxMPI.ster files are retained multinomial-logit
-   results and are not used for A11. Historical table5_*.ster files and
-   joint_outcome_model_class_fe.ster are also no longer generated or required.
-   Covariate effects and Shapley shares retain the fully controlled
-   multinomial-logit appendix model.
-   Covariate effects scale derivatives by one SD (continuous) or one unit
-   (binary). Shapley shares allocate fit gains beyond class fixed effects.
+   These read the collective sample and AME exports produced by 06. Figure 8
+   uses figure8_lpm_ame_*.png. Figures are written to
+   results/figures/collective_rationality and copied to the existing Overleaf
+   figure paths. Counts, category estimates and mean contrasts are written here.
+   To run Figure 7 alone, load haven/ggplot2/dplyr/grid, define paper_theme and
+   sig_mark as above, and set code_dir to Code. Its class-FE helper is sourced
+   by the section. Figure 8 defines its own paths and sources the AME plot helper.
+
+3. Appendix estimation: 08_Tables_Appendix.do.
+
+   The "Collective-outcomes appendix table" section prepares the sample,
+   estimates its six categorical regressions, exports table5_coefficients.csv
+   and table5_diagnostics.csv, and writes
+   results/tables/collective_ccei_ceiv_categories.tex and its Overleaf copy.
+   Low--High is omitted; Class FE, Class FE + controls and Pair FE + controls
+   correspond to Columns (1)--(3). Log: Logs/08_collective_categories.log.
+
+   The "Figure A11 estimates" section prepares its own sample and estimates
+   the same three LPM specifications with HM and RevMaxMPI. It exports
+   extensions/alternative_linear_ame.csv.
+   Log: Logs/08_collective_alternatives.log.
+   Both sections are independently runnable from Code and use the shared
+   collective sample/control and LPM helpers.
+
+4. Appendix plots: 09_Figures_Appendix.R, independently runnable A10--A12 sections.
+
+   A10 reads joint_outcome_ame.csv from 06 and writes figure6_a_ame_*.png.
+   A11 reads alternative_linear_ame.csv from 08, computes the member SDs used
+   in the draft notes, exports extensions/alternative_sd_units.csv, and writes
+   alternative_{HM,MaxMPI}_lpm_ame_{maximum,minimum}.png.
+   A12 reads the decomposition/full-model exports from 06 and writes
+   joint_outcome_shapley.pdf and its PNG preview. Its checks compare the full
+   models' CCEI coefficients and standard errors with Figure 8.
+   All panels go to results/figures/collective_rationality and their existing
+   Overleaf paths. Shared styling remains in programs/plot_collective_ame.R.
+   Figure 8/A10/A11 effects are percentage points per one-SD increase; stored
+   effects remain per 0.1 units. CCEI SDs are 0.058234780484 (higher) and
+   0.151319396465 (lower), computed from the pooled 1,304 pair-wave sample.
+
+Historical table5_*.ster files, joint_outcome_model*.ster, alternative_ame.csv,
+HM/MaxMPI.ster and the old likelihood-based shapley.csv are retained results;
+the integrated generators do not use or refresh them. Former covariate review
+plots are not generated.
 
 The 2026-10-11 draft-only cleanup was checked in isolated runs. All eight
 Figure 8/A10/A11 PNG panels and the categorical appendix table reproduced
@@ -71,6 +81,18 @@ CCEI AME exports differ by at most 8.3e-11. All 120 covariate point estimates
 and scales match exactly. Fresh pre-cleanup and cleaned runs show slight
 variation in covariate standard errors, with identical model coefficients
 and unchanged draft signs/significance claims. Inference code was unchanged.
+
+The 2026-10-11 integration into 06--09 was checked against the current standalone
+scripts in isolated copies. All nine Figure 8/A10--A12 PNGs and both the Table 1
+and categorical appendix LaTeX tables reproduced byte-for-byte. The A12 PDF
+differs only in creation/modification dates. All categorical, LPM, multinomial
+CCEI AME, R2-decomposition and SD exports match; all 120 covariate point estimates
+and scales match. Covariate standard errors retain numerical variation in
+the multinomial fit: one unused outcome-2 openness effect crosses the 5% cutoff
+(p=0.0551 versus 0.0499), with no change to the draft's claims. The 158 analysis
+columns, alternative-index extrema and complete group CEIV panel match. Each
+A10--A12 plotting section also passed in a fresh R session. Validation wrote
+only to temporary project copies, including temporary Overleaf output folders.
 
 Current sample: 1,304 pair-waves, 652 pairs, 64 classroom clusters.
 CEIV endpoint status uses ceiv_at1 from the supplied attainment flag, since two

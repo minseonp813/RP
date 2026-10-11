@@ -1,6 +1,6 @@
 ********************************************************************************
 * 06_Tables_Main.do: Main-paper tables and supplementary CEI/CCEI specifications
-* Last updated: 2026-10-10
+* Last updated: 2026-10-11
 * Original analysis authors: Byunghun Hahn and Minseon Park
 *   Attribution follows the archived table and regression script headers.
 *
@@ -9,7 +9,7 @@
 *
 * Inputs (data/):
 *   panel_individual.dta, panel_group.dta, panel_final.dta
-*   panel_group_new_indices.dta (CEIV; built by 11_collective_quality.do)
+*   panel_group_new_indices.dta (CEIV; built by the shared preparation helper)
 *   base_raw.dta, end_raw.dta, riskpreference_pre.dta
 *   male.dta, height.dta, network_survey.dta
 *   Cognitive_raw_pre_full.xlsx, NonCognitive_raw_pre.xlsx
@@ -17,6 +17,7 @@
 *
 * Called code:
 *   programs/prepare_collective_sample.do
+*   programs/build_collective_analysis_sample.do
 *
 * Outputs (results/tables/; existing files are replaced):
 *   table_ccei_summary_IminusM.tex (Table 1 uses Ihat_ig - M_ccei)
@@ -35,6 +36,8 @@
 *
 * Other outputs (results/):
 *   cei_classification_frequencies.csv, cei_joint_ame_pooled.csv
+*   collective_quality/joint_outcome_{linear_ame,ame}.csv
+*   collective_quality/extensions/covariate_ame.csv and joint_outcome_shapley_*.csv
 ********************************************************************************
 
 clear all
@@ -50,6 +53,8 @@ local data_dir `"`replication_dir'/data"'
 local tex_dir `"`code_dir'/results/tables"'
 cap mkdir `"`code_dir'/results"'
 cap mkdir `"`tex_dir'"'
+
+do "programs/build_collective_analysis_sample.do" `"`data_dir'"'
 
 foreach required in panel_individual.dta panel_group.dta panel_final.dta ///
     panel_group_new_indices.dta ///
@@ -488,6 +493,235 @@ copy `"`tex_dir'/table_bargainingCCEI_M.tex"' ///
 restore
 di as result "SUCCESS: exported current Table 3; six M-controlled columns, N=2560, clusters=64."
 log close main_table3
+
+********************************************************************************
+* Collective outcomes: Figure 8, multinomial A10 estimates, covariate text and A12.
+* Run this section independently from Code. 07 draws Figure 8; 09 draws A10/A12.
+********************************************************************************
+set more off
+adopath ++ "programs"
+local out "results/collective_quality"
+local extension_out "`out'/extensions"
+cap mkdir "results"
+cap mkdir "`out'"
+cap mkdir "`extension_out'"
+cap mkdir "Logs"
+capture log close collective_main
+log using "Logs/06_collective_outcomes.log", name(collective_main) text replace
+do "programs/build_collective_analysis_sample.do" "`c(pwd)'/data"
+
+* Figure 8: four LPM outcomes in three specifications.
+local full_controls "$t5_group $t5_friend $t5_share"
+tempname ames
+tempfile ame_results
+postfile `ames' str13 specification byte outcome str7 member double estimate se low high ///
+    double share long n pairs clusters using `ame_results'
+foreach specification in class_fe full_controls pair_fe {
+    local controls "`full_controls'"
+    if "`specification'"=="class_fe" local controls ""
+    local fe class_fe
+    if "`specification'"=="pair_fe" local fe pair_fe
+    collective_linear_ame joint_category, controls(`controls') fe(`fe')
+    assert r(n)==1304 & r(pairs)==652 & r(clusters)==64
+    matrix effects = r(effects)
+    forvalues category=1/4 {
+        forvalues member=1/2 {
+            local name = cond(`member'==1,"maximum","minimum")
+            local start = 4*(`member'-1)
+            post `ames' ("`specification'") (`category') ("`name'") ///
+                (effects[`category',`start'+1]) (effects[`category',`start'+2]) ///
+                (effects[`category',`start'+3]) (effects[`category',`start'+4]) ///
+                (effects[`category',9]) (1304) (652) (64)
+        }
+    }
+}
+postclose `ames'
+preserve
+    use `ame_results', clear
+    export delimited using "`out'/joint_outcome_linear_ame.csv", replace
+restore
+
+* Appendix multinomial-logit AMEs: class FE and class FE with full controls.
+tempname ames
+tempfile ame_results
+postfile `ames' str13 specification byte outcome str7 member double estimate double se double low ///
+    double high double share long n long pairs long clusters using `ame_results'
+foreach specification in class_fe full_controls {
+    local controls ""
+    if "`specification'"=="full_controls" {
+        local controls "controls($t5_group $t5_friend $t5_share)"
+    }
+    collective_multinomial_ame joint_category, base(1) `controls'
+    assert r(n)==1304 & r(pairs)==652 & r(clusters)==64
+    matrix effects = r(effects)
+    * Independently evaluate derivatives of fitted category probabilities.
+    forvalues member=1/2 {
+        local x ccei_max_01
+        if `member'==2 local x ccei_min_01
+        gen double original_x = `x'
+        replace `x' = original_x+1e-5
+        forvalues category=1/4 {
+            predict double hi`category', pr outcome(`category')
+        }
+        replace `x' = original_x-1e-5
+        forvalues category=1/4 {
+            predict double lo`category', pr outcome(`category')
+            gen double derivative = (hi`category'-lo`category')/(2e-5)
+            quietly summarize derivative, meanonly
+            assert abs(r(mean)-effects[`category',4*(`member'-1)+1])<1e-8
+            drop derivative hi`category' lo`category'
+        }
+        replace `x' = original_x
+        drop original_x
+    }
+    forvalues category=1/4 {
+        forvalues member=1/2 {
+            local name = cond(`member'==1,"maximum","minimum")
+            local start = 4*(`member'-1)
+            post `ames' ("`specification'") (`category') ("`name'") ///
+                (effects[`category',`start'+1]) (effects[`category',`start'+2]) ///
+                (effects[`category',`start'+3]) (effects[`category',`start'+4]) ///
+                (effects[`category',9]) (1304) (652) (64)
+        }
+    }
+}
+postclose `ames'
+local student "$t5_group"
+local friendship "$t5_friend"
+local shares "$t5_share"
+local controls "`student' `friendship' `shares'"
+
+* Full-control multinomial-logit covariate effects, with class-clustered inference.
+* Reuse the full-control fit above while its estimation sample is in memory.
+assert e(N)==1304 & e(N_clust)==64 & e(converged)==1
+tempname ames
+tempfile covariate_results
+postfile `ames' byte outcome str32 term double estimate se p low high scale using `covariate_results'
+forvalues category=1/4 {
+    quietly margins, dydx(`controls') predict(outcome(`category'))
+    matrix effects = r(table)
+    local column = 0
+    foreach term in `controls' {
+        local ++column
+        quietly summarize `term'
+        local scale = r(sd)
+        if inlist("`term'","male_diff","friend") local scale = 1
+        post `ames' (`category') ("`term'") (effects[1,`column']) (effects[2,`column']) ///
+            (effects[4,`column']) (effects[5,`column']) (effects[6,`column']) (`scale')
+    }
+}
+postclose `ames'
+preserve
+    use `covariate_results', clear
+    export delimited using "`extension_out'/covariate_ame.csv", replace
+restore
+
+preserve
+    use `ame_results', clear
+    export delimited using "`out'/joint_outcome_ame.csv", replace
+restore
+
+* Figure A12: exact overall-R2 decomposition of Figure 8's controlled LPMs.
+* Five blocks, including fixed effects, imply 32 coalitions on the same sample.
+preserve
+    local block1 "ccei_max_01 ccei_min_01"
+    local block2 "`student'"
+    local block3 "`friendship'"
+    local block4 "`shares'"
+    foreach x of varlist `block1' `block2' `block3' `block4' class_fe pair_fe joint_category {
+        assert !missing(`x')
+    }
+    egen byte pairtag = tag(group_id)
+    quietly count if pairtag
+    assert r(N)==652
+    local label1 "Individual CCEI"
+    local label2 "Student characteristics"
+    local label3 "Friendship measures"
+    local label4 "Corner/Midpoint shares"
+    local label5 "Fixed effects"
+    tempname output fits coalitions coalition_r2
+    tempfile decomposition full_models subset_models
+    postfile `output' str13 specification byte outcome str32 block double shapley_value ///
+        double shapley_percent double total_r2 int n pairs clusters using `decomposition'
+    postfile `fits' str13 specification byte outcome double total_r2 double within_r2 double share ///
+        double maximum_beta double maximum_se double minimum_beta double minimum_se int n pairs clusters using `full_models'
+    postfile `coalitions' str13 specification byte outcome byte mask double r2 int n using `subset_models'
+    gen byte indicator = .
+    foreach specification in full_controls pair_fe {
+        local fe class_fe
+        if "`specification'"=="pair_fe" local fe pair_fe
+        forvalues outcome=1/4 {
+            quietly replace indicator = joint_category==`outcome'
+            quietly summarize indicator
+            scalar share = r(mean)
+            quietly reghdfe indicator `block1' `block2' `block3' `block4', ///
+                absorb(`fe') vce(cluster class_fe)
+            assert e(N)==1304 & e(N_clust)==64 & e(df_r)==63
+            scalar target_r2 = e(r2)
+            scalar maximum_beta = _b[ccei_max_01]
+            scalar maximum_se = _se[ccei_max_01]
+            scalar minimum_beta = _b[ccei_min_01]
+            scalar minimum_se = _se[ccei_min_01]
+            post `fits' ("`specification'") (`outcome') (e(r2)) (e(r2_within)) ///
+                (share) (maximum_beta) (maximum_se) (minimum_beta) (minimum_se) (1304) (652) (64)
+            matrix `coalition_r2' = J(32,1,0)
+            post `coalitions' ("`specification'") (`outcome') (0) (0) (1304)
+            forvalues mask=1/31 {
+                local rhs ""
+                forvalues block=1/4 {
+                    if mod(floor(`mask'/2^(`block'-1)),2) local rhs "`rhs' `block`block''"
+                }
+                if `mask'>=16 quietly reghdfe indicator `rhs', absorb(`fe') vce(cluster class_fe)
+                else quietly regress indicator `rhs', vce(cluster class_fe)
+                assert e(N)==1304
+                matrix `coalition_r2'[`mask'+1,1] = e(r2)
+                post `coalitions' ("`specification'") (`outcome') (`mask') (e(r2)) (e(N))
+            }
+            assert abs(e(r2)-target_r2)<1e-10
+            assert abs(_b[ccei_max_01]-maximum_beta)<1e-10
+            assert abs(_se[ccei_max_01]-maximum_se)<1e-10
+            assert abs(_b[ccei_min_01]-minimum_beta)<1e-10
+            assert abs(_se[ccei_min_01]-minimum_se)<1e-10
+            scalar contribution_sum = 0
+            forvalues block=1/5 {
+                scalar contribution = 0
+                forvalues mask=0/31 {
+                    if !mod(floor(`mask'/2^(`block'-1)),2) {
+                        local size = 0
+                        forvalues other=1/5 {
+                            local size = `size'+mod(floor(`mask'/2^(`other'-1)),2)
+                        }
+                        local weight = cond(inlist(`size',0,4),1/5,cond(inlist(`size',1,3),1/20,1/30))
+                        scalar increment = `coalition_r2'[`mask'+1+2^(`block'-1),1]-`coalition_r2'[`mask'+1,1]
+                        assert increment>=-1e-10
+                        scalar contribution = contribution+`weight'*increment
+                    }
+                }
+                scalar contribution_sum = contribution_sum+contribution
+                post `output' ("`specification'") (`outcome') ("`label`block''") ///
+                    (contribution) (100*contribution/target_r2) (target_r2) (1304) (652) (64)
+            }
+            assert abs(contribution_sum-target_r2)<1e-10
+        }
+    }
+    postclose `output'
+    postclose `fits'
+    postclose `coalitions'
+    use `decomposition', clear
+    isid specification outcome block
+    bysort specification outcome: egen double share_sum = total(shapley_percent)
+    assert abs(share_sum-100)<1e-8
+    drop share_sum
+    export delimited using "`extension_out'/joint_outcome_shapley_r2.csv", replace
+    list specification outcome block shapley_value shapley_percent total_r2, noobs sepby(specification outcome) abbreviate(24)
+    use `full_models', clear
+    export delimited using "`extension_out'/joint_outcome_shapley_models.csv", replace
+    use `subset_models', clear
+    export delimited using "`extension_out'/joint_outcome_shapley_coalitions.csv", replace
+restore
+
+di as result "SUCCESS: main collective-outcome estimates, covariate effects and A12 decompositions validated."
+log close collective_main
 
 ********************************************************************************
 * Table 5: Collective CCEI

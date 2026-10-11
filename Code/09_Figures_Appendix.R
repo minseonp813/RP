@@ -1,15 +1,18 @@
 ################################################################################
 # 09_Figures_Appendix.R
-# Latest update: 2026-10-10
+# Latest update: 2026-10-11
 # Locked draft order: Figures A4 (CCEI CDFs), A5 (RA CDFs), A6 (I-M histogram),
 # A7 (Table 3 Shapley decomposition), A8 (placebo CCEI-difference coefficients),
+# A10 (multinomial AMEs), A11 (alternative indices), A12 (joint-outcome R2),
 # followed by supplementary figures.
 # Purpose: appendix figures, including the current I-M histogram (A6) and
 #          the four-specification Shapley decomposition (A7) and placebo panels (A8).
 # Inputs: Code/data panels, retained validated CCEI/M panel, and the
 #         Figure A7 CSV from 08 and the six placebo-coefficient distributions from 07.
+#         Collective-outcome AME and R2 exports from 06/08.
 # Outputs: results/figures/figure_A7/*.pdf (copied to Overleaf), hist_IminusM_ig.png
 #          figure4_placebo_col{5,6}.pdf and the other appendix figures.
+#          A10--A12 panels in results/figures/collective_rationality (copied to Overleaf).
 #          The A7/A8 review PNGs are retained for chat.
 ################################################################################
 
@@ -476,7 +479,182 @@ ggsave(
 )
 
 ################################################################################
-# Figures A8 and A10: Shapley decompositions
+# Figure A10: Multinomial-Logit Individual Rationality And Joint Outcomes
+################################################################################
+# Run this section from Code after the collective-outcomes section in 06.
+if (!exists("code_dir")) code_dir <- getwd()
+.libPaths(c(file.path(code_dir, ".R-library"), .libPaths()))
+library(ggplot2)
+source(file.path(code_dir, "programs/plot_collective_ame.R"))
+sample <- haven::read_dta(file.path(code_dir, "data/collective_analysis_sample.dta"))
+member_sd <- c(maximum = sd(sample$ccei_max), minimum = sd(sample$ccei_min))
+collective_result_dir <- file.path(code_dir, "results/collective_quality")
+collective_figure_dir <- file.path(code_dir, "results/figures/collective_rationality")
+dir.create(collective_figure_dir, recursive = TRUE, showWarnings = FALSE)
+ame_files <- plot_cei_ame(file.path(collective_result_dir, "joint_outcome_ame.csv"),
+                         collective_figure_dir, classification = "a", portrait = TRUE,
+                         member_sd = member_sd)
+draft_figure_dir <- file.path(code_dir, "..", "Overleaf/figures_2025/collective_rationality")
+dir.create(draft_figure_dir, recursive = TRUE, showWarnings = FALSE)
+stopifnot(file.copy(ame_files, file.path(draft_figure_dir, basename(ame_files)), overwrite = TRUE))
+
+################################################################################
+# Figure A11: Alternative Rationality And Joint Collective Outcomes
+# Run this section from Code after the alternative-index section in 08.
+################################################################################
+if (!exists("code_dir")) code_dir <- getwd()
+.libPaths(c(file.path(code_dir, ".R-library"), .libPaths()))
+library(ggplot2)
+source(file.path(code_dir, "programs/plot_collective_ame.R"))
+out <- file.path(code_dir, "results/collective_quality/extensions")
+figure_dir <- file.path(code_dir, "results/figures/collective_rationality")
+dir.create(figure_dir, recursive = TRUE, showWarnings = FALSE)
+# Alternative-index appendix panels use Figure 8's LPM specifications and style.
+a <- read.csv(file.path(out, "alternative_linear_ame.csv"))
+stopifnot(nrow(a) == 48, setequal(a$measure, c("HM", "MaxMPI")))
+sample <- haven::read_dta(file.path(code_dir, "data/collective_analysis_sample.dta"))
+indices <- list(HM = cbind(1 - sample$hm_i / 18, 1 - sample$hm_j / 18),
+                MaxMPI = cbind(1 - sample$maxmpi_i, 1 - sample$maxmpi_j))
+labels <- c(HM = "HM index", MaxMPI = "RevMaxMPI")
+alternative_files <- character()
+units <- data.frame()
+for (measure in names(indices)) {
+  scores <- indices[[measure]]
+  member_sd <- c(maximum = sd(pmax(scores[, 1], scores[, 2])),
+                 minimum = sd(pmin(scores[, 1], scores[, 2])))
+  units <- rbind(units, data.frame(measure = measure, member = names(member_sd),
+                                  sd = unname(member_sd), n = nrow(sample)))
+  input <- tempfile(fileext = ".csv")
+  write.csv(a[a$measure == measure, ], input, row.names = FALSE)
+  alternative_files <- c(alternative_files,
+    plot_cei_ame(input, figure_dir, classification = "a", portrait = TRUE,
+                 prefix = paste0("alternative_", measure, "_lpm"),
+                 member_sd = member_sd, consistency_label = labels[[measure]]))
+  unlink(input)
+}
+write.csv(units, file.path(out, "alternative_sd_units.csv"), row.names = FALSE)
+draft_dir <- file.path(code_dir, "..", "Overleaf/figures_2025/collective_rationality")
+dir.create(draft_dir, recursive = TRUE, showWarnings = FALSE)
+stopifnot(file.copy(alternative_files, file.path(draft_dir, basename(alternative_files)), overwrite = TRUE))
+
+################################################################################
+# Figure A12: Joint-Outcome Overall-R2 Decomposition
+# Run this section from Code after the collective-outcomes section in 06.
+################################################################################
+if (!exists("code_dir")) code_dir <- getwd()
+out <- file.path(code_dir, "results/collective_quality/extensions")
+figure_dir <- file.path(code_dir, "results/figures/collective_rationality")
+draft_dir <- file.path(code_dir, "..", "Overleaf/figures_2025/collective_rationality")
+dir.create(figure_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(draft_dir, recursive = TRUE, showWarnings = FALSE)
+
+# Figure A12 follows A7: overall R2, with fixed effects as a separate block.
+plot_joint_outcome_shapley <- function(input_dir = out, output_dir = figure_dir) {
+  d <- read.csv(file.path(input_dir, "joint_outcome_shapley_r2.csv"))
+  fits <- read.csv(file.path(input_dir, "joint_outcome_shapley_models.csv"))
+  previous <- read.csv(file.path(code_dir, "results/collective_quality/joint_outcome_linear_ame.csv"))
+  stopifnot(nrow(d) == 40, nrow(fits) == 8, all(d$n == 1304),
+            all(d$pairs == 652), all(d$clusters == 64), all(d$shapley_value >= -1e-10))
+  for (member in c("maximum", "minimum")) {
+    check <- merge(fits, previous[previous$member == member, ], by = c("specification", "outcome"))
+    stopifnot(nrow(check) == 8,
+              all(abs(check[[paste0(member, "_beta")]] - check$estimate) < 1e-12),
+              all(abs(check[[paste0(member, "_se")]] - check$se) < 5e-9))
+  }
+
+  # Borrow A7's exact overall-R2 decomposition, colours, hatching, and leader labels.
+  blocks <- c("Individual CCEI", "Student characteristics", "Friendship measures",
+              "Corner/Midpoint shares", "Fixed effects")
+  fills <- c("#7FB2D8", adjustcolor("#D94B4B", alpha.f = .55), "#E4E4E4",
+             adjustcolor("#D94B4B", alpha.f = .8), "#C8C8C8")
+  outcome_labels <- c("CCEI < 1\nCEIV < 1", "CCEI = 1\nCEIV < 1",
+                      "CCEI < 1\nCEIV = 1", "CCEI = 1\nCEIV = 1")
+  specifications <- c("full_controls", "pair_fe")
+  titles <- c("(a) Class FE + controls", "(b) Pair FE + controls")
+  ymax <- ceiling(max(d$total_r2) / .1) * .1
+  centres <- c(1.00, 3.55, 6.10, 8.65)
+
+  draw_panel <- function(specification, title) {
+    par(mar = c(3.6, 4.3, 2.3, .5), family = "sans")
+    plot.new()
+    plot.window(xlim = c(0, 10.4), ylim = c(0, ymax), xaxs = "i", yaxs = "i")
+    ticks <- seq(0, ymax, .1)
+    abline(h = ticks, col = "#ECECEC", lwd = 1)
+    axis(2, at = ticks, labels = sprintf("%.1f", ticks), las = 1,
+         col = NA, col.axis = "#555555", cex.axis = .95)
+    axis(1, at = centres, labels = outcome_labels, tick = FALSE, line = .1,
+         col.axis = "black", cex.axis = .95)
+    mtext(expression(R^2 ~ "Contribution"), side = 2, line = 2.8, cex = .95)
+    title(main = title, cex.main = 1.1, font.main = 1, line = .8)
+    for (outcome in 1:4) {
+      bar <- d[d$specification == specification & d$outcome == outcome, ]
+      bar <- bar[match(rev(blocks), bar$block), ]
+      stopifnot(!anyNA(bar$block), abs(sum(bar$shapley_value) - bar$total_r2[1]) < 1e-10,
+                abs(sum(bar$shapley_percent) - 100) < 1e-8)
+      bottom <- c(0, head(cumsum(bar$shapley_value), -1))
+      top <- cumsum(bar$shapley_value)
+      middle <- (bottom + top) / 2
+      values <- ifelse(bar$shapley_value < .0005, "<0.001", sprintf("%.3f", bar$shapley_value))
+      percentages <- ifelse(bar$shapley_percent < .05, "<0.1", sprintf("%.1f", bar$shapley_percent))
+      labels <- sprintf("%s (%s%%)", values, percentages)
+      centre <- centres[outcome]
+      left <- centre - .55
+      right <- centre + .55
+      for (row in seq_len(nrow(bar))) {
+        block <- match(bar$block[row], blocks)
+        rect(left, bottom[row], right, top[row], col = fills[block], border = "#333333", lwd = 1,
+             density = if (block == 4) 18 else NULL, angle = 45)
+      }
+      inside <- bar$shapley_value >= .035
+      text(centre, middle[inside], labels[inside], cex = .78)
+      small <- which(!inside)
+      if (length(small)) {
+        label_y <- middle[small]
+        label_y[1] <- max(label_y[1], .025)
+        if (length(small) > 1) {
+          for (k in 2:length(small)) label_y[k] <- max(label_y[k], label_y[k - 1] + .029)
+        }
+        label_y <- label_y - max(0, max(label_y) - ymax + .028)
+        segments(right, middle[small], right + .16, label_y, col = "#777777", lwd = .7)
+        text(right + .20, label_y, labels[small], adj = 0, cex = .75)
+      }
+      text(centre, bar$total_r2[1] + .021, sprintf("R² = %.3f", bar$total_r2[1]), cex = .8)
+    }
+  }
+
+  draw_legend <- function() {
+    par(mar = c(0, 0, 0, 0), family = "sans")
+    plot.new()
+    order <- c(1, 4, 2, 5, 3)
+    legend("center", legend = c("Individual CCEI", "Student characteristics", "Friendship measures",
+                                "Corner / midpoint shares", "Fixed effects")[order],
+           fill = fills[order], border = "#333333", density = c(NA, NA, NA, 18, NA)[order],
+           angle = 45, bty = "n", ncol = 3, cex = .9)
+  }
+
+  draw_figure <- function(show_title = FALSE) {
+    par(oma = c(0, 0, if (show_title) 1.8 else 0, 0))
+    layout(matrix(c(1, 2, 3), ncol = 1), heights = c(1, 1, .17))
+    for (panel in seq_along(specifications)) draw_panel(specifications[panel], titles[panel])
+    draw_legend()
+    if (show_title) mtext("Explained Variation in Joint Collective Outcomes", outer = TRUE,
+                          side = 3, line = .3, cex = 1.2)
+  }
+  files <- file.path(output_dir, paste0("joint_outcome_shapley.", c("png", "pdf")))
+  png(files[1], width = 3900, height = 2850, res = 300, pointsize = 14)
+  draw_figure(show_title = TRUE)
+  dev.off()
+  # Use larger type at manuscript width; LaTeX supplies the overall caption.
+  pdf(files[2], width = 13, height = 9.5, pointsize = 20, useDingbats = FALSE)
+  draw_figure()
+  dev.off()
+  files
+}
+shapley_files <- plot_joint_outcome_shapley()
+stopifnot(file.copy(shapley_files, file.path(draft_dir, basename(shapley_files)), overwrite = TRUE))
+
+################################################################################
+# Supplementary historical Shapley decompositions
 ################################################################################
 
 make_shapley_plot <- function(
