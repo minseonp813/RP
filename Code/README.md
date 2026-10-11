@@ -36,7 +36,6 @@ scripts and notebooks share the same number:
 | `99_6` | Alpha simulations and paired I versus I-M experiments |
 | `99_7` | Risk-survey mean checks |
 | `99_8` | Within-wave median sensitivity |
-| `99_9` | Figure 8 pair-fixed-effects review |
 
 The former standalone mover and alternative-measure appendix scripts were
 retired; `08_Tables_Appendix.do` generates the current Tables A3 and A5 directly.
