@@ -1,0 +1,81 @@
+I VERSUS I-M: MONTE CARLO COMPARISON
+Date: 2026-10-10
+
+Main result
+The literal replacement is 1-(I-M)=1-I+M, centered at 1. It is not on the original alpha scale.
+The supplementary score 0.5-(I-M)=1-I+(M-0.5) retains a neutral center of 0.5.
+I = 0.5 + (c_ig-c_jg)/(2*c_Ng), with c_Sg = 1 - cross-consistency threshold.
+M averages separately normalized donor-specific indices, keeping both target members fixed.
+Both adjusted scores describe own-group alignment relative to unrelated groups; neither is an estimated Pareto weight.
+Each target pair has a fixed M across alpha, so its centered curve is its original curve plus a constant.
+Mean-curve differences can also reflect changing sets of defined actual indices. The adjustment changes cross-pair spread.
+
+Choices made
+Ran 28 settings and 30,800 target-alpha observations.
+All 27 existing cases combine three empirical CRRA gaps, High-High/High-Low/Low-Low individual precision, and Low/Median/High group precision.
+Saved CRRA pairs and gamma calibrations are reused; no empirical re-estimation was performed.
+Each setting has 100 target pairs and an independent panel of 220 unrelated groups (20 at each of the 11 alpha values).
+The full donor panel and target individual choices stay fixed across target alpha. Both members use the same donor groups.
+For calibrated cases, target choices at alpha=0.5 use the original notebook RNG keys; other alphas use the same budgets and uniform draws.
+M is the mean of donor-specific normalized indices, with undefined donor indices imputed to 0.5; undefined own indices remain missing.
+The synthetic donor population is scenario-specific and balanced over alpha, rather than the empirical manuscript donor pool.
+Its purpose is a controlled Monte Carlo comparison. Conclusions about levels depend on this donor population.
+
+Reconstructed supplied figure
+The older figure executable, choice arrays, and random seed were not found. Its image and caption settings were found.
+Reconstruction: rho=(0.3,0.7), gamma=(30,30,30), 50 budgets, 200 allocations, 100 pairs.
+Following simulation.tex, archived legacy rational-sample budgets are converted from KRW to dollar units by dividing by 1000.
+Expected utility uses equal state probabilities (0.5). Independent budget samples follow the later notebook.
+These conventions are explicit reconstruction choices, so the blue curve is not an exact reproduction of the supplied Monte Carlo draw.
+Mean M: 0.5643; centered mean shift: +0.0643.
+At alpha 0/0.5/1, original means: 0.212, 0.401, 0.768.
+Centered adjusted means: 0.277, 0.465, 0.832.
+
+Representative calibrated cases (group precision High)
+Risk gap / Individual precision     Mean M    Original at .5    Centered at .5    Original span    Centered span
+small  / high_high       0.417         0.901            0.810             0.811            0.804
+small  / high_low        0.025         0.993            0.516             0.038            0.035
+small  / low_low         0.456         0.572            0.528             0.055            0.055
+medium / high_high       0.090         0.982            0.571             0.696            0.695
+medium / high_low        0.049         0.985            0.534             0.399            0.399
+medium / low_low         0.470         0.541            0.512             0.089            0.089
+large  / high_high       0.050         0.999            0.549             0.490            0.490
+large  / high_low        0.044         0.993            0.537             0.466            0.466
+large  / low_low         0.326         0.683            0.509             0.192            0.192
+
+Across calibrated cases, M ranges from 0.025 to 0.504.
+The centered adjustment reduces the mean 10-90% band width in 15 of 27 cases.
+Raw CRRA utility scales differ across risk parameters. Large-gap curves can saturate near 1 even at low positive alpha.
+Subtracting the donor benchmark changes the level but does not restore alpha sensitivity in saturated or nearly flat curves.
+Low-Low individual precision produces nearly flat curves; adjustment can narrow the bands without adding alpha sensitivity.
+Group precision is calibrated at alpha=0.5; the group CCEI need not equal its target at other alpha values.
+The figures show full theoretical score ranges; negative centered values are valid relative-alignment outcomes. No scores are clipped.
+Own-index missingness ranges from 0.0% to 57.5% across calibrated settings.
+Small gap/High-High members/High group precision has 46-74% undefined own indices per alpha in this run.
+Its plotted means are conditional on defined own indices; subtraction cannot restore missing actual indices.
+
+Donor and numerical checks
+Average absolute M change when using the balanced 110-donor half panel instead of 220: 0.0021-0.0207 across settings.
+Low-alpha and high-alpha donor averages are saved to show sensitivity to the donor population, not as preferred alternatives.
+The mean difference between these donor populations ranges from +0.010 to +0.380.
+Average donor missingness across settings ranges from 0.0% to 63.6%.
+The average absolute change in M from dropping rather than imputing undefined donors ranges from 0.0000 to 0.1417.
+Missing-donor treatment matters particularly for Small gap/High-High members/High group precision; the main results follow production imputation.
+Cross costs use sorted expenditure-ratio thresholds and the production mixed-SCC/strict-edge criterion.
+Floating comparisons have relative tolerance 1e-12; actual indices are undefined when total cost <=1e-9.
+See validation.json for independent checks and midpoint replication tolerances.
+
+Files
+simulation_results.csv: paired results, own I, M, direct I-M, both alignment transformations, donor sensitivities, CCEIs.
+simulation_summary.csv: means, 5/10/90/95 percentiles, defined counts and CCEIs for each metric and alpha.
+setting_diagnostics.csv: per-case shifts, endpoint spans, spread, donor-panel stability and missingness.
+choices/*.npz: target, own-group and donor choices, and donor-specific indices for reproducible inspection.
+figures/fixed_rho.png: literal replacement, centered comparison, and M for reconstructed caption settings.
+figures/risk_variants_group_{low,median,high}.png: all 27 calibrated cases.
+figures/*.png: individual three-panel comparison for each case.
+config.json: seeds, parameter values, currency/budget conventions and input hashes.
+Original code: Code/99_17_alpha_weighted_simulation.ipynb.
+New driver: Code/99_17_alpha_i_minus_m.py; native cross-cost helper: Code/programs/alpha_simulation_costs.cpp.
+
+Rerun
+python3 Code/99_17_alpha_i_minus_m.py --jobs 6

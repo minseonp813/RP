@@ -2,7 +2,7 @@
 clear all
 set more off
 adopath ++ "programs"
-local out "results/new_indices/collective_rationality_summary"
+local out "results/collective_quality"
 cap mkdir "`out'"
 capture log close
 cap mkdir "Logs"
@@ -92,7 +92,7 @@ gen double ccei_max_01 = 10*ccei_max
 gen double ccei_min_01 = 10*ccei_min
 gen byte joint_category = 1+(ccei_g>=1-1e-9)+2*ceiv_at1
 gen double pooled_median = `median'
-save "`out'/analysis_sample.dta", replace
+save "`data_dir'/collective_analysis_sample.dta", replace
 
 tempname coefficients diagnostics
 tempfile coefficient_results model_results
@@ -136,11 +136,11 @@ preserve
     export delimited using "`out'/table5_diagnostics.csv", replace
 restore
 
-* Figure 8 AMEs: four joint outcomes; figure6 filenames are retained from the original analysis.
+* Figure 8 AMEs: four joint outcomes with both members' individual CCEIs.
 collective_multinomial_ame joint_category, controls($t5_group $t5_friend $t5_share) base(1)
 assert r(n)==1304 & r(pairs)==652 & r(clusters)==64
 matrix effects = r(effects)
-estimates save "`out'/figure6.ster", replace
+estimates save "`out'/joint_outcome_model.ster", replace
 * Independently evaluate derivatives of fitted category probabilities.
 forvalues member=1/2 {
     local x ccei_max_01
@@ -177,6 +177,6 @@ forvalues category=1/4 {
 }
 postclose `ames'
 use `ame_results', clear
-export delimited using "`out'/figure6_ame.csv", replace
+export delimited using "`out'/joint_outcome_ame.csv", replace
 di as result "SUCCESS: all twelve table models and the joint-outcome model passed sample and inference checks."
 log close
