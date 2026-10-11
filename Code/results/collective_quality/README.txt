@@ -30,35 +30,42 @@ in 5/6. The former standalone 11/12 scripts have been removed.
 
 3. Appendix estimates: 5_Tables_Appendix.do.
 
-   "Collective-outcomes appendix table" prepares the sample, estimates the six
+   "Table A7" prepares the sample, estimates the six
    categorical regressions, exports table5_coefficients.csv/table5_diagnostics.csv
    and writes collective_ccei_ceiv_categories.tex. Low--High is omitted.
    Log: Logs/5_collective_categories.log.
 
-   "Figures A10 and A12 estimates" prepares its own sample and exports
+   "Figures A10 and A11 estimates" prepares its own sample and exports
    joint_outcome_ame.csv plus extensions/joint_outcome_shapley_{r2,models,coalitions}.csv.
-   A10 uses class FE and class FE + controls in multinomial logit, with
-   class-clustered normal intervals. A12 decomposes overall R2 for the four
+   A11 uses class FE and class FE + controls in multinomial logit, with
+   class-clustered normal intervals. A10 decomposes overall R2 for the four
    controlled Class-FE and four controlled Pair-FE LPMs. Its five blocks include
    individual CCEIs, student characteristics, friendship, corner/midpoint shares
    and fixed effects. All 32 coalitions use the same sample; contributions sum
    to the full model's R2 and percentage shares sum to 100.
    Log: Logs/5_collective_outcomes.log.
 
-   "Figure A11 estimates" prepares its own sample and exports
+   "Figure A12 estimates" prepares its own sample and exports
    extensions/alternative_linear_ame.csv for HM and RevMaxMPI LPMs.
    Log: Logs/5_collective_alternatives.log.
 
 4. Appendix plots: 6_Figures_Appendix.R, independently runnable A10--A12 sections.
 
-   A10 reads joint_outcome_ame.csv from 5 and writes figure6_a_ame_*.png.
-   A11 reads alternative_linear_ame.csv from 5, exports alternative_sd_units.csv
+   A11 reads joint_outcome_ame.csv from 5 and writes figure6_a_ame_*.png.
+   A12 reads alternative_linear_ame.csv from 5, exports alternative_sd_units.csv
    and writes alternative_{HM,MaxMPI}_lpm_ame_{maximum,minimum}.png.
-   A12 reads decomposition/full-model exports from 5 and the main LPM exports
-   from 3, and writes joint_outcome_shapley.pdf plus a PNG preview.
-   All panels retain their existing output paths and styling. Figure 8/A10/A11
+   A10 reads decomposition/full-model exports from 5 and the main LPM exports
+   from 3, and writes only joint_outcome_shapley.pdf. The review PNG is in 99_10.
+   All panels retain their existing output paths and styling. Figure 8/A11/A12
    effects are percentage points per one-SD increase; stored effects are per
    0.1 units. CCEI SDs are 0.058234780484 (higher) and 0.151319396465 (lower).
+
+The active appendix workflow contains only Tables A1--A7 and Figures
+A4--A8/A10--A12. Other table/model sections are in 99_9_Tables_Appendix_Backup.do;
+other plots and preview PNGs are in 99_10_Figures_Appendix_Backup.R. Shared
+R2 plotters in programs serve manuscript exports and optional backup previews.
+The figures are ordered and labeled to match the current draft. The older
+validation records below retain their contemporary figure numbering.
 
 Historical table5_*.ster, joint_outcome_model*.ster, alternative_ame.csv,
 HM/MaxMPI.ster, covariate_ame.csv and the old likelihood-based shapley.csv are

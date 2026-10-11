@@ -1,7 +1,7 @@
 # Shared display for Figure 4 (Columns 2/3) and Figure A8 (Columns 5/6).
 # Estimation is shared; each figure reads its own 500-repetition exports.
 export_table3_placebo_panels <- function(code_dir, columns, review_filename = NULL,
-                                       input_prefix = "figure4_placebo") {
+                                       input_prefix = "figure4_placebo", export_panels = TRUE) {
   figure_dir <- file.path(code_dir, "results/figures")
   draws <- read.csv(file.path(figure_dir, paste0(input_prefix, "_coefficients.csv")))
   summary <- read.csv(file.path(figure_dir, paste0(input_prefix, "_summary.csv")))
@@ -40,7 +40,7 @@ export_table3_placebo_panels <- function(code_dir, columns, review_filename = NU
       ggplot2::theme(plot.title = ggplot2::element_text(size = 12),
         plot.margin = ggplot2::margin(12, 18, 12, 12))
   })
-  for (panel in seq_along(columns)) {
+  if (export_panels) for (panel in seq_along(columns)) {
     panel_file <- file.path(figure_dir, sprintf("figure4_placebo_col%d.pdf", columns[panel]))
     ggplot2::ggsave(panel_file, plots[[panel]] + ggplot2::labs(title = NULL),
       width = 6, height = 4.5, device = grDevices::cairo_pdf)
