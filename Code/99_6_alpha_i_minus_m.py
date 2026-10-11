@@ -1,6 +1,6 @@
 """Paired I versus I-M experiments using the existing alpha simulation notebook.
 
-Run from any directory: python3 Code/99_17_alpha_i_minus_m.py
+Run from any directory: python3 Code/99_6_alpha_i_minus_m.py
 Requires NumPy, pandas, Matplotlib, joblib, and a C++ compiler. SciPy is only
 needed if the original notebook's empirical calibration is re-estimated.
 """
@@ -34,7 +34,7 @@ ALPHAS = np.round(np.arange(0, 1.01, 0.1), 1)
 
 
 def notebook_functions():
-    notebook = json.loads((CODE / "99_17_alpha_weighted_simulation.ipynb").read_text())
+    notebook = json.loads((CODE / "99_6_alpha_weighted_simulation.ipynb").read_text())
     module = ModuleType("rp_alpha_notebook_functions")
     sys.modules[module.__name__] = module
     exec(compile("".join(notebook["cells"][2]["source"]), "alpha_notebook", "exec"), module.__dict__)
@@ -352,9 +352,9 @@ def diagnostics_and_report(results, summary, settings, output):
                   'figures/risk_variants_group_{low,median,high}.png: all 27 calibrated cases.',
                   'figures/*.png: individual three-panel comparison for each case.',
                   'config.json: seeds, parameter values, currency/budget conventions and input hashes.',
-                  'Original code: Code/99_17_alpha_weighted_simulation.ipynb.',
-                  'New driver: Code/99_17_alpha_i_minus_m.py; native cross-cost helper: Code/programs/alpha_simulation_costs.cpp.',
-                  '', 'Rerun', 'python3 Code/99_17_alpha_i_minus_m.py --jobs 6', ''])
+                  'Original code: Code/99_6_alpha_weighted_simulation.ipynb.',
+                  'New driver: Code/99_6_alpha_i_minus_m.py; native cross-cost helper: Code/programs/alpha_simulation_costs.cpp.',
+                  '', 'Rerun', 'python3 Code/99_6_alpha_i_minus_m.py --jobs 6', ''])
     (output/'report.txt').write_text('\n'.join(lines))
     return table
 
@@ -390,7 +390,7 @@ def main():
                   code_sha256={str(p.relative_to(CODE.parent)):hashlib.sha256(p.read_bytes()).hexdigest() for p in
                                [Path(__file__),CODE/"programs"/"alpha_simulation_costs.cpp"]},
                   input_sha256={str(p.relative_to(CODE.parent)):hashlib.sha256(p.read_bytes()).hexdigest() for p in
-                                [CODE/"99_17_alpha_weighted_simulation.ipynb",CODE/"data"/"base_raw.dta",CODE/"data"/"end_raw.dta",
+                                [CODE/"99_6_alpha_weighted_simulation.ipynb",CODE/"data"/"base_raw.dta",CODE/"data"/"end_raw.dta",
                                  SAVED/"rho_heterogeneity_scenarios.csv",SAVED/"gamma_calibration_selected.csv",legacy]})
     (args.output_dir/"config.json").write_text(json.dumps(manifest,indent=2)+"\n")
     frames=[]

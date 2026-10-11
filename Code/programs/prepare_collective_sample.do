@@ -2,35 +2,6 @@
 args data_dir
 use `"`data_dir'/panel_individual.dta"', clear
 
-tempfile t5_shares t5_partner_shares t5_base_shares
-preserve
-    use `"`data_dir'/base_raw.dta"', clear
-    keep if game_type == 1
-    gen post = 0
-    gen byte corner_share = (coord_x == 0 | coord_y == 0) if !missing(coord_x, coord_y)
-    gen byte mid_share = (coord_x == coord_y) if !missing(coord_x, coord_y)
-    collapse (mean) corner_share mid_share, by(id post)
-    save `t5_base_shares'
-
-    use `"`data_dir'/end_raw.dta"', clear
-    keep if game_type == 1
-    gen post = 1
-    gen byte corner_share = (coord_x == 0 | coord_y == 0) if !missing(coord_x, coord_y)
-    gen byte mid_share = (coord_x == coord_y) if !missing(coord_x, coord_y)
-    collapse (mean) corner_share mid_share, by(id post)
-    append using `t5_base_shares'
-    save `t5_shares'
-    rename id partner_id
-    save `t5_partner_shares'
-restore
-
-merge m:1 id post using `t5_shares', keep(master match) nogen
-rename corner_share corner_share_i
-rename mid_share mid_share_i
-merge m:1 partner_id post using `t5_partner_shares', keep(master match) nogen
-rename corner_share corner_share_j
-rename mid_share mid_share_j
-
 foreach v in mathscore outgoing opened agreeable conscientious stable {
     replace `v'_i = 0 if missing(`v'_i)
     replace `v'_j = 0 if missing(`v'_j)

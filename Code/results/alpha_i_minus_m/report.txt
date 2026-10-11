@@ -74,8 +74,8 @@ figures/fixed_rho.png: literal replacement, centered comparison, and M for recon
 figures/risk_variants_group_{low,median,high}.png: all 27 calibrated cases.
 figures/*.png: individual three-panel comparison for each case.
 config.json: seeds, parameter values, currency/budget conventions and input hashes.
-Original code: Code/99_17_alpha_weighted_simulation.ipynb.
-New driver: Code/99_17_alpha_i_minus_m.py; native cross-cost helper: Code/programs/alpha_simulation_costs.cpp.
+Original code: Code/99_6_alpha_weighted_simulation.ipynb.
+New driver: Code/99_6_alpha_i_minus_m.py; native cross-cost helper: Code/programs/alpha_simulation_costs.cpp.
 
 Rerun
-python3 Code/99_17_alpha_i_minus_m.py --jobs 6
+python3 Code/99_6_alpha_i_minus_m.py --jobs 6

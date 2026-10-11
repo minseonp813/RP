@@ -15,7 +15,7 @@ local table_dir "`code_dir'/results/tables/taking_turns"
 
 if "`definition'" == "" {
     foreach definition in both_high both_low ccei_diff {
-        do "`code_dir'/99_12_taking_turns_robustness.do" `expected_reps' `bootstrap_reps' run `definition'
+        do "`code_dir'/99_4_taking_turns_robustness.do" `expected_reps' `bootstrap_reps' run `definition'
     }
     exit
 }
@@ -55,44 +55,11 @@ count if !missing(n_permutations)
 assert r(N) > 0
 assert inlist(turn_like, 0, 1) if !missing(turn_like)
 
-* Prepare controls.
-
-tempfile choice_shares partner_choice_shares baseline_choice_shares
-preserve
-    use "`data_dir'/base_raw.dta", clear
-    keep if game_type == 1
-    gen byte post = 0
-    gen byte corner_share = (coord_x == 0 | coord_y == 0) ///
-        if !missing(coord_x, coord_y)
-    gen byte mid_share = (coord_x == coord_y) if !missing(coord_x, coord_y)
-    collapse (mean) corner_share mid_share, by(id post)
-    save `baseline_choice_shares'
-
-    use "`data_dir'/end_raw.dta", clear
-    keep if game_type == 1
-    gen byte post = 1
-    gen byte corner_share = (coord_x == 0 | coord_y == 0) ///
-        if !missing(coord_x, coord_y)
-    gen byte mid_share = (coord_x == coord_y) if !missing(coord_x, coord_y)
-    collapse (mean) corner_share mid_share, by(id post)
-    append using `baseline_choice_shares'
-    save `choice_shares'
-    rename id partner_id
-    save `partner_choice_shares'
-restore
-
-merge m:1 id post using `choice_shares', keep(master match) nogen
-rename corner_share corner_share_i
-rename mid_share mid_share_i
-merge m:1 partner_id post using `partner_choice_shares', ///
-    keep(master match) nogen
-rename corner_share corner_share_j
-rename mid_share mid_share_j
-
-gen double corner_share_diff = corner_share_i - corner_share_j
-gen double mid_share_diff = mid_share_i - mid_share_j
-gen byte female_i_male_j = (male_i == 0 & male_j == 1)
-gen byte male_i_female_j = (male_i == 1 & male_j == 0)
+* Exact-choice controls and sample flags are carried by panel_individual.dta.
+* Preserve this table's original double-precision share differences.
+recast double corner_share_diff mid_share_diff
+replace corner_share_diff = corner_share_i - corner_share_j
+replace mid_share_diff = mid_share_i - mid_share_j
 
 global tt_group "mathscore_i mathscore_diff height_i height_diff outgoing_i outgoing_diff opened_i opened_diff agreeable_i agreeable_diff conscientious_i conscientious_diff stable_i stable_diff female_i_male_j male_i_female_j"
 global tt_group_nogender "mathscore_i mathscore_diff height_i height_diff outgoing_i outgoing_diff opened_i opened_diff agreeable_i agreeable_diff conscientious_i conscientious_diff stable_i stable_diff"
@@ -100,11 +67,6 @@ global tt_friend "inclass_n_friends_i inclass_n_diff inclass_popularity_i inclas
 global tt_missing "mathscore_diff_missing outgoing_diff_missing opened_diff_missing agreeable_diff_missing conscientious_diff_missing stable_diff_missing"
 global tt_ra "RA_i RA_diff"
 global tt_share "corner_share_i corner_share_diff mid_share_i mid_share_diff"
-
-bysort id: egen n_distance = total(!missing(Ihat_ig))
-gen byte balanced_t3 = (n_distance == 2)
-drop n_distance
-egen long id_fe = group(id)
 
 label var `xvar' "\$Higher CCEI_i\$"
 

@@ -1,0 +1,45 @@
+PASS: baseline validate_main completed without Stata errors
+PASS: baseline validate_appendix completed without Stata errors
+PASS: baseline generated table_ccei_summary_IminusM.tex
+PASS: baseline generated table_bargainingCCEI_M.tex
+PASS: baseline generated table_bargainingCCEI_buffers_M.tex
+PASS: baseline generated table_correlation_IminusM.tex
+PASS: baseline generated table_bargainingCCEI_mover_M.tex
+PASS: baseline generated table_bargaining_alternatives_M.tex
+PASS: baseline generated table_bargainingCCEI_bothlow_M.tex
+PASS: after validate_main completed without Stata errors
+PASS: after validate_appendix completed without Stata errors
+PASS: after generated table_ccei_summary_IminusM.tex
+PASS: after generated table_bargainingCCEI_M.tex
+PASS: after generated table_bargainingCCEI_buffers_M.tex
+PASS: after generated table_correlation_IminusM.tex
+PASS: after generated table_bargainingCCEI_mover_M.tex
+PASS: after generated table_bargaining_alternatives_M.tex
+PASS: after generated table_bargainingCCEI_bothlow_M.tex
+PASS: identical results/tables/table_bargainingCCEI_M.tex
+PASS: identical results/tables/table_ccei_summary_IminusM.tex
+PASS: identical results/tables/table_bargainingCCEI_mover_M.tex
+PASS: identical results/tables/table_correlation_IminusM.tex
+PASS: identical results/tables/table_bargaining_alternatives_M.csv
+PASS: identical results/tables/table_bargainingCCEI_bothlow_M.tex
+PASS: identical results/tables/table_bargainingCCEI_buffers_M.tex
+PASS: identical results/tables/table_bargaining_alternatives_M.tex
+PASS: identical results/figures/figure_individual_ccei_cdf_baseline_endline.png
+PASS: identical results/figures/ccei_bargaining_had_individual_high.png
+PASS: identical results/figures/figure_group_ccei_cdf_baseline_endline.png
+PASS: identical results/figures/ccei_IminusM_by_higher_ccei_bar.png
+PASS: identical results/figures/figure_group_ra_cdf_baseline_endline.png
+PASS: identical results/figures/ccei_IminusM_by_higher_ccei_stats.csv
+PASS: identical results/figures/hist_IminusM_ig.png
+PASS: identical results/figures/figure3_cluster_KS_draws.csv
+PASS: identical results/figures/ccei_bargaining_whose_suggestion.png
+PASS: identical results/figures/figure_individual_ra_cdf_baseline_endline.png
+PASS: identical results/figures/figure4_validation_actual.csv
+PASS: identical results/figures/ccei_IminusM_by_higher_ccei_cdf.png
+PASS: identical results/figure_A7_review/table3_shapley.csv
+PASS: analysis row order and keys unchanged
+PASS: all 509 retained columns exactly equal on 2608 rows
+PASS: retained RA ra_placebo_member_wave.dta unchanged
+PASS: retained RA ra_donor_matrix.csv unchanged
+PASS: 50 existing distance-related canonical/manuscript assets unchanged
+PASS: active review directory retired

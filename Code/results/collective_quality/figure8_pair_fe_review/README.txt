@@ -1,0 +1,29 @@
+Figure 8 pair-fixed-effects preview
+
+Historical preview, superseded by the adopted main Figure 8 on 2026-10-11.
+The draft now uses the three-specification LPM figure; its prior two-specification
+multinomial-logit figure is retained in the appendix. The files in this review
+folder preserve the original preview and the failed pair-dummy trial.
+
+Displayed preview: figure8_three_specifications_linear.png
+All three specifications are linear probability models for each of the four
+joint-outcome indicators, with both scaled individual CCEIs entering jointly:
+  triangles: class fixed effects only;
+  circles: class fixed effects and the full Figure 8 controls;
+  squares: pair fixed effects and the same controls (constant controls absorbed).
+All fits use 1,304 pair-waves, 652 pairs, and 64 class clusters. Effects scale
+to a 0.1 CCEI increase. Intervals use class-clustered standard errors and t(63).
+
+Historical commands used to generate the saved linear preview:
+  /Applications/StataNow/StataMP.app/Contents/MacOS/stata-mp -b do 99_26_figure8_pair_fe_linear.do
+  Rscript 99_26_figure8_pair_fe.R linear
+
+The attempted unconditional multinomial logit with pair dummies is recorded
+in analysis.log. The likelihood remained non-concave as it approached a flat
+value; the attempt was interrupted without convergence. No multinomial pair-FE
+AMEs were accepted or plotted. There are only two observations per pair:
+444 pairs change category and 208 do not. The trial script is retained as
+99_9_figure8_pair_fe.do, with a 30-iteration cap and a convergence assertion.
+Conditional multinomial fixed effects do not estimate the pair intercepts
+needed for the usual unconditional category-probability AMEs.
+Reference: https://www.stata.com/manuals/xtxtmlogit.pdf

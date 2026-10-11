@@ -87,15 +87,11 @@ preserve
     export delimited using "`out'/shapley.csv", replace
 restore
 
-* Alternative individual and group rationality; hold CEIV calibration fixed.
-* Rescale controls to stabilize the Hessian; fitted probabilities are unchanged.
-foreach term in `controls' {
-    quietly summarize `term'
-    if r(sd)>0 replace `term' = (`term'-r(mean))/r(sd)
-}
+* Alternative-index LPMs match Figure 8; hold CEIV calibration fixed.
 tempname alternatives
 tempfile alternative_results
-postfile `alternatives' str8 measure byte outcome str7 member double estimate se low high using `alternative_results'
+postfile `alternatives' str8 measure str13 specification byte outcome str7 member ///
+    double estimate se low high using `alternative_results'
 foreach measure in HM MaxMPI {
     preserve
         if "`measure'"=="HM" {
@@ -109,23 +105,28 @@ foreach measure in HM MaxMPI {
             gen byte alternative_category = 1+(maxmpi_g<=1e-9)+2*ceiv_at1
         }
         assert alternative_category==joint_category
-        collective_multinomial_ame alternative_category, controls(`controls') base(1) iterations(300)
-        assert r(n)==1304 & r(pairs)==652 & r(clusters)==64
-        matrix effects = r(effects)
-        estimates save "`out'/`measure'.ster", replace
-        forvalues category=1/4 {
-            forvalues member=1/2 {
-                local name = cond(`member'==1,"maximum","minimum")
-                local start = 4*(`member'-1)
-                post `alternatives' ("`measure'") (`category') ("`name'") ///
-                    (effects[`category',`start'+1]) (effects[`category',`start'+2]) ///
-                    (effects[`category',`start'+3]) (effects[`category',`start'+4])
+        foreach specification in class_fe full_controls pair_fe {
+            local regressors "`controls'"
+            if "`specification'"=="class_fe" local regressors ""
+            local fe class_fe
+            if "`specification'"=="pair_fe" local fe pair_fe
+            collective_linear_ame alternative_category, controls(`regressors') fe(`fe')
+            assert r(n)==1304 & r(pairs)==652 & r(clusters)==64
+            matrix effects = r(effects)
+            forvalues category=1/4 {
+                forvalues member=1/2 {
+                    local name = cond(`member'==1,"maximum","minimum")
+                    local start = 4*(`member'-1)
+                    post `alternatives' ("`measure'") ("`specification'") (`category') ("`name'") ///
+                        (effects[`category',`start'+1]) (effects[`category',`start'+2]) ///
+                        (effects[`category',`start'+3]) (effects[`category',`start'+4])
+                }
             }
         }
     restore
 }
 postclose `alternatives'
 use `alternative_results', clear
-export delimited using "`out'/alternative_ame.csv", replace
-di as result "SUCCESS: covariate AMEs, exact conditional Shapley decomposition, and alternative-index AMEs validated."
+export delimited using "`out'/alternative_linear_ame.csv", replace
+di as result "SUCCESS: covariate AMEs, exact conditional Shapley decomposition, and alternative-index LPMs validated."
 log close

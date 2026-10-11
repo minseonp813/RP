@@ -15,7 +15,7 @@ Run `do 08_Tables_Appendix.do` from `Code`, or run its choice-buffer section alo
 It rebuilds the same exact, 2.5-point, and 5-point shares from the raw choices,
 uses actual revealed-preference distance as the outcome, and controls for the
 saved full-donor CCEI benchmark `M_ccei` from
-`IminusM_review/outputs/data/ccei_ra_candidate_analysis.dta`.
+`data/panel_individual.dta`, built by `2_3_build_panel_individual.R`.
 It writes `results/tables/table_bargainingCCEI_buffers_M.tex`, copies it to
 `../Overleaf/tables_2025`, and logs estimation in `Logs/08_choice_buffers.log`.
 The old review outputs listed above are retained as snapshots and are not refreshed.

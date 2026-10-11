@@ -1,11 +1,12 @@
-* Fit Figure 6's four-category model and return validated AMEs for both individual CCEIs.
+* Fit the appendix four-category model and return validated AMEs for both individual CCEIs.
 program define collective_multinomial_ame, rclass
-    syntax varname(numeric) [if], CONTROLS(varlist) BASE(integer) ///
-        [TECHnique(string) ITERations(integer 150)]
+    syntax varname(numeric) [if], BASE(integer) ///
+        [CONTROLS(varlist) FE(varname) TECHnique(string) ITERations(integer 150)]
     marksample touse
+    if "`fe'"=="" local fe class_fe
     local optimizer "difficult iterate(`iterations')"
     if "`technique'"!="" local optimizer "`optimizer' technique(`technique')"
-    mlogit `varlist' c.ccei_max_01 c.ccei_min_01 `controls' i.class_fe ///
+    mlogit `varlist' c.ccei_max_01 c.ccei_min_01 `controls' i.`fe' ///
         if `touse', baseoutcome(`base') vce(cluster class_fe) `optimizer'
     assert e(converged)==1
     local n = e(N)

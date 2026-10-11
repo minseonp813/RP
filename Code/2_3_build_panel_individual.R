@@ -1,10 +1,10 @@
 # 2_3_build_panel_individual.R
-# Latest update: 2026-10-06
+# Latest update: 2026-10-11
 # Purpose: Reshape the enriched pair panel into one row per member and wave,
 #          carrying own/partner indices, M benchmarks and individual controls.
 # Inputs: data/panel_final.dta from 2_1_build_panel.R, data/panel_group.dta from
 #         2_2_build_panel_group.R and data/network_panel_clean.dta from
-#         2_1_build_panel.R.
+#         2_1_build_panel.R; data/base_raw.dta and data/end_raw.dta.
 # Outputs: data/panel_individual.dta and
 #          data/checks/panel_individual_selected_missing_imputation_summary.csv.
 # Sections:
@@ -16,10 +16,11 @@
 #   6. Derive member differences/interactions and validate index rankings.
 #   7. Prepare friendship/network controls.
 #   8. Add missing indicators and zero-impute selected regression controls.
-#   9. Validate member-distance adding-up, save the panel and report dimensions.
+#   9. Add exact-choice controls, sample flags and placebo-adjusted distance.
+#  10. Validate member-distance adding-up, save the panel and report dimensions.
 # M values calculated by 1_1_calculate_indices.R retain their canonical analysis
 # names (M_ccei, M_hm, M_maxmpi, M_ra); they are carried forward without control imputation.
-# Before running the revised 1_1_calculate_indices.R, existing panels have no M columns to carry.
+# The CCEI benchmark must be present from section 7 of 1_1_calculate_indices.R.
 
 # ----------------------------------------------------------------------------
 # 1. Setup and value helpers
@@ -762,7 +763,58 @@ write_csv(
 )
 
 # ----------------------------------------------------------------------------
-# 9. Validate member distances, save the panel and report dimensions
+# 9. Prepare exact-choice controls and placebo-adjusted distance
+# ----------------------------------------------------------------------------
+if (!all(c("M_ccei", "n_ccei_donors") %in% names(panel_individual))) {
+  stop("Missing CCEI benchmark columns. Run section 7 of 1_1_calculate_indices.R, then rebuild the panels.")
+}
+
+# Match the retained Stata controls' float precision so existing fits are preserved.
+stata_float <- function(x) {
+  readBin(writeBin(as.double(x), raw(), size = 4L), "numeric", n = length(x), size = 4L)
+}
+choice_shares <- bind_rows(lapply(c("base", "end"), function(wave) {
+  raw <- read_dta(file.path("data", paste0(wave, "_raw.dta"))) %>%
+    filter(game_type == 1) %>%
+    mutate(id = id_as_char(id))
+  stopifnot(all(is.finite(raw$coord_x)), all(is.finite(raw$coord_y)),
+            all(raw$coord_x >= 0 & raw$coord_y >= 0),
+            all(raw$coord_x + raw$coord_y > 0), all(count(raw, id)$n == 18L))
+  raw %>%
+    group_by(id) %>%
+    summarise(corner_share = mean(coord_x == 0 | coord_y == 0),
+              mid_share = mean(coord_x == coord_y), .groups = "drop") %>%
+    mutate(post = as.integer(wave == "end"),
+           across(c(corner_share, mid_share), stata_float))
+}))
+panel_individual <- panel_individual %>%
+  left_join(choice_shares %>% rename(corner_share_i = corner_share, mid_share_i = mid_share),
+            by = c("id", "post")) %>%
+  left_join(choice_shares %>% rename(partner_id = id, corner_share_j = corner_share,
+                                    mid_share_j = mid_share),
+            by = c("partner_id", "post")) %>%
+  mutate(corner_share_diff = stata_float(corner_share_i - corner_share_j),
+         mid_share_diff = stata_float(mid_share_i - mid_share_j),
+         female_i_male_j = as.integer(male_i %in% 0 & male_j %in% 1),
+         male_i_female_j = as.integer(male_i %in% 1 & male_j %in% 0),
+         id_fe = match(id, sort(unique(id))),
+         I_ccei = Ihat_ig,
+         Istar_ccei = I_ccei - M_ccei) %>%
+  group_by(id) %>%
+  mutate(balanced_t3 = as.integer(sum(!is.na(Ihat_ig)) == 2L)) %>%
+  ungroup() %>%
+  arrange(partner_id, post)
+stopifnot(!anyNA(panel_individual[c("corner_share_i", "corner_share_j", "mid_share_i", "mid_share_j", "M_ccei")]),
+          !anyDuplicated(panel_individual[c("id", "post")]),
+          all(panel_individual$n_ccei_donors == n_distinct(panel_individual$group_id) - 1L))
+distance_check <- panel_individual %>%
+  group_by(group_id, post) %>%
+  summarise(M_sum = sum(M_ccei), Istar_sum = sum(Istar_ccei), .groups = "drop")
+stopifnot(all(abs(distance_check$M_sum - 1) < 1e-7),
+          all(abs(distance_check$Istar_sum) < 1e-7, na.rm = TRUE))
+
+# ----------------------------------------------------------------------------
+# 10. Validate member distances, save the panel and report dimensions
 # ----------------------------------------------------------------------------
 for (index_var in c("Ihat_ig", "Ihat_maxmpi_ig", "Ihat_hm_ig")) {
   ihat_individual_check <- panel_individual %>%

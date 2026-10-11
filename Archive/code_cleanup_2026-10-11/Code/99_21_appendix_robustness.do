@@ -5,7 +5,7 @@ set more off
 capture mkdir "results/tables"
 capture log close appendix_robustness
 log using "results/tables/appendix_robustness.log", name(appendix_robustness) text replace
-do "programs/prepare_table3_controls.do"
+use "data/panel_individual.dta", clear
 
 local individual "mathscore_i mathscore_diff height_i height_diff outgoing_i outgoing_diff opened_i opened_diff agreeable_i agreeable_diff conscientious_i conscientious_diff stable_i stable_diff"
 local gender "female_i_male_j male_i_female_j"

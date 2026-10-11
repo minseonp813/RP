@@ -1,0 +1,12 @@
+[
+  {
+    "original_path": "Code/results/collective_quality/group_ccei_cluster_KS_draws.csv",
+    "archived_path": "Archive/figure7_simple_inference_2026-10-11/Code/results/collective_quality/group_ccei_cluster_KS_draws.csv",
+    "sha256": "013ccc7f8bf95f6b8447888ab33b10d02c9587c5f9c3e0810776f89f46fdcf41"
+  },
+  {
+    "original_path": "Code/results/collective_quality/group_ceiv_cluster_KS_draws.csv",
+    "archived_path": "Archive/figure7_simple_inference_2026-10-11/Code/results/collective_quality/group_ceiv_cluster_KS_draws.csv",
+    "sha256": "11fe30fbb39bee0f4968fa476002f32ea5535607475333b473629cf5fa8f71e9"
+  }
+]

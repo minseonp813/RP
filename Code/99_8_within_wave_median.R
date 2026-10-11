@@ -1,6 +1,6 @@
-# Run from Code after 99_25_within_wave_median.do.
+# Run from Code after 99_8_within_wave_median.do.
 # Optional argument: class_wave, matching the estimation argument.
-# Reuse Figure 7's plot code and bootstrap; write sensitivity outputs separately.
+# Reuse Figure 7's plot code and inference; write sensitivity outputs separately.
 suppressPackageStartupMessages({
   library(haven)
   library(ggplot2)
@@ -8,6 +8,7 @@ suppressPackageStartupMessages({
   library(grid)
 })
 code_dir <- getwd()
+source(file.path(code_dir, "programs/class_fe_category_summary.R"))
 args <- commandArgs(trailingOnly = TRUE)
 median_scope <- if (length(args)) args[1] else "wave"
 stopifnot(median_scope %in% c("wave", "class_wave"))
@@ -54,7 +55,7 @@ main_expressions <- parse(text = main_file)
 for (expression in main_expressions) {
   if (is.call(expression) && identical(expression[[1]], as.name("<-")) &&
       is.symbol(expression[[2]]) &&
-      as.character(expression[[2]]) %in% c("sig_mark", "paper_theme", "clustered_ks_test")) {
+      as.character(expression[[2]]) %in% c("sig_mark", "paper_theme")) {
     eval(expression)
   }
 }
@@ -92,7 +93,7 @@ draw_figure <- function(data, output_dir, classification_label, figure_title, fi
             vp = viewport(layout.pos.row = row + 1, layout.pos.col = column))
     }
   }
-  grid.text(sprintf("High: %s.\n1,304 pair-waves; LL / LH / HH: %s. Class-clustered inference.\n95%% t(63) intervals; 9,999 centered whole-class KS draws. + p < .10, * p < .05, ** p < .01.",
+  grid.text(sprintf("High: %s.\n1,304 pair-waves; LL / LH / HH: %s. Class FE; class-clustered contrasts.\n95%% normal mean intervals; ordinary KS tests. + p < .10, * p < .05, ** p < .01.",
                     classification_label, paste(category_counts, collapse = " / ")), gp = gpar(fontsize = 10),
             vp = viewport(layout.pos.row = 4, layout.pos.col = 1:2))
   popViewport()

@@ -5,22 +5,22 @@ local({
 
 # Settings.
 n_repetitions <- as.integer(Sys.getenv("PLACEBO_REPS", "500"))
-base_output_subdir <- Sys.getenv("PLACEBO_OUTPUT_SUBDIR", "placebo_reassignment")
+base_output_subdir <- Sys.getenv("PLACEBO_OUTPUT_SUBDIR", "placebo_reassignment_maxmpi")
 save_intermediates <- Sys.getenv("PLACEBO_SAVE_INTERMEDIATES", "1") == "1"
 master_seed <- 20260812L
 requested_definition <- Sys.getenv("HIGH_DEFINITION", "all")
 definitions_to_run <- if (requested_definition == "all") {
-  c("both_high", "both_low", "ccei_diff")
+  c("both_high", "both_low", "maxmpi_diff")
 } else {
   requested_definition
 }
 
 run_definition <- function(high_definition) {
 
-definition_map <- c(both_high = "HighCCEI_both_high",
-                    both_low = "HighCCEI_both_low",
-                    ccei_diff = "ccei_gap_ij")
-suffix_map <- c(both_high = "", both_low = "_bothlow", ccei_diff = "_cceidiff")
+definition_map <- c(both_high = "HighMaxMPI_both_high",
+                    both_low = "HighMaxMPI_both_low",
+                    maxmpi_diff = "maxmpi_gap_ij")
+suffix_map <- c(both_high = "", both_low = "_bothlow", maxmpi_diff = "_revmaxmpidiff")
 if (!high_definition %in% names(definition_map)) stop("Unknown HIGH_DEFINITION.")
 treatment_var <- unname(definition_map[high_definition])
 output_subdir <- paste0(base_output_subdir, unname(suffix_map[high_definition]))
@@ -37,7 +37,7 @@ if (nzchar(code_dir_setting)) {
   if (length(command_file) > 0L) {
     script_path <- sub("^--file=", "", command_file[1L])
     code_dir <- normalizePath(dirname(script_path), winslash = "/", mustWork = TRUE)
-  } else if (file.exists(file.path(getwd(), "99_6_placebo_reassignment.R"))) {
+  } else if (file.exists(file.path(getwd(), "99_1_placebo_reassignment_maxmpi.R"))) {
     code_dir <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
   } else {
     code_dir <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
@@ -60,7 +60,7 @@ data_dir <- file.path(code_dir, "data")
 donor_file <- file.path(
   code_dir,
   "results",
-  "placebo_normalized",
+  "placebo_normalized_maxmpi",
   "placebo_donor_matrix.csv"
 )
 output_dir <- file.path(code_dir, "results", output_subdir)
@@ -114,7 +114,7 @@ fit_absorbed <- function(data, outcome, rhs, fixed_effect, cluster = "class") {
   x <- within_transform(d[, rhs, drop = FALSE], d[[fixed_effect]])
 
   nonzero <- colSums(x^2) > 1e-20
-  if (!nonzero[1L]) stop("The HighCCEI variable is absorbed in this sample.")
+  if (!nonzero[1L]) stop("The rationality variable is absorbed in this sample.")
   x <- x[, nonzero, drop = FALSE]
   fitted <- lm.fit(x = x, y = y)
   residual <- fitted$residuals
@@ -225,7 +225,9 @@ make_choice_shares <- function(path, post_value) {
 
 cat("[1/5] Reading panel and recreating Table 3 controls...\n")
 
+# This historical analysis retains its original full-precision choice means.
 panel <- read_dta(file.path(data_dir, "panel_individual.dta")) |>
+  select(-any_of(c("corner_share_i", "mid_share_i", "corner_share_j", "mid_share_j"))) |>
   mutate(
     across(c(group_id, id, partner_id, class), as_plain_character),
     post = as.integer(post)
@@ -258,14 +260,14 @@ panel <- panel |>
     male_i_female_j = as.numeric(male_i == 1 & male_j == 0)
   ) |>
   group_by(id) |>
-  mutate(balanced_actual = sum(!is.na(Ihat_ig)) == 2L) |>
+  mutate(balanced_actual = sum(!is.na(Ihat_maxmpi_ig)) == 2L) |>
   ungroup()
 
-stopifnot(all(panel$HighCCEI_both_high[panel$ccei_i == panel$ccei_j] == 1, na.rm = TRUE),
-          all(panel$HighCCEI_both_low[panel$ccei_i == panel$ccei_j] == 0, na.rm = TRUE))
+stopifnot(all(panel$HighMaxMPI_both_high[panel$maxmpi_i == panel$maxmpi_j] == 1, na.rm = TRUE),
+          all(panel$HighMaxMPI_both_low[panel$maxmpi_i == panel$maxmpi_j] == 0, na.rm = TRUE))
 
 actual_sample <- panel |> filter(balanced_actual)
-actual_results <- estimate_four_specs(actual_sample, "Ihat_ig") |>
+actual_results <- estimate_four_specs(actual_sample, "Ihat_maxmpi_ig") |>
   rename(
     actual_coefficient = coefficient,
     actual_se = se,
@@ -356,15 +358,15 @@ diagonal <- bind_rows(
 )
 
 diagonal_check <- panel |>
-  select(group_id, post, id, Ihat_ig) |>
+  select(group_id, post, id, Ihat_maxmpi_ig) |>
   inner_join(diagonal, by = c("group_id", "post", "id"))
 diagonal_tolerance <- 1e-4
 if (
   any(
-    abs(diagonal_check$Ihat_ig - diagonal_check$Ihat_diagonal) > diagonal_tolerance,
+    abs(diagonal_check$Ihat_maxmpi_ig - diagonal_check$Ihat_diagonal) > diagonal_tolerance,
     na.rm = TRUE
   ) ||
-    any(is.na(diagonal_check$Ihat_ig) != is.na(diagonal_check$Ihat_diagonal))
+    any(is.na(diagonal_check$Ihat_maxmpi_ig) != is.na(diagonal_check$Ihat_diagonal))
 ) {
   stop("The diagonal donor indices do not reproduce panel_individual.dta.")
 }
@@ -477,7 +479,7 @@ for (r in seq_len(n_repetitions)) {
     member_results[[r]] <- member_rep |>
       select(
         repetition, group_id, class, post, id, partner_id,
-        matched_group_id, ccei_i, ccei_j, all_of(treatment_var),
+        matched_group_id, maxmpi_i, maxmpi_j, all_of(treatment_var),
         Ihat_placebo, cost_i, cost_j, cost_Ng, degenerate,
         balanced_placebo
       )
@@ -607,18 +609,18 @@ for (s in seq_len(4L)) {
     placebo_summary$specification == s
   ]
 
-  if (high_definition == "ccei_diff") {
+  if (high_definition == "maxmpi_diff") {
     x_lower <- -0.85
     x_upper <- -0.40
     x_breaks <- seq(x_lower, x_upper, by = 0.05)
-    x_label <- "Coefficient on CCEI Difference"
+    x_label <- "Coefficient on RevMaxMPI Difference"
     annotation_x <- actual_value + 0.003
     annotation_hjust <- 0
   } else {
-    x_lower <- -0.30
+    x_lower <- -0.35
     x_upper <- -0.10
     x_breaks <- seq(x_lower, x_upper, by = 0.05)
-    x_label <- "Coefficient on Higher CCEI"
+    x_label <- "Coefficient on Higher RevMaxMPI"
     annotation_x <- actual_value - 0.003
     annotation_hjust <- 1
   }

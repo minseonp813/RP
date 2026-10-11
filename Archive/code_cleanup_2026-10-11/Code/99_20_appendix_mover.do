@@ -6,7 +6,7 @@ capture mkdir "results/tables"
 capture log close appendix_mover
 log using "results/tables/appendix_mover.log", name(appendix_mover) text replace
 
-do "programs/prepare_table3_controls.do"
+use "data/panel_individual.dta", clear
 keep if balanced_t3
 assert _N == 2512
 bysort id (post): assert _N == 2 & mover == mover[1]

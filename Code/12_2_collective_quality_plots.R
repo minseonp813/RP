@@ -2,6 +2,7 @@
 # Build the alternative-index appendix figure and retained covariate review plots.
 .libPaths(c(".R-library", .libPaths()))
 library(ggplot2)
+source("programs/plot_collective_ame.R")
 out <- "results/collective_quality/extensions"
 figure_dir <- "results/figures/collective_rationality"
 dir.create(figure_dir, recursive = TRUE, showWarnings = FALSE)
@@ -53,26 +54,29 @@ focused_plot <- ggplot(focused, aes(estimate, term)) +
   paper_theme + theme(axis.text.y = element_text(size = 12), strip.text = element_text(size = 12))
 ggsave(file.path(figure_dir, "figure8_math_friendship_ame.png"), focused_plot, width = 13, height = 7.5, dpi = 240)
 
-a <- read.csv(file.path(out, "alternative_ame.csv"))
-stopifnot(nrow(a) == 16, all(is.finite(as.matrix(a[c("estimate", "low", "high")]))),
-          all(abs(tapply(a$estimate, interaction(a$measure, a$member), sum)) < 1e-8))
-for (x in c("estimate", "low", "high")) a[[x]] <- 100*a[[x]]
-a$outcome <- factor(a$outcome, levels = 4:1,
-                    labels = c("Consistency = 1\nCEIV = 1", "Consistency < 1\nCEIV = 1",
-                               "Consistency = 1\nCEIV < 1", "Consistency < 1\nCEIV < 1"))
-a$measure <- factor(a$measure, levels = c("HM", "MaxMPI"), labels = c("HM index", "RevMaxMPI"))
-a$member <- factor(a$member, levels = c("maximum", "minimum"),
-                   labels = c("Higher individual rationality", "Lower individual rationality"))
-limits <- c(min(-20, floor(min(a$low)/10)*10), max(30, ceiling(max(a$high)/10)*10))
-p <- ggplot(a, aes(estimate, outcome)) +
-  geom_vline(xintercept = 0, colour = "grey55", linewidth = .35) +
-  geom_errorbar(aes(xmin = low, xmax = high), orientation = "y", width = .12,
-                linewidth = .55, colour = "grey35") +
-  geom_point(aes(colour = member), size = 2.8, show.legend = FALSE) +
-  scale_colour_manual(values = c("blue", "red")) +
-  scale_x_continuous(limits = limits, breaks = seq(limits[1], limits[2], 10)) +
-  facet_grid(measure~member) + labs(x = "Average marginal effect (percentage points)", y = NULL) +
-  paper_theme + theme(strip.text = element_text(size = 11))
-ggsave(file.path(figure_dir, "alternative_joint_ame.png"), p, width = 11, height = 7, dpi = 240)
-draft <- "../Overleaf/figures_2025/collective_rationality/alternative_joint_ame.png"
-stopifnot(file.copy(file.path(figure_dir, "alternative_joint_ame.png"), draft, overwrite = TRUE))
+# Alternative-index appendix panels use Figure 8's LPM specifications and style.
+a <- read.csv(file.path(out, "alternative_linear_ame.csv"))
+stopifnot(nrow(a) == 48, setequal(a$measure, c("HM", "MaxMPI")))
+sample <- haven::read_dta("data/collective_analysis_sample.dta")
+indices <- list(HM = cbind(1 - sample$hm_i / 18, 1 - sample$hm_j / 18),
+                MaxMPI = cbind(1 - sample$maxmpi_i, 1 - sample$maxmpi_j))
+labels <- c(HM = "HM index", MaxMPI = "RevMaxMPI")
+alternative_files <- character()
+units <- data.frame()
+for (measure in names(indices)) {
+  scores <- indices[[measure]]
+  member_sd <- c(maximum = sd(pmax(scores[, 1], scores[, 2])),
+                 minimum = sd(pmin(scores[, 1], scores[, 2])))
+  units <- rbind(units, data.frame(measure = measure, member = names(member_sd),
+                                  sd = unname(member_sd), n = nrow(sample)))
+  input <- tempfile(fileext = ".csv")
+  write.csv(a[a$measure == measure, ], input, row.names = FALSE)
+  alternative_files <- c(alternative_files,
+    plot_cei_ame(input, figure_dir, classification = "a", portrait = TRUE,
+                 prefix = paste0("alternative_", measure, "_lpm"),
+                 member_sd = member_sd, consistency_label = labels[[measure]]))
+  unlink(input)
+}
+write.csv(units, file.path(out, "alternative_sd_units.csv"), row.names = FALSE)
+draft_dir <- "../Overleaf/figures_2025/collective_rationality"
+stopifnot(file.copy(alternative_files, file.path(draft_dir, basename(alternative_files)), overwrite = TRUE))

@@ -161,7 +161,7 @@ save_appendix_figure(
 ################################################################################
 # Figure A6: same I-M data and pooled member-category percentages as the main figure.
 ################################################################################
-panel <- read_dta(file.path(code_dir, "IminusM_review/outputs/data/ccei_ra_candidate_analysis.dta"))
+panel <- read_dta(file.path(code_dir, "data/panel_individual.dta"))
 stopifnot(nrow(panel) == 2608,
           max(abs(panel$Istar_ccei - (panel$I_ccei - panel$M_ccei)), na.rm = TRUE) < 1e-12,
           all(panel$n_ccei_donors == 651))

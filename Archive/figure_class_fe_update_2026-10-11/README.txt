@@ -1,0 +1,1 @@
+Historical class-bootstrap KS draws for the unadjusted versions of Figures 3 and 7. The current figures include class FE and report descriptive CDF distances, so these draws no longer belong to the active figure outputs.

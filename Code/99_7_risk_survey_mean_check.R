@@ -1,6 +1,6 @@
 # Nine descriptive panels: collective CCEI, CEIV and raw RP distance by response.
 # Also plots response distributions by strictly higher individual CCEI.
-# Run with Rscript Code/99_24_risk_survey_mean_check.R, or from Code in RStudio.
+# Run with Rscript Code/99_7_risk_survey_mean_check.R, or from Code in RStudio.
 args <- commandArgs(trailingOnly = FALSE)
 file_arg <- grep("^--file=", args, value = TRUE)
 code_dir <- if (length(file_arg) == 1L) {

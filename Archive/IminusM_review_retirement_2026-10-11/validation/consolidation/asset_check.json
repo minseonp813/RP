@@ -1,0 +1,362 @@
+[
+  {
+    "path": "Code/results/tables/table_bargainingCCEI_M.tex",
+    "expected_sha256": "cb11f930129fd7faa7199c467e86f90af6c9fdd19fff7fb18c78dcd5a7dcfd16",
+    "actual_sha256": "cb11f930129fd7faa7199c467e86f90af6c9fdd19fff7fb18c78dcd5a7dcfd16",
+    "unchanged": true
+  },
+  {
+    "path": "Code/results/tables/table_ccei_summary_IminusM.tex",
+    "expected_sha256": "3c44bb99ca09e19a8b684160bbf707d6d7e2fca3f5097c2e04ae5f419f624840",
+    "actual_sha256": "3c44bb99ca09e19a8b684160bbf707d6d7e2fca3f5097c2e04ae5f419f624840",
+    "unchanged": true
+  },
+  {
+    "path": "Code/results/tables/table_bargainingCCEI_mover_M.tex",
+    "expected_sha256": "75eabe940c9d0a16a5c99ec55ea427398ee599f5951a497fb220e5d4ad08c735",
+    "actual_sha256": "75eabe940c9d0a16a5c99ec55ea427398ee599f5951a497fb220e5d4ad08c735",
+    "unchanged": true
+  },
+  {
+    "path": "Code/results/tables/table_bargaining_alternatives_M.csv",
+    "expected_sha256": "c2ea6c004e9da92c4ffea06f20d416e8d163db7fe1eae9aaeacb653c56dcbb5e",
+    "actual_sha256": "c2ea6c004e9da92c4ffea06f20d416e8d163db7fe1eae9aaeacb653c56dcbb5e",
+    "unchanged": true
+  },
+  {
+    "path": "Code/results/tables/table_bargainingCCEI_bothlow_M.tex",
+    "expected_sha256": "3c6d2e74116a1fdee58fc7cd7f18d886eae0ae16168ae8d2c12c3b955fe015a7",
+    "actual_sha256": "3c6d2e74116a1fdee58fc7cd7f18d886eae0ae16168ae8d2c12c3b955fe015a7",
+    "unchanged": true
+  },
+  {
+    "path": "Code/results/tables/table_bargainingCCEI_buffers_M.tex",
+    "expected_sha256": "9a599a098d75610472fcdad534732b38593529e037dcd06de6e49b7b49ff97e3",
+    "actual_sha256": "9a599a098d75610472fcdad534732b38593529e037dcd06de6e49b7b49ff97e3",
+    "unchanged": true
+  },
+  {
+    "path": "Code/results/tables/table_bargaining_alternatives_M.tex",
+    "expected_sha256": "efa8f94680454fe447449f3cff2ce8f6035559dad8802145c9714b6329667f09",
+    "actual_sha256": "efa8f94680454fe447449f3cff2ce8f6035559dad8802145c9714b6329667f09",
+    "unchanged": true
+  },
+  {
+    "path": "Code/results/figures/figure_individual_ccei_cdf_baseline_endline.png",
+    "expected_sha256": "d4e00516d1352b6f09c8aa5d70697a611f683137695066e7ca737e4cca7b37a7",
+    "actual_sha256": "d4e00516d1352b6f09c8aa5d70697a611f683137695066e7ca737e4cca7b37a7",
+    "unchanged": true
+  },
+  {
+    "path": "Code/results/figures/ccei_bargaining_had_individual_high.png",
+    "expected_sha256": "e10ed787c15317629b34047d2cc0507c87b07aff49805308c1c92a111ad5eae5",
+    "actual_sha256": "e10ed787c15317629b34047d2cc0507c87b07aff49805308c1c92a111ad5eae5",
+    "unchanged": true
+  },
+  {
+    "path": "Code/results/figures/figure4_placebo_summary.csv",
+    "expected_sha256": "6072b81ae46ac2423471136295c3969c96027a6dcfe90d4b7944d5f11acf331f",
+    "actual_sha256": "6072b81ae46ac2423471136295c3969c96027a6dcfe90d4b7944d5f11acf331f",
+    "unchanged": true
+  },
+  {
+    "path": "Code/results/figures/figure_group_ccei_cdf_baseline_endline.png",
+    "expected_sha256": "88cf222d34808d62c057a69d6899e38aba1db72d94c3deba269bdf0ff0e7f0c5",
+    "actual_sha256": "88cf222d34808d62c057a69d6899e38aba1db72d94c3deba269bdf0ff0e7f0c5",
+    "unchanged": true
+  },
+  {
+    "path": "Code/results/figures/figure4_placebo_run_config.csv",
+    "expected_sha256": "d764d9c0dfd43b2d562f87574da41c57c0b0870706964c33a1b1fc7904ab511e",
+    "actual_sha256": "d764d9c0dfd43b2d562f87574da41c57c0b0870706964c33a1b1fc7904ab511e",
+    "unchanged": true
+  },
+  {
+    "path": "Code/results/figures/ccei_IminusM_by_higher_ccei_bar.png",
+    "expected_sha256": "22240c91d4cc9e258c0420b783455d4ce564b16fdf95604297428eadc9a0b042",
+    "actual_sha256": "22240c91d4cc9e258c0420b783455d4ce564b16fdf95604297428eadc9a0b042",
+    "unchanged": true
+  },
+  {
+    "path": "Code/results/figures/figure4_placebo_col3.pdf",
+    "expected_sha256": "b24263d0529a9fcbb46695b6dd473921401baf7fa8f8ca353a1e8c994dcda3db",
+    "actual_sha256": "b24263d0529a9fcbb46695b6dd473921401baf7fa8f8ca353a1e8c994dcda3db",
+    "unchanged": true
+  },
+  {
+    "path": "Code/results/figures/figure_group_ra_cdf_baseline_endline.png",
+    "expected_sha256": "e76344fee3a119964af8caf30164762a6ccb9d0012302e839022614fe76de783",
+    "actual_sha256": "e76344fee3a119964af8caf30164762a6ccb9d0012302e839022614fe76de783",
+    "unchanged": true
+  },
+  {
+    "path": "Code/results/figures/figure4_placebo_col2.pdf",
+    "expected_sha256": "b0988ab1508d87078eacf8dbd23d09829975e06f0626b5e98bbc0f66567622a6",
+    "actual_sha256": "b0988ab1508d87078eacf8dbd23d09829975e06f0626b5e98bbc0f66567622a6",
+    "unchanged": true
+  },
+  {
+    "path": "Code/results/figures/figure4_placebo_col6.pdf",
+    "expected_sha256": "09da743cecde1518f8126b35fcb6558f07422c22a5a2cf022ab57cbd5097731d",
+    "actual_sha256": "09da743cecde1518f8126b35fcb6558f07422c22a5a2cf022ab57cbd5097731d",
+    "unchanged": true
+  },
+  {
+    "path": "Code/results/figures/ccei_IminusM_by_higher_ccei_stats.csv",
+    "expected_sha256": "949de3939ce86ca7e595d512b70b2c1141541009d70626a37cba416af3917a8a",
+    "actual_sha256": "949de3939ce86ca7e595d512b70b2c1141541009d70626a37cba416af3917a8a",
+    "unchanged": true
+  },
+  {
+    "path": "Code/results/figures/figure4_placebo_col5.pdf",
+    "expected_sha256": "ebb960c2aef160704589b5b08174909617ec2c36a0f8682f24405d2df00e91e1",
+    "actual_sha256": "ebb960c2aef160704589b5b08174909617ec2c36a0f8682f24405d2df00e91e1",
+    "unchanged": true
+  },
+  {
+    "path": "Code/results/figures/figure4_placebo_coefficients.csv",
+    "expected_sha256": "63b2d887be785055dbaf5c48a26f32db0cb89b0225cec2b6f637f6c9c42e905b",
+    "actual_sha256": "63b2d887be785055dbaf5c48a26f32db0cb89b0225cec2b6f637f6c9c42e905b",
+    "unchanged": true
+  },
+  {
+    "path": "Code/results/figures/hist_IminusM_ig.png",
+    "expected_sha256": "8fa3366edab44f9339f35685d6476b4b2df82d605c90cfd46c3840891a381924",
+    "actual_sha256": "8fa3366edab44f9339f35685d6476b4b2df82d605c90cfd46c3840891a381924",
+    "unchanged": true
+  },
+  {
+    "path": "Code/results/figures/figure3_cluster_KS_draws.csv",
+    "expected_sha256": "6d254ab7b5293b140ac25bbbd265c56e9005f826fd8215fd34222f9e970fd5b5",
+    "actual_sha256": "6d254ab7b5293b140ac25bbbd265c56e9005f826fd8215fd34222f9e970fd5b5",
+    "unchanged": true
+  },
+  {
+    "path": "Code/results/figures/ccei_bargaining_whose_suggestion.png",
+    "expected_sha256": "36e11088be3c4067e57e92e0e46fbb38a554c8d8443dec4d566d39ecba7be2be",
+    "actual_sha256": "36e11088be3c4067e57e92e0e46fbb38a554c8d8443dec4d566d39ecba7be2be",
+    "unchanged": true
+  },
+  {
+    "path": "Code/results/figures/figure_individual_ra_cdf_baseline_endline.png",
+    "expected_sha256": "c492795fd0931e4f476eda563094150997b2f1840d52ebb1fc523bd3e8444152",
+    "actual_sha256": "c492795fd0931e4f476eda563094150997b2f1840d52ebb1fc523bd3e8444152",
+    "unchanged": true
+  },
+  {
+    "path": "Code/results/figures/figure4_placebo_coefficients.png",
+    "expected_sha256": "3be883eb95e6d190ddcb4f208eb6f8ea609a04f03e2726511fb8f97eebfccec8",
+    "actual_sha256": "3be883eb95e6d190ddcb4f208eb6f8ea609a04f03e2726511fb8f97eebfccec8",
+    "unchanged": true
+  },
+  {
+    "path": "Code/results/figures/figure4_placebo_distance.png",
+    "expected_sha256": "e563616c5886c3f2c7fe4ae47fb6af230619925b029f3486f3adfd345de75a67",
+    "actual_sha256": "e563616c5886c3f2c7fe4ae47fb6af230619925b029f3486f3adfd345de75a67",
+    "unchanged": true
+  },
+  {
+    "path": "Code/results/figures/ccei_IminusM_by_higher_ccei_cdf.png",
+    "expected_sha256": "d5912d7070d96be91c482aeba91752517025841f3c326d36657fb49d44755846",
+    "actual_sha256": "d5912d7070d96be91c482aeba91752517025841f3c326d36657fb49d44755846",
+    "unchanged": true
+  },
+  {
+    "path": "Code/results/figures/figure4_placebo_sample.dta",
+    "expected_sha256": "71ac160eb2b4ad562a2c3cd33cf18e6fd985c2fe1a04ec8c5aed30c5708e40a8",
+    "actual_sha256": "71ac160eb2b4ad562a2c3cd33cf18e6fd985c2fe1a04ec8c5aed30c5708e40a8",
+    "unchanged": true
+  },
+  {
+    "path": "Code/results/figures/figure_A7/legend.pdf",
+    "expected_sha256": "4bec07cebbd0e938ae22a3b4c197cdc65f5ea3552c2cec1527abe379905dbf66",
+    "actual_sha256": "4bec07cebbd0e938ae22a3b4c197cdc65f5ea3552c2cec1527abe379905dbf66",
+    "unchanged": true
+  },
+  {
+    "path": "Code/results/figures/figure_A7/table3_col3.pdf",
+    "expected_sha256": "767421e09ee471e7b2491b83eeae3fda5f71d83751dc38e39cffe5737946f266",
+    "actual_sha256": "767421e09ee471e7b2491b83eeae3fda5f71d83751dc38e39cffe5737946f266",
+    "unchanged": true
+  },
+  {
+    "path": "Code/results/figures/figure_A7/table3_col2.pdf",
+    "expected_sha256": "9a8c265b74022a6def5e188b3967bd6a55241f24c071e4dd4bcd6c4d7f4cc4a4",
+    "actual_sha256": "9a8c265b74022a6def5e188b3967bd6a55241f24c071e4dd4bcd6c4d7f4cc4a4",
+    "unchanged": true
+  },
+  {
+    "path": "Code/results/figures/figure_A7/table3_col6.pdf",
+    "expected_sha256": "845cae81b42d76a887dcb4bfbee4e80739a4c816bf6c6b961193c5add490663f",
+    "actual_sha256": "845cae81b42d76a887dcb4bfbee4e80739a4c816bf6c6b961193c5add490663f",
+    "unchanged": true
+  },
+  {
+    "path": "Code/results/figures/figure_A7/table3_col5.pdf",
+    "expected_sha256": "ed8f902254985eadd2af744b050ade34eceadc0f886806cee8b16f20bdc4056f",
+    "actual_sha256": "ed8f902254985eadd2af744b050ade34eceadc0f886806cee8b16f20bdc4056f",
+    "unchanged": true
+  },
+  {
+    "path": "Overleaf/tables_2025/table_bargainingCCEI_M.tex",
+    "expected_sha256": "cb11f930129fd7faa7199c467e86f90af6c9fdd19fff7fb18c78dcd5a7dcfd16",
+    "actual_sha256": "cb11f930129fd7faa7199c467e86f90af6c9fdd19fff7fb18c78dcd5a7dcfd16",
+    "unchanged": true
+  },
+  {
+    "path": "Overleaf/tables_2025/table_ccei_summary_IminusM.tex",
+    "expected_sha256": "3c44bb99ca09e19a8b684160bbf707d6d7e2fca3f5097c2e04ae5f419f624840",
+    "actual_sha256": "3c44bb99ca09e19a8b684160bbf707d6d7e2fca3f5097c2e04ae5f419f624840",
+    "unchanged": true
+  },
+  {
+    "path": "Overleaf/tables_2025/table_bargainingCCEI_mover_M.tex",
+    "expected_sha256": "88dbe7c3c8b2df228dff4ff401eff38b328702f0eb66f5efcefde833ea15470b",
+    "actual_sha256": "88dbe7c3c8b2df228dff4ff401eff38b328702f0eb66f5efcefde833ea15470b",
+    "unchanged": true
+  },
+  {
+    "path": "Overleaf/tables_2025/table_correlation_IminusM.tex",
+    "expected_sha256": "067294ef3b2c055c49764c9c9d4ac7a69815ffc2422fa4fde36be6e8b14becc5",
+    "actual_sha256": "067294ef3b2c055c49764c9c9d4ac7a69815ffc2422fa4fde36be6e8b14becc5",
+    "unchanged": true
+  },
+  {
+    "path": "Overleaf/tables_2025/table_bargainingCCEI_bothlow_M.tex",
+    "expected_sha256": "3c6d2e74116a1fdee58fc7cd7f18d886eae0ae16168ae8d2c12c3b955fe015a7",
+    "actual_sha256": "3c6d2e74116a1fdee58fc7cd7f18d886eae0ae16168ae8d2c12c3b955fe015a7",
+    "unchanged": true
+  },
+  {
+    "path": "Overleaf/tables_2025/table_bargainingCCEI_buffers_M.tex",
+    "expected_sha256": "0b1608a40593e4a5b64c777d92dd3c12d2fc098b73918a31735710cc78059d07",
+    "actual_sha256": "0b1608a40593e4a5b64c777d92dd3c12d2fc098b73918a31735710cc78059d07",
+    "unchanged": true
+  },
+  {
+    "path": "Overleaf/tables_2025/table_bargaining_alternatives_M.tex",
+    "expected_sha256": "efa8f94680454fe447449f3cff2ce8f6035559dad8802145c9714b6329667f09",
+    "actual_sha256": "efa8f94680454fe447449f3cff2ce8f6035559dad8802145c9714b6329667f09",
+    "unchanged": true
+  },
+  {
+    "path": "Overleaf/figures_2025/figure_individual_ccei_cdf_baseline_endline.png",
+    "expected_sha256": "d4e00516d1352b6f09c8aa5d70697a611f683137695066e7ca737e4cca7b37a7",
+    "actual_sha256": "d4e00516d1352b6f09c8aa5d70697a611f683137695066e7ca737e4cca7b37a7",
+    "unchanged": true
+  },
+  {
+    "path": "Overleaf/figures_2025/ccei_bargaining_had_individual_high.png",
+    "expected_sha256": "e10ed787c15317629b34047d2cc0507c87b07aff49805308c1c92a111ad5eae5",
+    "actual_sha256": "e10ed787c15317629b34047d2cc0507c87b07aff49805308c1c92a111ad5eae5",
+    "unchanged": true
+  },
+  {
+    "path": "Overleaf/figures_2025/figure_group_ccei_cdf_baseline_endline.png",
+    "expected_sha256": "88cf222d34808d62c057a69d6899e38aba1db72d94c3deba269bdf0ff0e7f0c5",
+    "actual_sha256": "88cf222d34808d62c057a69d6899e38aba1db72d94c3deba269bdf0ff0e7f0c5",
+    "unchanged": true
+  },
+  {
+    "path": "Overleaf/figures_2025/ccei_IminusM_by_higher_ccei_bar.png",
+    "expected_sha256": "22240c91d4cc9e258c0420b783455d4ce564b16fdf95604297428eadc9a0b042",
+    "actual_sha256": "22240c91d4cc9e258c0420b783455d4ce564b16fdf95604297428eadc9a0b042",
+    "unchanged": true
+  },
+  {
+    "path": "Overleaf/figures_2025/figure4_placebo_col3.pdf",
+    "expected_sha256": "b24263d0529a9fcbb46695b6dd473921401baf7fa8f8ca353a1e8c994dcda3db",
+    "actual_sha256": "b24263d0529a9fcbb46695b6dd473921401baf7fa8f8ca353a1e8c994dcda3db",
+    "unchanged": true
+  },
+  {
+    "path": "Overleaf/figures_2025/figure_group_ra_cdf_baseline_endline.png",
+    "expected_sha256": "e76344fee3a119964af8caf30164762a6ccb9d0012302e839022614fe76de783",
+    "actual_sha256": "e76344fee3a119964af8caf30164762a6ccb9d0012302e839022614fe76de783",
+    "unchanged": true
+  },
+  {
+    "path": "Overleaf/figures_2025/figure4_placebo_col2.pdf",
+    "expected_sha256": "b0988ab1508d87078eacf8dbd23d09829975e06f0626b5e98bbc0f66567622a6",
+    "actual_sha256": "b0988ab1508d87078eacf8dbd23d09829975e06f0626b5e98bbc0f66567622a6",
+    "unchanged": true
+  },
+  {
+    "path": "Overleaf/figures_2025/figure4_placebo_col6.pdf",
+    "expected_sha256": "09da743cecde1518f8126b35fcb6558f07422c22a5a2cf022ab57cbd5097731d",
+    "actual_sha256": "09da743cecde1518f8126b35fcb6558f07422c22a5a2cf022ab57cbd5097731d",
+    "unchanged": true
+  },
+  {
+    "path": "Overleaf/figures_2025/figure4_placebo_col5.pdf",
+    "expected_sha256": "ebb960c2aef160704589b5b08174909617ec2c36a0f8682f24405d2df00e91e1",
+    "actual_sha256": "ebb960c2aef160704589b5b08174909617ec2c36a0f8682f24405d2df00e91e1",
+    "unchanged": true
+  },
+  {
+    "path": "Overleaf/figures_2025/hist_IminusM_ig.png",
+    "expected_sha256": "8fa3366edab44f9339f35685d6476b4b2df82d605c90cfd46c3840891a381924",
+    "actual_sha256": "8fa3366edab44f9339f35685d6476b4b2df82d605c90cfd46c3840891a381924",
+    "unchanged": true
+  },
+  {
+    "path": "Overleaf/figures_2025/ccei_bargaining_whose_suggestion.png",
+    "expected_sha256": "36e11088be3c4067e57e92e0e46fbb38a554c8d8443dec4d566d39ecba7be2be",
+    "actual_sha256": "36e11088be3c4067e57e92e0e46fbb38a554c8d8443dec4d566d39ecba7be2be",
+    "unchanged": true
+  },
+  {
+    "path": "Overleaf/figures_2025/figure_individual_ra_cdf_baseline_endline.png",
+    "expected_sha256": "c492795fd0931e4f476eda563094150997b2f1840d52ebb1fc523bd3e8444152",
+    "actual_sha256": "c492795fd0931e4f476eda563094150997b2f1840d52ebb1fc523bd3e8444152",
+    "unchanged": true
+  },
+  {
+    "path": "Overleaf/figures_2025/figure4_placebo_coefficients.png",
+    "expected_sha256": "3be883eb95e6d190ddcb4f208eb6f8ea609a04f03e2726511fb8f97eebfccec8",
+    "actual_sha256": "3be883eb95e6d190ddcb4f208eb6f8ea609a04f03e2726511fb8f97eebfccec8",
+    "unchanged": true
+  },
+  {
+    "path": "Overleaf/figures_2025/figure4_placebo_distance.png",
+    "expected_sha256": "e563616c5886c3f2c7fe4ae47fb6af230619925b029f3486f3adfd345de75a67",
+    "actual_sha256": "e563616c5886c3f2c7fe4ae47fb6af230619925b029f3486f3adfd345de75a67",
+    "unchanged": true
+  },
+  {
+    "path": "Overleaf/figures_2025/ccei_IminusM_by_higher_ccei_cdf.png",
+    "expected_sha256": "d5912d7070d96be91c482aeba91752517025841f3c326d36657fb49d44755846",
+    "actual_sha256": "d5912d7070d96be91c482aeba91752517025841f3c326d36657fb49d44755846",
+    "unchanged": true
+  },
+  {
+    "path": "Overleaf/figures_2025/figure_A7/legend.pdf",
+    "expected_sha256": "4bec07cebbd0e938ae22a3b4c197cdc65f5ea3552c2cec1527abe379905dbf66",
+    "actual_sha256": "4bec07cebbd0e938ae22a3b4c197cdc65f5ea3552c2cec1527abe379905dbf66",
+    "unchanged": true
+  },
+  {
+    "path": "Overleaf/figures_2025/figure_A7/table3_col3.pdf",
+    "expected_sha256": "767421e09ee471e7b2491b83eeae3fda5f71d83751dc38e39cffe5737946f266",
+    "actual_sha256": "767421e09ee471e7b2491b83eeae3fda5f71d83751dc38e39cffe5737946f266",
+    "unchanged": true
+  },
+  {
+    "path": "Overleaf/figures_2025/figure_A7/table3_col2.pdf",
+    "expected_sha256": "9a8c265b74022a6def5e188b3967bd6a55241f24c071e4dd4bcd6c4d7f4cc4a4",
+    "actual_sha256": "9a8c265b74022a6def5e188b3967bd6a55241f24c071e4dd4bcd6c4d7f4cc4a4",
+    "unchanged": true
+  },
+  {
+    "path": "Overleaf/figures_2025/figure_A7/table3_col6.pdf",
+    "expected_sha256": "845cae81b42d76a887dcb4bfbee4e80739a4c816bf6c6b961193c5add490663f",
+    "actual_sha256": "845cae81b42d76a887dcb4bfbee4e80739a4c816bf6c6b961193c5add490663f",
+    "unchanged": true
+  },
+  {
+    "path": "Overleaf/figures_2025/figure_A7/table3_col5.pdf",
+    "expected_sha256": "ed8f902254985eadd2af744b050ade34eceadc0f886806cee8b16f20bdc4056f",
+    "actual_sha256": "ed8f902254985eadd2af744b050ade34eceadc0f886806cee8b16f20bdc4056f",
+    "unchanged": true
+  }
+]

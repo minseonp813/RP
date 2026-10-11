@@ -19,7 +19,7 @@ parser.add_argument('--json-output', type=Path, help='Defaults to validation.jso
 args = parser.parse_args()
 if args.json_output is None:
     args.json_output = args.output_dir / 'validation.json'
-spec = importlib.util.spec_from_file_location('rp_alpha_driver_validation', code / '99_17_alpha_i_minus_m.py')
+spec = importlib.util.spec_from_file_location('rp_alpha_driver_validation', code / '99_6_alpha_i_minus_m.py')
 driver = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = driver
 spec.loader.exec_module(driver)

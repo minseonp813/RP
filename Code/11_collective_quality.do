@@ -136,47 +136,58 @@ preserve
     export delimited using "`out'/table5_diagnostics.csv", replace
 restore
 
-* Figure 8 AMEs: four joint outcomes with both members' individual CCEIs.
-collective_multinomial_ame joint_category, controls($t5_group $t5_friend $t5_share) base(1)
-assert r(n)==1304 & r(pairs)==652 & r(clusters)==64
-matrix effects = r(effects)
-estimates save "`out'/joint_outcome_model.ster", replace
-* Independently evaluate derivatives of fitted category probabilities.
-forvalues member=1/2 {
-    local x ccei_max_01
-    if `member'==2 local x ccei_min_01
-    gen double original_x = `x'
-    replace `x' = original_x+1e-5
-    forvalues category=1/4 {
-        predict double hi`category', pr outcome(`category')
-    }
-    replace `x' = original_x-1e-5
-    forvalues category=1/4 {
-        predict double lo`category', pr outcome(`category')
-        gen double derivative = (hi`category'-lo`category')/(2e-5)
-        quietly summarize derivative, meanonly
-        assert abs(r(mean)-effects[`category',4*(`member'-1)+1])<1e-8
-        drop derivative hi`category' lo`category'
-    }
-    replace `x' = original_x
-    drop original_x
-}
+* Appendix multinomial-logit AMEs: class FE and class FE with full controls.
 tempname ames
 tempfile ame_results
-postfile `ames' byte outcome str7 member double estimate double se double low ///
+postfile `ames' str13 specification byte outcome str7 member double estimate double se double low ///
     double high double share long n long pairs long clusters using `ame_results'
-forvalues category=1/4 {
+foreach specification in class_fe full_controls {
+    local controls ""
+    local model "joint_outcome_model_class_fe"
+    if "`specification'"=="full_controls" {
+        local controls "controls($t5_group $t5_friend $t5_share)"
+        local model "joint_outcome_model"
+    }
+    collective_multinomial_ame joint_category, base(1) `controls'
+    assert r(n)==1304 & r(pairs)==652 & r(clusters)==64
+    matrix effects = r(effects)
+    estimates save "`out'/`model'.ster", replace
+    * Independently evaluate derivatives of fitted category probabilities.
     forvalues member=1/2 {
-        local name = cond(`member'==1,"maximum","minimum")
-        local start = 4*(`member'-1)
-        post `ames' (`category') ("`name'") ///
-            (effects[`category',`start'+1]) (effects[`category',`start'+2]) ///
-            (effects[`category',`start'+3]) (effects[`category',`start'+4]) ///
-            (effects[`category',9]) (1304) (652) (64)
+        local x ccei_max_01
+        if `member'==2 local x ccei_min_01
+        gen double original_x = `x'
+        replace `x' = original_x+1e-5
+        forvalues category=1/4 {
+            predict double hi`category', pr outcome(`category')
+        }
+        replace `x' = original_x-1e-5
+        forvalues category=1/4 {
+            predict double lo`category', pr outcome(`category')
+            gen double derivative = (hi`category'-lo`category')/(2e-5)
+            quietly summarize derivative, meanonly
+            assert abs(r(mean)-effects[`category',4*(`member'-1)+1])<1e-8
+            drop derivative hi`category' lo`category'
+        }
+        replace `x' = original_x
+        drop original_x
+    }
+    forvalues category=1/4 {
+        forvalues member=1/2 {
+            local name = cond(`member'==1,"maximum","minimum")
+            local start = 4*(`member'-1)
+            post `ames' ("`specification'") (`category') ("`name'") ///
+                (effects[`category',`start'+1]) (effects[`category',`start'+2]) ///
+                (effects[`category',`start'+3]) (effects[`category',`start'+4]) ///
+                (effects[`category',9]) (1304) (652) (64)
+        }
     }
 }
 postclose `ames'
 use `ame_results', clear
 export delimited using "`out'/joint_outcome_ame.csv", replace
-di as result "SUCCESS: all twelve table models and the joint-outcome model passed sample and inference checks."
+di as result "SUCCESS: all twelve table models and both joint-outcome models passed sample and inference checks."
 log close
+
+* Main Figure 8 uses the same sample in three linear probability specifications.
+do "11_2_collective_quality_linear.do"

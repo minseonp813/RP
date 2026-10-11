@@ -63,93 +63,53 @@ paper_theme <- theme_minimal(base_size = 14) +
 ################################################################################
 # Figure 3: Revealed Preference Distance By Members' CCEI
 # I-M means/CDFs use all 2,560 defined student-waves, ties assigned High,
-# class-clustered mean inference and 9,999 centered whole-class KS draws.
+# class-adjusted category means with normal SD/sqrt(n) intervals,
+# class-clustered CR1 contrasts and ordinary two-sample KS tests.
 # This section runs independently after loading haven, ggplot2, dplyr and grid,
 # and defining code_dir, result_dir, figure_dir, paper_theme and sig_mark above.
 ################################################################################
 
+source(file.path(code_dir, "programs/class_fe_category_summary.R"))
 distance_panel <- read_dta(file.path(code_dir,
-  "IminusM_review/outputs/data/ccei_ra_candidate_analysis.dta"))
+  "data/panel_individual.dta"))
 stopifnot(nrow(distance_panel) == 2608, all(distance_panel$n_ccei_donors == 651),
           !anyDuplicated(distance_panel[c("id", "post")]))
 distance_panel$member <- factor(ifelse(distance_panel$HighCCEI_both_high == 1,
   "Higher CCEI", "Lower CCEI"), levels = c("Lower CCEI", "Higher CCEI"))
 
-# Center the bootstrap CDF difference to approximate the equality null.
-# Each draw resamples whole classes jointly across both member groups and waves.
-clustered_ks_test <- function(y, higher, cluster, repetitions = 9999L, seed = 20260812L) {
-  stopifnot(!anyNA(y), !anyNA(higher), !anyNA(cluster), all(higher %in% c(FALSE, TRUE)))
-  grid <- sort(unique(y))
-  k <- length(grid)
-  class_index <- match(cluster, unique(cluster))
-  clusters <- max(class_index)
-  y_index <- match(y, grid)
-  counts <- lapply(c(FALSE, TRUE), function(group) {
-    use <- higher == group
-    histogram <- matrix(tabulate(y_index[use] + (class_index[use] - 1L) * k,
-                                 nbins = k * clusters), nrow = k)
-    apply(histogram, 2, cumsum)
-  })
-  group_n <- lapply(counts, function(x) x[k, ])
-  difference <- rowSums(counts[[2]]) / sum(group_n[[2]]) -
-    rowSums(counts[[1]]) / sum(group_n[[1]])
-  observed <- max(abs(difference))
-  set.seed(seed)
-  weights <- rmultinom(repetitions, size = clusters, prob = rep(1 / clusters, clusters))
-  draws <- numeric(repetitions)
-  # Batch draws to avoid storing all bootstrapped CDFs at once.
-  for (first in seq.int(1L, repetitions, by = 250L)) {
-    indices <- first:min(first + 249L, repetitions)
-    w <- weights[, indices, drop = FALSE]
-    n_low <- as.vector(group_n[[1]] %*% w)
-    n_high <- as.vector(group_n[[2]] %*% w)
-    stopifnot(all(n_low > 0), all(n_high > 0))
-    boot_difference <- sweep(counts[[2]] %*% w, 2, n_high, "/") -
-      sweep(counts[[1]] %*% w, 2, n_low, "/")
-    draws[indices] <- apply(abs(sweep(boot_difference, 1, difference, "-")), 2, max)
-  }
-  exceedances <- sum(draws >= observed)
-  list(statistic = observed, p.value = (1 + exceedances) / (repetitions + 1),
-       draws = data.frame(replication = seq_len(repetitions), centered_D = draws),
-       repetitions = repetitions, seed = seed, clusters = clusters, exceedances = exceedances)
-}
-
 adjusted_distance_plots <- function(data, value, mean_label, distance_label) {
-  stats <- data |>
-    group_by(member) |>
-    summarise(mean = mean(.data[[value]]), sd = sd(.data[[value]]), n = n(),
-              .groups = "drop")
-  mean_fit <- fixest::feols(reformulate("member", value, intercept = FALSE),
-    data = data, vcov = ~class,
-    ssc = fixest::ssc(K.adj = TRUE, G.adj = TRUE, t.df = "min"))
+  summary <- class_fe_category_summary(data, value, "member", "Lower CCEI")
+  stats <- rename(summary$stats, member = category)
+  mean_fit <- summary$fit
+  data$class_adjusted <- summary$adjusted
   clusters <- length(unique(data$class))
   df <- clusters - 1L
-  stopifnot(clusters == 64L, nobs(mean_fit) == nrow(data),
-            max(abs(unname(coef(mean_fit)) - stats$mean)) < 1e-12)
-  stats$se <- unname(fixest::se(mean_fit))
-  stats$ci <- qt(.975, df) * stats$se
-  contrast <- c(-1, 1)
+  stopifnot(clusters == 64L)
+  contrast <- summary$category_X["Higher CCEI", ] - summary$category_X["Lower CCEI", ]
   difference_se <- sqrt(drop(t(contrast) %*% vcov(mean_fit) %*% contrast))
-  ks <- clustered_ks_test(data[[value]], data$member == "Higher CCEI", data$class)
-  difference <- stats$mean[stats$member == "Higher CCEI"] -
-    stats$mean[stats$member == "Lower CCEI"]
+  ks <- suppressWarnings(stats::ks.test(
+    data$class_adjusted[data$member == "Lower CCEI"],
+    data$class_adjusted[data$member == "Higher CCEI"],
+    alternative = "two.sided", exact = FALSE))
+  difference <- sum(contrast * coef(mean_fit))
   difference_p <- 2 * pt(-abs(difference / difference_se), df)
-  y_min <- min(0, min(stats$mean - stats$ci) - .02)
-  y_max <- max(0, max(stats$mean + stats$ci) + .04)
+  y_min <- min(0, min(stats$low) - .02)
+  y_max <- max(0, max(stats$high) + .04)
   bar <- ggplot(stats, aes(member, mean, fill = member)) +
     geom_col(width = .62, colour = "black", linewidth = .3) +
-    geom_errorbar(aes(ymin = mean - ci, ymax = mean + ci), width = .16) +
+    geom_errorbar(aes(ymin = low, ymax = high), width = .16) +
     geom_hline(yintercept = 0, colour = "grey45", linewidth = .4) +
     annotate("text", x = 1.5, y = y_max,
       label = sprintf("High - low = %.3f%s", difference, sig_mark(difference_p)), size = 4.4) +
     scale_fill_manual(values = c("Lower CCEI" = "#D99A99", "Higher CCEI" = "#80ADD0")) +
+    scale_y_continuous(breaks = seq(-.05, .10, .05)) +
     coord_cartesian(ylim = c(y_min, y_max + .015)) +
     labs(x = NULL, y = mean_label) + paper_theme +
-    theme(legend.position = "none")
-  cdf <- ggplot(data, aes(.data[[value]], colour = member, linetype = member)) +
+    theme(legend.position = "none", axis.title.y = element_text(size = 13))
+  cdf <- ggplot(data, aes(class_adjusted, colour = member, linetype = member)) +
     stat_ecdf(geom = "step", linewidth = .85, pad = FALSE) +
     annotate("text", x = .92, y = .12, hjust = 1, size = 4.4,
-      label = sprintf("KS: D = %.3f\nClass-bootstrap %s", unname(ks$statistic),
+      label = sprintf("KS: D = %.3f\n%s", ks$statistic,
         if (ks$p.value < .001) "p < 0.001" else sprintf("p = %.3f", ks$p.value))) +
     geom_vline(xintercept = 0, colour = "grey65", linewidth = .4) +
     scale_colour_manual(values = c("Lower CCEI" = "red", "Higher CCEI" = "blue")) +
@@ -157,35 +117,31 @@ adjusted_distance_plots <- function(data, value, mean_label, distance_label) {
     scale_x_continuous(limits = c(-1, 1), breaks = seq(-1, 1, .25), expand = c(0, 0)) +
     scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, .25), expand = c(0, 0)) +
     labs(x = distance_label, y = "Cumulative probability", colour = NULL, linetype = NULL) +
-    paper_theme + theme(legend.position = c(.2, .84),
+    paper_theme + theme(legend.position = "inside", legend.position.inside = c(.2, .84),
+      plot.margin = margin(5.5, 14, 5.5, 5.5),
       legend.background = element_rect(fill = "white", colour = "black"))
   stats$high_minus_low <- difference
   stats$difference_se <- difference_se
   stats$difference_p <- difference_p
-  stats$clusters <- clusters
-  stats$df <- df
-  stats$ks_D <- unname(ks$statistic)
-  stats$ks_p <- ks$p.value
-  stats$ks_exceedances <- ks$exceedances
-  stats$ks_repetitions <- ks$repetitions
-  stats$ks_seed <- ks$seed
-  stats$mean_inference <- "Class-clustered OLS, CR1, t(63)"
-  stats$ks_inference <- "Centered pairs bootstrap of classes"
-  list(bar = bar, cdf = cdf, stats = stats, ks_draws = ks$draws)
+  stats$pooled_sd <- sd(data[[value]])
+  stats$difference_pct_sd <- 100 * abs(difference) / stats$pooled_sd
+  stats$cdf_D <- unname(ks$statistic)
+  stats$cdf_p <- ks$p.value
+  stats$difference_inference <- "Class-FE contrast, class-clustered CR1, t(63)"
+  stats$cdf_inference <- "Asymptotic two-sample KS; adjusted outcomes treated as observed"
+  list(bar = bar, cdf = cdf, stats = stats)
 }
 
 actual_distance_data <- filter(distance_panel, !is.na(Istar_ccei))
 stopifnot(nrow(actual_distance_data) == 2560)
 figure3 <- adjusted_distance_plots(actual_distance_data, "Istar_ccei",
-  expression("Mean placebo-adjusted distance " * (I-M)),
-  expression("Placebo-adjusted distance " * (I-M)))
+  "Mean Placebo-adjusted Revealed Preference Distance",
+  "Placebo-adjusted Revealed Preference Distance")
 ggsave(file.path(figure_dir, "ccei_IminusM_by_higher_ccei_bar.png"), figure3$bar,
        width = 6, height = 5, dpi = 300)
 ggsave(file.path(figure_dir, "ccei_IminusM_by_higher_ccei_cdf.png"), figure3$cdf,
        width = 6, height = 5, dpi = 300)
 write.csv(figure3$stats, file.path(figure_dir, "ccei_IminusM_by_higher_ccei_stats.csv"),
-          row.names = FALSE)
-write.csv(figure3$ks_draws, file.path(figure_dir, "figure3_cluster_KS_draws.csv"),
           row.names = FALSE)
 for (panel in c("bar", "cdf")) {
   filename <- sprintf("ccei_IminusM_by_higher_ccei_%s.png", panel)
@@ -767,7 +723,9 @@ print(bind_rows(appendix_counts))
 
 # Saved inputs are generated by 11_collective_quality.do.
 # To run alone, load haven/ggplot2/dplyr/grid, define paper_theme, sig_mark and
-# clustered_ks_test from above, and set code_dir to Code. Inference matches Figure 3.
+# set code_dir to Code. Class-FE adjustment and inference match Figure 3:
+# normal SD/sqrt(n) bar CIs, class-clustered mean contrasts and ordinary KS tests.
+source(file.path(code_dir, "programs/class_fe_category_summary.R"))
 collective_result_dir <- file.path(code_dir, "results/collective_quality")
 collective_figure_dir <- file.path(code_dir, "results/figures/collective_rationality")
 dir.create(collective_figure_dir, recursive = TRUE, showWarnings = FALSE)
@@ -787,61 +745,46 @@ dir.create(draft_figure_dir, recursive = TRUE, showWarnings = FALSE)
 for (outcome in c("ccei", "ceiv")) {
   variable <- paste0(outcome, "_g")
   title <- toupper(outcome)
-  category_stats <- category_data |>
-    group_by(pair_category) |>
-    summarise(mean = mean(.data[[variable]]), sd = sd(.data[[variable]]), n = n(),
-              .groups = "drop")
-  mean_fit <- fixest::feols(reformulate("pair_category", variable, intercept = FALSE),
-    data = category_data, vcov = ~class,
-    ssc = fixest::ssc(K.adj = TRUE, G.adj = TRUE, t.df = "min"))
+  category_summary <- class_fe_category_summary(category_data, variable, "pair_category", "Low-High")
+  category_stats <- rename(category_summary$stats, pair_category = category)
+  mean_fit <- category_summary$fit
+  category_data$class_adjusted <- category_summary$adjusted
   clusters <- n_distinct(category_data$class)
   df <- clusters - 1L
-  stopifnot(clusters == 64L, nobs(mean_fit) == nrow(category_data),
-            max(abs(unname(coef(mean_fit)) - category_stats$mean)) < 1e-12)
-  category_stats$se <- unname(fixest::se(mean_fit))
-  category_stats$ci <- qt(.975, df) * category_stats$se
-  category_stats$clusters <- clusters
-  category_stats$df <- df
-  category_stats$mean_inference <- "Class-clustered OLS, CR1, t(63)"
+  stopifnot(clusters == 64L)
   write.csv(category_stats, file.path(collective_result_dir, paste0("group_", outcome, "_category_means.csv")), row.names = FALSE)
   category_comparisons <- list(c("Low-Low", "Low-High"), c("Low-High", "High-High"), c("Low-Low", "High-High"))
   category_diffs <- list()
-  category_ks_draws <- list()
   for (i in seq_along(category_comparisons)) {
     categories <- category_comparisons[[i]]
-    contrast <- as.numeric(levels(category_data$pair_category) == categories[2]) -
-      as.numeric(levels(category_data$pair_category) == categories[1])
+    contrast <- category_summary$category_X[categories[2], ] - category_summary$category_X[categories[1], ]
     difference <- sum(contrast * coef(mean_fit))
     difference_se <- sqrt(drop(t(contrast) %*% vcov(mean_fit) %*% contrast))
     p <- 2 * pt(-abs(difference / difference_se), df)
-    subset <- filter(category_data, pair_category %in% categories)
-    ks <- clustered_ks_test(subset[[variable]], subset$pair_category == categories[2], subset$class)
-    category_ks_draws[[i]] <-
-      mutate(ks$draws, lower = categories[1], upper = categories[2])
+    comparison_data <- filter(category_data, pair_category %in% categories)
+    ks <- suppressWarnings(stats::ks.test(
+      comparison_data$class_adjusted[comparison_data$pair_category == categories[1]],
+      comparison_data$class_adjusted[comparison_data$pair_category == categories[2]],
+      alternative = "two.sided", exact = FALSE))
     category_diffs[[i]] <- data.frame(lower = categories[1], upper = categories[2], difference = difference,
                se = difference_se, p = p, clusters = clusters, df = df,
                label = sprintf("Diff. = %.3f%s", difference, sig_mark(p)),
-               ks_D = ks$statistic, ks_p = ks$p.value, ks_clusters = ks$clusters,
-               ks_repetitions = ks$repetitions, ks_seed = ks$seed, ks_exceedances = ks$exceedances,
-               mean_inference = "Class-clustered OLS contrast, CR1, t(63)",
-               ks_inference = "Centered pairs bootstrap of classes")
+               cdf_D = unname(ks$statistic), cdf_p = ks$p.value,
+               mean_inference = "Class-FE contrast, class-clustered CR1, t(63)",
+               cdf_inference = "Asymptotic two-sample KS; adjusted outcomes treated as observed")
   }
   category_diffs <- bind_rows(category_diffs)
   write.csv(category_diffs, file.path(collective_result_dir, paste0("group_", outcome, "_category_differences.csv")), row.names = FALSE)
-  write.csv(bind_rows(category_ks_draws),
-            file.path(collective_result_dir, paste0("group_", outcome, "_cluster_KS_draws.csv")), row.names = FALSE)
-
-  category_y_min <- max(.75, floor((min(category_stats$mean - category_stats$ci) - .02) * 100) / 100)
-  category_y_top <- max(category_stats$mean + category_stats$ci)
+  category_y_top <- max(category_stats$high)
   category_bracket_low <- category_y_top + .025
   category_bracket_high <- category_y_top + .070
   bar <- ggplot(category_stats, aes(pair_category, mean, fill = pair_category)) +
     geom_col(width = .62, colour = "black", linewidth = .3) +
-    geom_errorbar(aes(ymin = mean - ci, ymax = mean + ci), width = .16, linewidth = .45) +
+    geom_errorbar(aes(ymin = low, ymax = high), width = .16, linewidth = .45) +
     scale_fill_manual(values = c("Low-Low" = "#D99A99", "Low-High" = "#D8C98C", "High-High" = "#80ADD0")) +
     scale_x_discrete(labels = c("Low-Low" = "Low\nLow", "Low-High" = "Low\nHigh", "High-High" = "High\nHigh")) +
     scale_y_continuous(breaks = seq(.85, 1, .05), labels = scales::label_number(accuracy = .01), expand = c(0, 0)) +
-    coord_cartesian(ylim = c(category_y_min, category_bracket_high + .035)) +
+    coord_cartesian(ylim = c(.84, 1.08)) +
     labs(x = NULL, y = paste("Mean Collective", title)) +
     paper_theme +
     theme(legend.position = "none",
@@ -857,18 +800,19 @@ for (outcome in c("ccei", "ceiv")) {
       annotate("label", x = mean(c(x1, x2)), y = y + .012,
                label = category_diffs$label[i], size = 4.2, fill = "white")
   }
-  ks_labels <- sprintf("%s vs %s: D = %.3f, %s",
-    c("LL", "LH", "LL"), c("LH", "HH", "HH"), category_diffs$ks_D,
-    ifelse(category_diffs$ks_p < .001, "p < 0.001", sprintf("p = %.3f", category_diffs$ks_p)))
-  cdf <- ggplot(category_data, aes(.data[[variable]], colour = pair_category, linetype = pair_category)) +
+  cdf_comparisons <- category_diffs[1:2, ]
+  cdf_labels <- sprintf("%s vs %s:\nD = %.3f, %s",
+    cdf_comparisons$lower, cdf_comparisons$upper, cdf_comparisons$cdf_D,
+    ifelse(cdf_comparisons$cdf_p < .001, "p < 0.001", sprintf("p = %.3f", cdf_comparisons$cdf_p)))
+  cdf <- ggplot(category_data, aes(class_adjusted, colour = pair_category, linetype = pair_category)) +
     stat_ecdf(geom = "step", linewidth = .9, pad = FALSE) +
     annotate("text", x = .035, y = .48, hjust = 0, vjust = 1, size = 3.8,
-      label = paste(c("KS tests (class bootstrap)", ks_labels), collapse = "\n")) +
+      label = paste(c("KS tests", cdf_labels), collapse = "\n")) +
     scale_colour_manual(values = c("Low-Low" = "red", "Low-High" = "grey45", "High-High" = "blue")) +
     scale_linetype_manual(values = c("Low-Low" = "dashed", "Low-High" = "dotdash", "High-High" = "solid")) +
-    scale_x_continuous(breaks = seq(0, 1, .25), expand = c(0, 0)) +
+    scale_x_continuous(breaks = c(seq(0, 1, .25), 1.2), expand = c(0, 0)) +
     scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, .25), expand = c(0, 0)) +
-    coord_cartesian(xlim = c(0, 1)) +
+    coord_cartesian(xlim = c(0, 1.2)) +
     labs(x = paste("Collective", title), y = "Cumulative probability", colour = NULL, linetype = NULL) +
     paper_theme +
     theme(legend.position = "inside", legend.position.inside = c(.02, .98),
@@ -895,7 +839,7 @@ for (outcome in c("ccei", "ceiv")) {
             vp = viewport(layout.pos.row = 3, layout.pos.col = 1))
   grid.text(paste("(b) CDF of Collective", title), gp = gpar(fontsize = 15),
             vp = viewport(layout.pos.row = 3, layout.pos.col = 2))
-  grid.text(sprintf("High: individual CCEI above pooled median %.7f across both waves. N = 1,304 pair-waves.\nLL / LH / HH: %s. 95%% class-clustered t intervals/tests; 9,999 whole-class KS draws. + p < .10, * p < .05, ** p < .01.",
+  grid.text(sprintf("High: individual CCEI above pooled median %.7f across both waves. N = 1,304 pair-waves.\nLow-Low / Low-High / High-High: %s. Class FE; 95%% normal mean intervals; clustered t tests; ordinary KS tests. + p < .10, * p < .05, ** p < .01.",
                     category_pooled_median, paste(category_stats$n, collapse = " / ")),
             gp = gpar(fontsize = 11, col = "grey30"),
             vp = viewport(layout.pos.row = 4, layout.pos.col = 1:2))
@@ -912,86 +856,7 @@ cat("Pooled individual CCEI median:", category_pooled_median, "\n")
 # Figure 8: Individual Rationality And Joint Collective Outcomes
 ################################################################################
 
-# Saved inputs are generated by 11_collective_quality.do; image filenames retain their legacy figure6 prefix.
-# To run this section alone, load ggplot2 and set code_dir to the Code folder.
-# The same plotter supports the saved risk-aversion and communication splits.
-plot_cei_ame <- function(input, output_dir, classification = "original", portrait = FALSE) {
-  stopifnot(classification %in% c("original", "a", "b"))
-  n_categories <- if (classification == "b") 3L else 4L
-  prefix <- if (classification == "original") "cei" else paste0("figure6_", classification)
-  d <- read.csv(input)
-  split_sample <- "ra_high" %in% names(d)
-  communication_split <- all(c("moderator", "group") %in% names(d))
-  split_fields <- if (communication_split) c("moderator", "group") else if (split_sample) "ra_high" else character()
-  panels <- if (length(split_fields)) unique(d[split_fields]) else data.frame(panel = 1)
-  keys <- c(split_fields, "outcome", "member")
-  sum_groups <- if (length(split_fields)) do.call(interaction, c(d[c(split_fields, "member")], list(drop = TRUE))) else d$member
-  stopifnot(nrow(d) == 2 * n_categories * nrow(panels), !anyDuplicated(d[keys]),
-            all(is.finite(as.matrix(d[c("estimate", "low", "high")]))),
-            all(abs(tapply(d$estimate, sum_groups, sum)) < 1e-8))
-  d[c("estimate", "low", "high")] <- 100 * d[c("estimate", "low", "high")]
-  d$outcome <- factor(d$outcome, levels = n_categories:1)
-  outcome_labels <- c("1" = "CCEI < 1\nCEI < 1", "2" = "CCEI = 1\nCEI < 1",
-                      "3" = "CCEI < 1\nCEI = 1", "4" = "CCEI = 1\nCEI = 1")
-
-  if (classification == "a") {
-    outcome_labels <- c("1" = "CCEI < 1\nCEIV < 1", "2" = "CCEI = 1\nCEIV < 1",
-                        "3" = "CCEI < 1\nCEIV = 1", "4" = "CCEI = 1\nCEIV = 1")
-  }
-  if (classification == "b") {
-    outcome_labels <- c("1" = "CEIV < 1\nCEIC < 1", "2" = "CEIV = 1\nCEIC < 1",
-                        "3" = "CEIV = 1\nCEIC = 1")
-  }
-  # Use a common axis across split samples, expanding only when their intervals require it.
-  limits <- c(-20, 30)
-  if (length(split_fields)) limits <- c(min(-20, floor(min(d$low) / 10) * 10),
-                               max(30, ceiling(max(d$high) / 10) * 10))
-  stopifnot(all(d$low >= limits[1]), all(d$high <= limits[2]))
-
-  # Match 07_Figures_Main.R: base size 14, white background, blue/red members,
-  # no redundant legend; titles, panel captions, and notes belong in LaTeX.
-  paper_theme <- theme_minimal(base_size = 14) +
-    theme(panel.grid.minor = element_blank(),
-          panel.grid.major.y = element_blank(),
-          plot.background = element_rect(fill = "white", colour = NA),
-          axis.text.y = element_text(colour = "black"),
-          axis.title.x = element_text(margin = margin(t = 8)),
-          plot.margin = margin(8, 12, 6, 6))
-  member_colours <- c(maximum = "blue", minimum = "red")
-  dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
-  output_files <- character()
-  for (panel in seq_len(nrow(panels))) {
-    keep <- rep(TRUE, nrow(d))
-    for (field in split_fields) keep <- keep & d[[field]] == panels[[field]][panel]
-    sample <- d[keep, ]
-    sample_prefix <- if (communication_split) paste(prefix, panels$moderator[panel], panels$group[panel], sep = "_") else
-      if (split_sample) paste0(prefix, "_", c("similar", "different")[panels$ra_high[panel] + 1]) else prefix
-    for (member in names(member_colours)) {
-      p <- ggplot(sample[sample$member == member, ], aes(estimate, outcome)) +
-        geom_vline(xintercept = 0, colour = "grey55", linewidth = 0.35) +
-        geom_errorbar(aes(xmin = low, xmax = high), orientation = "y",
-                      width = 0.12, linewidth = 0.55, colour = "grey35") +
-        geom_point(size = 3, colour = member_colours[member]) +
-        scale_x_continuous(limits = limits, breaks = seq(limits[1], limits[2], 10)) +
-        scale_y_discrete(labels = outcome_labels, expand = expansion(add = 0.55)) +
-        labs(x = "Average marginal effect (percentage points)", y = NULL) +
-        paper_theme
-      output_file <- file.path(output_dir, paste0(sample_prefix, "_ame_", member, ".png"))
-      ggsave(output_file, p,
-             width = if (portrait) 5.5 else 6, height = if (portrait) 3 else 5, dpi = 300)
-      output_files <- c(output_files, output_file)
-    }
-  }
-  invisible(output_files)
-}
-
-collective_result_dir <- file.path(code_dir, "results/collective_quality")
-collective_figure_dir <- file.path(code_dir, "results/figures/collective_rationality")
-dir.create(collective_figure_dir, recursive = TRUE, showWarnings = FALSE)
-ame_files <- plot_cei_ame(file.path(collective_result_dir, "joint_outcome_ame.csv"),
-                          collective_figure_dir, classification = "a", portrait = TRUE)
-draft_figure_dir <- file.path(code_dir, "..", "Overleaf/figures_2025/collective_rationality")
-dir.create(draft_figure_dir, recursive = TRUE, showWarnings = FALSE)
-stopifnot(file.copy(ame_files, file.path(draft_figure_dir, basename(ame_files)), overwrite = TRUE))
+# Generate the three-specification LPM main figure and the multinomial-logit appendix figure.
+source(file.path(code_dir, "11_3_collective_quality_plots.R"))
 
 message("07_Figures_Main.R completed. Outputs: ", file.path(code_dir, "results"))
